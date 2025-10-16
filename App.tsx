@@ -1,20 +1,37 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import 'react-native-reanimated';
+import './global.css';
+import 'react-native-css-interop/jsx-runtime';
+import React, { useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './src/lib/queryClient';
+import { initLocal } from './src/lib/sqlite';
+import { posthog, EVENTS } from './src/config/posthog';
+import './src/config/sentry';
+import HomeScreen from './src/screens/home/HomeScreen';
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
+  useEffect(() => {
+    initLocal();
+    posthog?.capture(EVENTS.APP_OPEN);
+    console.log('[App] Initialized');
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <QueryClientProvider client={queryClient}>
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: '#FAFAFA' },
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </QueryClientProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

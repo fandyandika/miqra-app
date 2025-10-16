@@ -1,8 +1,24 @@
 import * as SQLite from 'expo-sqlite';
+import { Platform } from 'react-native';
 
-const db = SQLite.openDatabaseSync('miqra.db');
+// Only initialize SQLite on native platforms
+let db: SQLite.SQLiteDatabase | null = null;
+
+if (Platform.OS !== 'web') {
+  db = SQLite.openDatabaseSync('miqra.db');
+}
 
 export function initLocal() {
+  if (Platform.OS === 'web') {
+    console.log('[SQLite] Web platform - using localStorage fallback');
+    return null;
+  }
+  
+  if (!db) {
+    console.warn('[SQLite] Database not initialized');
+    return null;
+  }
+  
   db.execSync(`
       create table if not exists pending_checkins(
         id integer primary key autoincrement,
@@ -21,24 +37,49 @@ export function initLocal() {
 }
 
 export function queueCheckin(payload: object) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - checkin queued in memory');
+    return;
+  }
+  
   const stmt = db.prepareSync('insert into pending_checkins (payload_json, created_at) values (?, ?)');
   stmt.executeSync(JSON.stringify(payload), Date.now());
 }
 
 export function popPending(limit = 10) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - no pending checkins');
+    return [];
+  }
+  
   const rows = db.getAllSync('select id, payload_json from pending_checkins order by id asc limit ?', [limit]);
   return rows as { id: number; payload_json: string }[];
 }
 
 export function deletePending(id: number) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - no pending checkins to delete');
+    return;
+  }
+  
   db.runSync('delete from pending_checkins where id = ?', [id]);
 }
 
 export function cacheCheckin(userId: string, date: string, ayatCount: number) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - checkin cached in memory');
+    return;
+  }
+  
   db.runSync('insert or replace into recent_checkins (user_id, date, ayat_count) values (?, ?, ?)', [userId, date, ayatCount]);
 }
 
 export function getRecentCheckins(userId: string, days = 30) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - no recent checkins');
+    return [];
+  }
+  
   const rows = db.getAllSync('select * from recent_checkins where user_id = ? order by date desc limit ?', [userId, days]);
   return rows as { user_id: string; date: string; ayat_count: number }[];
 }
