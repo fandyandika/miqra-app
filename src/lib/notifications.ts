@@ -1,15 +1,25 @@
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-  }),
-});
+// Conditional import for notifications to avoid Expo Go errors
+let Notifications: any = null;
+try {
+  Notifications = require('expo-notifications');
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: false,
+      shouldSetBadge: true,
+    }),
+  });
+} catch (error) {
+  console.log('[Notifications] expo-notifications not available in Expo Go');
+}
 
 export async function ensureNotifPermission(): Promise<boolean> {
+  if (!Notifications) {
+    console.log('[Notifications] Notifications not available');
+    return false;
+  }
   if (!Device.isDevice) {
     console.log('[Notifications] Not a physical device');
     return false;
@@ -21,6 +31,10 @@ export async function ensureNotifPermission(): Promise<boolean> {
 }
 
 export async function scheduleDaily(hour: number, minute: number, body: string) {
+  if (!Notifications) {
+    console.log('[Notifications] Notifications not available - cannot schedule');
+    return;
+  }
   await Notifications.cancelAllScheduledNotificationsAsync();
   await Notifications.scheduleNotificationAsync({
     content: { title: 'Miqra', body, sound: false },
@@ -30,6 +44,10 @@ export async function scheduleDaily(hour: number, minute: number, body: string) 
 }
 
 export async function getPushToken(): Promise<string | null> {
+  if (!Notifications) {
+    console.log('[Notifications] Notifications not available');
+    return null;
+  }
   if (!Device.isDevice) return null;
   const token = await Notifications.getExpoPushTokenAsync();
   return token.data;

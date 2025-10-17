@@ -84,4 +84,33 @@ export function getRecentCheckins(userId: string, days = 30) {
   return rows as { user_id: string; date: string; ayat_count: number }[];
 }
 
+export function countPending(): number {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - no pending checkins');
+    return 0;
+  }
+  
+  const row = (SQLite as any).getDatabase('miqra.db')
+    ? db.getFirstSync?.('select count(*) as c from pending_checkins')
+    : null;
+  // Fallback for older expo-sqlite APIs:
+  const rows = row ?? db.getAllSync('select count(*) as c from pending_checkins');
+  const rec = Array.isArray(rows) ? rows[0] : rows;
+  return (rec?.c as number) ?? 0;
+}
+
+export function peekPending(limit = 10) {
+  if (Platform.OS === 'web' || !db) {
+    console.log('[SQLite] Web platform - no pending checkins');
+    return [];
+  }
+  
+  // Read-only view without deleting
+  const rows = db.getAllSync(
+    'select id, payload_json from pending_checkins order by id asc limit ?',
+    [limit]
+  );
+  return rows as { id:number; payload_json:string }[];
+}
+
 

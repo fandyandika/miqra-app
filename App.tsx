@@ -8,10 +8,22 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/lib/queryClient';
 import { initLocal } from './src/lib/sqlite';
 import { posthog, EVENTS } from './src/config/posthog';
+import { useSyncManager } from './src/hooks/useSyncManager';
 import './src/config/sentry';
 import HomeScreen from './src/screens/home/HomeScreen';
 
 const Stack = createNativeStackNavigator();
+
+function AppContent() {
+  useSyncManager(); // <- single source of sync
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown:false, contentStyle:{ backgroundColor:'#FAFAFA' }}}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   useEffect(() => {
@@ -22,16 +34,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <NavigationContainer>
-        <Stack.Navigator
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: '#FAFAFA' },
-          }}
-        >
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <AppContent />
     </QueryClientProvider>
   );
 }
