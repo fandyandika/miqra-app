@@ -8,8 +8,8 @@ export default {
     orientation: 'portrait',
     userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
-    ios: { supportsTablet: true, bundleIdentifier: 'com.miqra.app' },
-    android: { package: 'com.miqra.app' },
+    ios: { supportsTablet: true, bundleIdentifier: 'com.miqra.miqra' },
+    android: { package: 'com.miqra.miqra' },
     plugins: [
       'expo-notifications',
       // Fonts will be added later when assets are ready.

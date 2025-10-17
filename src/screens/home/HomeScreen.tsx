@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { scheduleDaily, ensureNotifPermission } from '../../lib/notifications';
 import { posthog, EVENTS } from '../../config/posthog';
 import { getTodayDate } from '../../utils/time';
 import { DEFAULT_REMINDER_HOUR, DEFAULT_REMINDER_MINUTE, DEFAULT_AYAT_COUNT, AYAT_COUNT_OPTIONS } from '../../utils/constants';
 import { useCheckin } from '@/hooks/useCheckin';
 import { useSyncStore } from '@/store/syncStore';
+import { useMyFamilies } from '@/hooks/useFamily';
 
 export default function HomeScreen() {
   const { todayCheckin, streak, hasCheckedInToday, isLoading, isSubmitting, submitCheckin, triggerSync } = useCheckin();
   const { isSyncing, pendingCount } = useSyncStore();
+  const nav = useNavigation<any>();
+  const familiesQ = useMyFamilies();
   const [ayatCount, setAyatCount] = useState(DEFAULT_AYAT_COUNT);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -71,6 +75,42 @@ export default function HomeScreen() {
           )}
         </View>
       )}
+
+      <View className="mt-4">
+        <View className="flex-row">
+          <Pressable onPress={()=>nav.navigate('CreateFamily')} className="bg-primary rounded-xl px-4 py-3 mr-2">
+            <Text className="text-white font-medium">Buat Keluarga</Text>
+          </Pressable>
+          <Pressable onPress={()=>nav.navigate('JoinFamily')} className="bg-forest rounded-xl px-4 py-3">
+            <Text className="text-white font-medium">Gabung</Text>
+          </Pressable>
+        </View>
+
+        {familiesQ.isLoading ? (
+          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
+            <ActivityIndicator color="#00C896" />
+            <Text className="text-gray-600 text-center mt-2">Memuat keluarga...</Text>
+          </View>
+        ) : familiesQ.error ? (
+          <View className="mt-4 p-4 bg-red-100 rounded-xl">
+            <Text className="text-red-800">Error: {familiesQ.error.message}</Text>
+          </View>
+        ) : familiesQ.data?.length > 0 ? (
+          <View className="mt-4">
+            <Text className="text-charcoal font-medium mb-2">Keluargaku</Text>
+            {familiesQ.data.map((f:any)=>(
+              <Pressable key={f.id} onPress={()=>nav.navigate('FamilyDashboard', { familyId: f.id })} className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border">
+                <Text className="text-charcoal">{f.name}</Text>
+                <Text className="text-text-secondary text-xs mt-1">{f.role}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : (
+          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
+            <Text className="text-gray-600 text-center">Belum ada keluarga</Text>
+          </View>
+        )}
+      </View>
 
       {streak && (
         <View className="mt-4 flex-row items-center">

@@ -9,17 +9,44 @@ import { queryClient } from './src/lib/queryClient';
 import { initLocal } from './src/lib/sqlite';
 import { posthog, EVENTS } from './src/config/posthog';
 import { useSyncManager } from './src/hooks/useSyncManager';
+import { useAuthSession } from './src/hooks/useAuth';
 import './src/config/sentry';
 import HomeScreen from './src/screens/home/HomeScreen';
+import CreateFamilyScreen from '@/screens/family/CreateFamilyScreen';
+import JoinFamilyScreen from '@/screens/family/JoinFamilyScreen';
+import FamilyDashboardScreen from '@/screens/family/FamilyDashboardScreen';
+import LoginScreen from '@/screens/auth/LoginScreen';
 
 const Stack = createNativeStackNavigator();
 
+const linking = {
+  prefixes: ['miqra://'],
+  config: {
+    screens: {
+      JoinFamily: 'join/:code',
+    },
+  },
+};
+
 function AppContent() {
-  useSyncManager(); // <- single source of sync
+  useSyncManager();
+  const { session, loading } = useAuthSession();
+
+  if (loading) return null; // or a small splash
+
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <Stack.Navigator screenOptions={{ headerShown:false, contentStyle:{ backgroundColor:'#FAFAFA' }}}>
-        <Stack.Screen name="Home" component={HomeScreen} />
+        {session ? (
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="CreateFamily" component={CreateFamilyScreen} />
+            <Stack.Screen name="JoinFamily" component={JoinFamilyScreen} />
+            <Stack.Screen name="FamilyDashboard" component={FamilyDashboardScreen} />
+          </>
+        ) : (
+          <Stack.Screen name="Login" component={LoginScreen} />
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
