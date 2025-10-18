@@ -1,0 +1,57 @@
+import React from 'react';
+import { View, Text, FlatList, Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useMyFamilies } from '@/hooks/useFamily';
+import Header from '@/components/ui/Header';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+
+export default function FamilyTabScreen() {
+  const nav = useNavigation<any>();
+  const familiesQ = useMyFamilies();
+
+  if (familiesQ.isLoading) {
+    return (
+      <View className="flex-1 bg-background items-center justify-center">
+        <Text className="text-text-secondary">Memuat...</Text>
+      </View>
+    );
+  }
+
+  if (!familiesQ.data || familiesQ.data.length === 0) {
+    return (
+      <View className="flex-1 bg-background px-5 pt-14">
+        <Header title="Keluarga" subtitle="Baca bersama keluarga" />
+        <View className="items-center justify-center flex-1 -mt-20">
+          <Text className="text-6xl mb-4">👨‍👩‍👧‍👦</Text>
+          <Text className="text-lg text-charcoal font-medium mb-2">Belum Ada Keluarga</Text>
+          <Text className="text-text-secondary text-center mb-6">Buat keluarga baru atau gabung dengan kode undangan</Text>
+          <Button title="Buat Keluarga" onPress={() => nav.navigate('CreateFamily')} />
+          <Button title="Gabung Keluarga" variant="secondary" onPress={() => nav.navigate('JoinFamily')} style={{ marginTop: 12 }} />
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background px-5 pt-14">
+      <Header title="Keluarga" subtitle="Keluargaku" />
+      <FlatList
+        data={familiesQ.data}
+        keyExtractor={(item: any) => item.id}
+        renderItem={({ item }) => (
+          <Pressable onPress={() => nav.navigate('FamilyDashboard', { familyId: item.id })}>
+            <Card style={{ marginBottom: 12 }}>
+              <Text className="text-lg font-medium text-charcoal">{item.name}</Text>
+              <Text className="text-text-secondary text-xs mt-1">{item.role === 'owner' ? '👑 Owner' : '👤 Member'}</Text>
+            </Card>
+          </Pressable>
+        )}
+      />
+      <View className="flex-row gap-2 pb-4">
+        <Button title="Buat Keluarga Baru" variant="ghost" onPress={() => nav.navigate('CreateFamily')} style={{ flex: 1 }} />
+        <Button title="Gabung" variant="secondary" onPress={() => nav.navigate('JoinFamily')} style={{ flex: 1 }} />
+      </View>
+    </View>
+  );
+}

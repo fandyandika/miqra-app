@@ -11,7 +11,8 @@ export default function LoginScreen() {
       await signInEmail(email.trim(), password);
       Alert.alert('Masuk', 'Berhasil login.');
     } catch (e:any) {
-      Alert.alert('Gagal Masuk', e.message || 'Coba periksa email/password.');
+      const errorMessage = e?.message || e?.toString() || 'Unknown error';
+      Alert.alert('Gagal Masuk', errorMessage);
     }
   };
 
@@ -20,10 +21,11 @@ export default function LoginScreen() {
       await signUpEmail(email.trim(), password);
       Alert.alert('Daftar', 'Akun berhasil dibuat! Silakan login.');
     } catch (e:any) {
-      if (e.message?.includes('Anonymous sign-ins are disabled')) {
+      const errorMessage = e?.message || e?.toString() || 'Unknown error';
+      if (errorMessage.includes('Anonymous sign-ins are disabled')) {
         Alert.alert('Gagal Daftar', 'Signup dinonaktifkan. Gunakan akun test:\ntest1@miqra.com / password123');
       } else {
-        Alert.alert('Gagal Daftar', e.message || 'Tidak bisa daftar.');
+        Alert.alert('Gagal Daftar', errorMessage);
       }
     }
   };

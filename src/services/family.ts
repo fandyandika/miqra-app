@@ -51,7 +51,11 @@ export async function myFamilies() {
     .select('family_id, role, families(id, name, created_at)')
     .eq('user_id', uid);
   if (error) throw error;
-  return (data ?? []).map((r:any)=>({ id: r.families.id, name: r.families.name, role: r.role }));
+  return (data ?? []).map((r:any)=>({ 
+    id: r.families?.id || '', 
+    name: r.families?.name || 'Unknown Family', 
+    role: r.role || 'member' 
+  }));
 }
 
 export async function familyMembers(familyId: string) {
@@ -92,7 +96,7 @@ export async function familyMembers(familyId: string) {
     // Combine data
     data = membersData?.map(member => ({
       ...member,
-      profiles: profilesData?.find(p => p.user_id === member.user_id) || null
+      profiles: profilesData?.find(p => p.user_id === member.user_id) || { user_id: member.user_id, display_name: null }
     }));
   }
   

@@ -30,7 +30,8 @@ export default function FamilyDashboardScreen() {
       }
     } catch (error: any) {
       console.error('[FamilyDashboard] Create invite error:', error);
-      Alert.alert('Error', error.message || 'Gagal membuat kode undangan');
+      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      Alert.alert('Error', errorMessage);
     }
   };
 

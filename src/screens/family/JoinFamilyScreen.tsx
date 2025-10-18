@@ -21,7 +21,8 @@ export default function JoinFamilyScreen() {
       Alert.alert('Berhasil', 'Kamu bergabung ke keluarga');
       nav.navigate('FamilyDashboard', { familyId });
     } catch (e:any) {
-      Alert.alert('Gagal', e.message || 'Tidak bisa bergabung');
+      const errorMessage = e?.message || e?.toString() || 'Unknown error';
+      Alert.alert('Gagal', errorMessage);
     }
   };
 

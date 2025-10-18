@@ -16,7 +16,8 @@ export default function CreateFamilyScreen() {
       // Navigate back atau refresh data
     } catch (error: any) {
       console.error('Create family error:', error);
-      Alert.alert('Error', error.message || 'Gagal membuat keluarga');
+      const errorMessage = error?.message || error?.toString() || 'Unknown error';
+      Alert.alert('Error', errorMessage);
     }
   };
 

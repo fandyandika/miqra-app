@@ -99,9 +99,9 @@ export default function HomeScreen() {
           <View className="mt-4">
             <Text className="text-charcoal font-medium mb-2">Keluargaku</Text>
             {familiesQ.data.map((f:any)=>(
-              <Pressable key={f.id} onPress={()=>nav.navigate('FamilyDashboard', { familyId: f.id })} className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border">
-                <Text className="text-charcoal">{f.name}</Text>
-                <Text className="text-text-secondary text-xs mt-1">{f.role}</Text>
+              <Pressable key={f.id || Math.random()} onPress={()=>nav.navigate('FamilyDashboard', { familyId: f.id })} className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border">
+                <Text className="text-charcoal">{f.name || 'Unknown Family'}</Text>
+                <Text className="text-text-secondary text-xs mt-1">{f.role || 'member'}</Text>
               </Pressable>
             ))}
           </View>
@@ -127,7 +127,7 @@ export default function HomeScreen() {
         {!hasCheckedInToday && (
           <>
             <View className="flex-row justify-around mb-4">
-              {AYAT_COUNT_OPTIONS.map((n) => (
+              {(AYAT_COUNT_OPTIONS || []).map((n) => (
                 <Pressable key={n} onPress={() => setAyatCount(n)} className={`px-4 py-2 rounded-lg ${ayatCount === n ? 'bg-primary' : 'bg-background'}`}>
                   <Text className={ayatCount === n ? 'text-white font-medium' : 'text-charcoal font-medium'}>{n} ayat</Text>
                 </Pressable>

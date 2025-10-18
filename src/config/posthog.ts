@@ -1,11 +1,19 @@
-import PostHog from 'posthog-react-native';
 import Constants from 'expo-constants';
+
+// Conditional import to avoid dependency issues
+let PostHog: any = null;
+try {
+  PostHog = require('posthog-react-native').default;
+} catch (error) {
+  console.warn('[PostHog] posthog-react-native not available:', error.message);
+}
 
 const apiKey = (Constants.expoConfig?.extra as any)?.POSTHOG_KEY;
 
-export const posthog = apiKey ? new PostHog(apiKey, { host: 'https://app.posthog.com' }) : null;
+export const posthog = (apiKey && PostHog) ? new PostHog(apiKey, { host: 'https://app.posthog.com' }) : null;
 
 if (!apiKey) console.warn('[PostHog] API key missing - analytics disabled');
+if (!PostHog) console.warn('[PostHog] PostHog library not available - analytics disabled');
 
 export const EVENTS = {
   APP_OPEN: 'app_open',
