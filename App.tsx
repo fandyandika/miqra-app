@@ -16,6 +16,7 @@ import CreateFamilyScreen from '@/screens/family/CreateFamilyScreen';
 import JoinFamilyScreen from '@/screens/family/JoinFamilyScreen';
 import FamilyDashboardScreen from '@/screens/family/FamilyDashboardScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
+import TreeFullScreen from '@/screens/home/TreeFullScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,11 @@ function AppContent() {
             <Stack.Screen name="CreateFamily" component={CreateFamilyScreen} />
             <Stack.Screen name="JoinFamily" component={JoinFamilyScreen} />
             <Stack.Screen name="FamilyDashboard" component={FamilyDashboardScreen} />
+            <Stack.Screen
+              name="TreeFullScreen"
+              component={TreeFullScreen}
+              options={{ presentation: 'modal', headerShown: false }}
+            />
           </>
         ) : (
           <Stack.Screen name="Login" component={LoginScreen} />

@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, FlatList, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, Pressable, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useMyFamilies } from '@/hooks/useFamily';
+import { useQueryClient } from '@tanstack/react-query';
 import Header from '@/components/ui/Header';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -9,6 +10,21 @@ import Button from '@/components/ui/Button';
 export default function FamilyTabScreen() {
   const nav = useNavigation<any>();
   const familiesQ = useMyFamilies();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Clear cache on mount to ensure fresh data
+  useEffect(() => {
+    console.log('🧹 Clearing families cache in FamilyTab...');
+    queryClient.invalidateQueries({ queryKey: ['families', 'mine'] });
+  }, [queryClient]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Clear React Query cache for families
+    queryClient.invalidateQueries({ queryKey: ['families', 'mine'] });
+    setRefreshing(false);
+  };
 
   if (familiesQ.isLoading) {
     return (
@@ -19,6 +35,7 @@ export default function FamilyTabScreen() {
   }
 
   if (!familiesQ.data || familiesQ.data.length === 0) {
+    console.log('[FamilyTab] No families data:', familiesQ.data);
     return (
       <View className="flex-1 bg-background px-5 pt-14">
         <Header title="Keluarga" subtitle="Baca bersama keluarga" />
@@ -33,12 +50,22 @@ export default function FamilyTabScreen() {
     );
   }
 
+  console.log('[FamilyTab] Families data:', familiesQ.data);
+
   return (
     <View className="flex-1 bg-background px-5 pt-14">
       <Header title="Keluarga" subtitle="Keluargaku" />
       <FlatList
         data={familiesQ.data}
         keyExtractor={(item: any) => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#00C896"
+            colors={['#00C896']}
+          />
+        }
         renderItem={({ item }) => (
           <Pressable onPress={() => nav.navigate('FamilyDashboard', { familyId: item.id })}>
             <Card style={{ marginBottom: 12 }}>

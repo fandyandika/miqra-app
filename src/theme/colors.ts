@@ -10,6 +10,7 @@ export const colors = {
   error: '#EF4444',
   success: '#10B981',
   forest: '#1B5E4F',
+  mutedText: '#999999',
 } as const;
 
 

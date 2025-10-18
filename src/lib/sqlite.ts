@@ -93,7 +93,7 @@ export function countPending(): number {
   try {
     const rows = db.getAllSync('select count(*) as c from pending_checkins');
     const rec = Array.isArray(rows) ? rows[0] : rows;
-    return (rec?.c as number) ?? 0;
+    return (rec && typeof rec === 'object' && 'c' in rec) ? (rec.c as number) : 0;
   } catch (error) {
     console.error('[SQLite] countPending error:', error);
     return 0;
@@ -111,7 +111,7 @@ export function peekPending(limit = 10) {
     'select id, payload_json from pending_checkins order by id asc limit ?',
     [limit]
   );
-  return rows as { id:number; payload_json:string }[];
+  return rows as { id: number; payload_json: string }[];
 }
 
 

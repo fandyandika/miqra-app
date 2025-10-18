@@ -4,8 +4,8 @@ import Constants from 'expo-constants';
 let PostHog: any = null;
 try {
   PostHog = require('posthog-react-native').default;
-} catch (error) {
-  console.warn('[PostHog] posthog-react-native not available:', error.message);
+} catch (error: any) {
+  console.warn('[PostHog] posthog-react-native not available:', error?.message || 'Unknown error');
 }
 
 const apiKey = (Constants.expoConfig?.extra as any)?.POSTHOG_KEY;

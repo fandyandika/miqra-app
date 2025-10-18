@@ -47,7 +47,7 @@ export function useSyncManager() {
     // 2) Network restored (only on native)
     let netSub: (() => void) | null = null;
     if (NetInfo) {
-      netSub = NetInfo.addEventListener((state) => {
+      netSub = NetInfo.addEventListener((state: any) => {
         if (state.isConnected && state.isInternetReachable) {
           console.log('[SyncManager] Network connected - syncing');
           syncPendingCheckins().then((r) => {

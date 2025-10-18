@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import { scheduleDaily, ensureNotifPermission } from '../../lib/notifications';
 import { posthog, EVENTS } from '../../config/posthog';
 import { getTodayDate } from '../../utils/time';
@@ -8,20 +9,50 @@ import { DEFAULT_REMINDER_HOUR, DEFAULT_REMINDER_MINUTE, DEFAULT_AYAT_COUNT, AYA
 import { useCheckin } from '@/hooks/useCheckin';
 import { useSyncStore } from '@/store/syncStore';
 import { useMyFamilies } from '@/hooks/useFamily';
+import { TreeView } from '@/components/TreeView';
+import { didBreakYesterday } from '@/lib/streak';
+import { colors } from '@/theme/colors';
+import { getCurrentStreak } from '@/services/checkins';
+import { getProfileTimezone } from '@/services/profile';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function HomeScreen() {
   const { todayCheckin, streak, hasCheckedInToday, isLoading, isSubmitting, submitCheckin, triggerSync } = useCheckin();
   const { isSyncing, pendingCount } = useSyncStore();
   const nav = useNavigation<any>();
   const familiesQ = useMyFamilies();
+  const queryClient = useQueryClient();
   const [ayatCount, setAyatCount] = useState(DEFAULT_AYAT_COUNT);
   const [refreshing, setRefreshing] = useState(false);
   
+  // Clear cache on mount to ensure fresh data
+  useEffect(() => {
+    console.log('🧹 Clearing families cache on mount...');
+    queryClient.invalidateQueries({ queryKey: ['families', 'mine'] });
+  }, [queryClient]);
+  
+  // TreeView data
+  const { data: timezoneData } = useQuery({
+    queryKey: ['profile', 'timezone'],
+    queryFn: getProfileTimezone,
+    staleTime: 300_000, // 5 minutes
+  });
+  const tz = timezoneData ?? 'Asia/Jakarta';
+  
+  const { data: streakData, isLoading: streakLoading, error: streakError } = useQuery({
+    queryKey: ['streak', 'current'],
+    queryFn: getCurrentStreak,
+    staleTime: 30_000,
+  });
+  
   const onRefresh = async () => {
     setRefreshing(true);
+    // Clear React Query cache for families
+    queryClient.invalidateQueries({ queryKey: ['families', 'mine'] });
     await triggerSync();
     setRefreshing(false);
   };
+
 
   const handleSetReminder = async () => {
     const hasPermission = await ensureNotifPermission();
@@ -61,6 +92,38 @@ export default function HomeScreen() {
     >
       <Text className="text-2xl font-semibold text-charcoal">As-salamu alaykum</Text>
 
+      {/* TreeView Hero Section */}
+      {(() => {
+        if (streakLoading) {
+          return (
+            <View style={{ alignItems: 'center', paddingVertical: 16 }}>
+              <ActivityIndicator />
+              <Text style={{ color: colors.mutedText, marginTop: 8 }}>Memuat progres...</Text>
+            </View>
+          );
+        } else if (streakError || !streakData) {
+          return (
+            <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+              <TreeView currentStreakDays={0} brokeYesterday={false} />
+              <Text style={{ color: colors.mutedText, fontSize: 12, marginTop: 6 }}>
+                Data tersimpan offline. Akan tersinkron otomatis.
+              </Text>
+            </View>
+          );
+        } else {
+          const current = streakData.current ?? 0;
+          const last = streakData.last_date ?? null;
+          const broke = didBreakYesterday(last, tz);
+          return (
+            <TreeView
+              currentStreakDays={current}
+              brokeYesterday={broke}
+              onPress={() => nav.navigate('TreeFullScreen')}
+            />
+          );
+        }
+      })()}
+
       {(isSyncing || pendingCount > 0) && (
         <View className="mt-2 flex-row items-center">
           {isSyncing ? (
@@ -95,10 +158,10 @@ export default function HomeScreen() {
           <View className="mt-4 p-4 bg-red-100 rounded-xl">
             <Text className="text-red-800">Error: {familiesQ.error.message}</Text>
           </View>
-        ) : familiesQ.data?.length > 0 ? (
+        ) : (familiesQ.data && familiesQ.data.length > 0) ? (
           <View className="mt-4">
             <Text className="text-charcoal font-medium mb-2">Keluargaku</Text>
-            {familiesQ.data.map((f:any)=>(
+            {(familiesQ.data || []).map((f:any)=>(
               <Pressable key={f.id || Math.random()} onPress={()=>nav.navigate('FamilyDashboard', { familyId: f.id })} className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border">
                 <Text className="text-charcoal">{f.name || 'Unknown Family'}</Text>
                 <Text className="text-text-secondary text-xs mt-1">{f.role || 'member'}</Text>
@@ -144,6 +207,7 @@ export default function HomeScreen() {
           <Text className="text-white text-center font-medium">Atur Pengingat Harian</Text>
         </Pressable>
       </View>
+
 
       <View className="mt-4 p-4 rounded-xl bg-sand">
         <Text className="text-sm text-text-secondary">💡 Tip: Progres kamu tersimpan offline. Akan tersinkron saat online.</Text>
