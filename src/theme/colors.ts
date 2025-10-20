@@ -1,5 +1,13 @@
 export const colors = {
-  primary: '#00C896',
+  // Design tokens for Miqra
+  primary: '#00C896',      // Fresh Green
+  primarySoft: '#8DE4C7',  // Soft Green
+  neutral: '#9E9E9E',      // Gray
+  text: '#2D3436',         // Dark text
+  barBg: '#FFFFFF',        // Tab bar background
+  barShadow: 'rgba(0,0,0,0.08)', // Tab bar shadow
+  
+  // Legacy colors (keeping for compatibility)
   secondary: '#FF8A65',
   accent: '#FFB627',
   background: '#FAFAFA',
@@ -11,6 +19,13 @@ export const colors = {
   success: '#10B981',
   forest: '#1B5E4F',
   mutedText: '#999999',
+  
+  // Dark mode colors
+  dark: {
+    barBg: '#0E0F10',
+    text: '#EDEDED',
+    neutral: '#A0A3A6',
+  }
 } as const;
 
 

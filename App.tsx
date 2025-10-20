@@ -11,7 +11,8 @@ import { posthog, EVENTS } from './src/config/posthog';
 import { useSyncManager } from './src/hooks/useSyncManager';
 import { useAuthSession } from './src/hooks/useAuth';
 import './src/config/sentry';
-import Tabs from '@/navigation/Tabs';
+import BottomTabs from '@/navigation/BottomTabs';
+import CatatBacaanScreen from '@/screens/CatatBacaanScreen';
 import CreateFamilyScreen from '@/screens/family/CreateFamilyScreen';
 import JoinFamilyScreen from '@/screens/family/JoinFamilyScreen';
 import FamilyDashboardScreen from '@/screens/family/FamilyDashboardScreen';
@@ -41,7 +42,8 @@ function AppContent() {
       <Stack.Navigator screenOptions={{ headerShown:false, contentStyle:{ backgroundColor:'#FAFAFA' }}}>
         {session ? (
           <>
-            <Stack.Screen name="Tabs" component={Tabs} />
+            <Stack.Screen name="BottomTabs" component={BottomTabs} />
+            <Stack.Screen name="CatatBacaan" component={CatatBacaanScreen} />
             <Stack.Screen name="CreateFamily" component={CreateFamilyScreen} />
             <Stack.Screen name="JoinFamily" component={JoinFamilyScreen} />
             <Stack.Screen name="FamilyDashboard" component={FamilyDashboardScreen} />
