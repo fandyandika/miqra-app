@@ -11,7 +11,7 @@ import FabCatat from '@/components/FabCatat';
 
 // Import screens
 import HomeScreen from '@/screens/HomeScreen';
-import ProgressScreen from '@/screens/ProgressScreen';
+import ReadingHistoryScreen from '@/features/reading/ReadingHistoryScreen';
 import FamilyScreen from '@/screens/FamilyScreen';
 import ProfileScreen from '@/screens/ProfileScreen';
 import CatatBacaanScreen from '@/screens/CatatBacaanScreen';
@@ -311,7 +311,7 @@ export default function BottomTabs() {
       />
       <Tab.Screen
         name="Progress"
-        component={ProgressScreen}
+        component={ReadingHistoryScreen}
         options={{
           tabBarLabel: 'Progress',
           tabBarIcon: 'chart-bar' as any,

@@ -19,6 +19,7 @@ import FamilyDashboardScreen from '@/screens/family/FamilyDashboardScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import TreeFullScreen from '@/screens/home/TreeFullScreen';
 import LogReadingScreen from '@/features/reading/LogReadingScreen';
+import ReadingHistoryScreen from '@/features/reading/ReadingHistoryScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,6 +52,11 @@ function AppContent() {
               name="LogReading" 
               component={LogReadingScreen} 
               options={{ title: 'Catat Bacaan' }} 
+            />
+            <Stack.Screen
+              name="ReadingHistory"
+              component={ReadingHistoryScreen}
+              options={{ title: 'Riwayat Bacaan', headerShown: true }}
             />
             <Stack.Screen
               name="TreeFullScreen"

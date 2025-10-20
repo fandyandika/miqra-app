@@ -128,3 +128,85 @@ export async function createReadingSession(input: ReadingSessionInput) {
 }
 
 
+// ======== APPENDED HELPERS: history, stats, calendar ========
+import { startOfMonth, endOfMonth, eachDayOfInterval, format, startOfWeek, endOfWeek } from 'date-fns';
+
+/**
+ * Return all sessions for the month of the given date.
+ */
+export async function getMonthSessions(date: Date = new Date()) {
+  const start = format(startOfMonth(date), 'yyyy-MM-dd');
+  const end = format(endOfMonth(date), 'yyyy-MM-dd');
+  return getSessionsInRange(start, end);
+}
+
+/**
+ * Compute stats for a date range [startDate..endDate]
+ */
+export async function getReadingStats(startDate: string, endDate: string) {
+  const sessions = await getSessionsInRange(startDate, endDate);
+
+  const totalAyat = sessions.reduce((sum: number, s: any) => sum + (s.ayat_count || 0), 0);
+  const totalSessions = sessions.length;
+
+  // Group by date to count unique reading days
+  const dateGroups = sessions.reduce((acc: Record<string, number>, s: any) => {
+    acc[s.date as string] = (acc[s.date as string] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const daysRead = Object.keys(dateGroups).length;
+  const avgPerDay = daysRead > 0 ? Math.round(totalAyat / daysRead) : 0;
+
+  // Surah with most ayat read in range
+  const surahCounts = sessions.reduce((acc: Record<number, number>, s: any) => {
+    const key = Number(s.surah_number);
+    acc[key] = (acc[key] || 0) + (s.ayat_count || 0);
+    return acc;
+  }, {} as Record<number, number>);
+  const mostReadSurah = Object.entries(surahCounts).sort(([, a], [, b]) => (b as number) - (a as number))[0]?.[0];
+
+  return {
+    totalAyat,
+    totalSessions,
+    daysRead,
+    avgPerDay,
+    mostReadSurah: mostReadSurah ? parseInt(mostReadSurah as unknown as string) : null,
+  };
+}
+
+/**
+ * Calendar data for a given month: map of dateStr -> summary
+ */
+export async function getCalendarData(date: Date = new Date()) {
+  const sessions = await getMonthSessions(date);
+  const dateMap = sessions.reduce((acc: Record<string, { count: number; ayatCount: number; sessions: any[] }>, s: any) => {
+    const key = s.date as string;
+    if (!acc[key]) acc[key] = { count: 0, ayatCount: 0, sessions: [] };
+    acc[key].count += 1;
+    acc[key].ayatCount += s.ayat_count || 0;
+    acc[key].sessions.push(s);
+    return acc;
+  }, {} as Record<string, { count: number; ayatCount: number; sessions: any[] }>);
+  return dateMap;
+}
+
+/**
+ * Group sessions by date (descending) for list rendering
+ */
+export function groupSessionsByDate(sessions: any[]) {
+  const groups = sessions.reduce((acc: Record<string, any[]>, s: any) => {
+    const key = s.date as string;
+    (acc[key] ||= []).push(s);
+    return acc;
+  }, {} as Record<string, any[]>);
+
+  return Object.entries(groups)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([date, list]) => ({
+      date,
+      sessions: list,
+      totalAyat: (list as any[]).reduce((sum: number, s: any) => sum + (s.ayat_count || 0), 0),
+    }));
+}
+
