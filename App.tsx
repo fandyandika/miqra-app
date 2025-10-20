@@ -17,6 +17,7 @@ import JoinFamilyScreen from '@/screens/family/JoinFamilyScreen';
 import FamilyDashboardScreen from '@/screens/family/FamilyDashboardScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import TreeFullScreen from '@/screens/home/TreeFullScreen';
+import LogReadingScreen from '@/features/reading/LogReadingScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +45,11 @@ function AppContent() {
             <Stack.Screen name="CreateFamily" component={CreateFamilyScreen} />
             <Stack.Screen name="JoinFamily" component={JoinFamilyScreen} />
             <Stack.Screen name="FamilyDashboard" component={FamilyDashboardScreen} />
+            <Stack.Screen 
+              name="LogReading" 
+              component={LogReadingScreen} 
+              options={{ title: 'Catat Bacaan' }} 
+            />
             <Stack.Screen
               name="TreeFullScreen"
               component={TreeFullScreen}

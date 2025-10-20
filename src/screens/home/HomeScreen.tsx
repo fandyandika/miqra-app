@@ -209,6 +209,7 @@ export default function HomeScreen() {
       </View>
 
 
+
       <View className="mt-4 p-4 rounded-xl bg-sand">
         <Text className="text-sm text-text-secondary">💡 Tip: Progres kamu tersimpan offline. Akan tersinkron saat online.</Text>
       </View>
