@@ -75,7 +75,7 @@ BEGIN
   -- Check if user already in family
   IF EXISTS (
     SELECT 1 FROM family_members 
-    WHERE family_members.family_id = redeem_invite.family_id 
+    WHERE family_members.family_id = family_id 
     AND family_members.user_id = user_id
   ) THEN
     RAISE EXCEPTION 'User already in family';

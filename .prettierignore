@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+build/
+*.min.js
+*.min.css
+coverage/
+.nyc_output/
+*.log
+.env*
+metro.config.js
+babel.config.js

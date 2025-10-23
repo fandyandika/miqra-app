@@ -1,8 +1,8 @@
 // import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 // import { differenceInCalendarDays } from 'date-fns';
 
-export type TreeStage = 'sprout'|'sapling'|'young'|'mature'|'ancient';
-export type TreeVariant = 'healthy'|'wilting'; // Week-1 only
+export type TreeStage = 'sprout' | 'sapling' | 'young' | 'mature' | 'ancient';
+export type TreeVariant = 'healthy' | 'wilting'; // Week-1 only
 
 /** Stage thresholds by current streak days:
  *  sprout: 1–2
@@ -13,9 +13,9 @@ export type TreeVariant = 'healthy'|'wilting'; // Week-1 only
  */
 export function getTreeStage(currentStreakDays: number): TreeStage {
   if (currentStreakDays >= 100) return 'ancient';
-  if (currentStreakDays >= 30)  return 'mature';
-  if (currentStreakDays >= 10)  return 'young';
-  if (currentStreakDays >= 3)   return 'sapling';
+  if (currentStreakDays >= 30) return 'mature';
+  if (currentStreakDays >= 10) return 'young';
+  if (currentStreakDays >= 3) return 'sapling';
   return 'sprout';
 }
 
@@ -31,11 +31,11 @@ export function didBreakYesterday(
   timezone: string = 'Asia/Jakarta'
 ): boolean {
   if (!lastCompletedDate) return false;
-  
+
   // Simplified version for debugging
   const now = new Date();
   const [y, m, d] = lastCompletedDate.split('-').map(Number);
-  const lastDate = new Date(y, (m-1), d);
+  const lastDate = new Date(y, m - 1, d);
   const diffTime = now.getTime() - lastDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays >= 2;
@@ -72,11 +72,15 @@ export function getTreeA11yLabel(
   days: number
 ): string {
   const stageLabel =
-    stage === 'sprout'  ? 'Tunas kecil' :
-    stage === 'sapling' ? 'Pohon muda' :
-    stage === 'young'   ? 'Pohon remaja' :
-    stage === 'mature'  ? 'Pohon dewasa' :
-                          'Pohon kuno yang legendaris dengan mahkota emas';
+    stage === 'sprout'
+      ? 'Tunas kecil'
+      : stage === 'sapling'
+        ? 'Pohon muda'
+        : stage === 'young'
+          ? 'Pohon remaja'
+          : stage === 'mature'
+            ? 'Pohon dewasa'
+            : 'Pohon kuno yang legendaris dengan mahkota emas';
 
   const variantLabel =
     variant === 'healthy'

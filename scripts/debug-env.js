@@ -11,8 +11,14 @@ const result = dotenv.config();
 console.log('dotenv result:', result);
 
 console.log('\n=== ENV VARIABLES ===');
-console.log('EXPO_PUBLIC_SUPABASE_URL:', process.env.EXPO_PUBLIC_SUPABASE_URL || 'UNDEFINED');
-console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY:', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'UNDEFINED');
+console.log(
+  'EXPO_PUBLIC_SUPABASE_URL:',
+  process.env.EXPO_PUBLIC_SUPABASE_URL || 'UNDEFINED'
+);
+console.log(
+  'EXPO_PUBLIC_SUPABASE_ANON_KEY:',
+  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'UNDEFINED'
+);
 
 console.log('\n=== ALL EXPO_PUBLIC_ VARS ===');
 Object.keys(process.env)

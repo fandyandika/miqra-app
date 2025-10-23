@@ -14,4 +14,6 @@ console.log('4. In the app, you can also:');
 console.log('   - Pull to refresh on HomeScreen');
 console.log('   - Or restart the app completely');
 console.log('');
-console.log('This will clear any cached checkin data that might be showing "1 ayat"');
+console.log(
+  'This will clear any cached checkin data that might be showing "1 ayat"'
+);

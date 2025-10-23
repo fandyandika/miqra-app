@@ -34,10 +34,10 @@ export function getHouseA11yLabel(
     state === 'dark'
       ? 'Rumah keluarga masih gelap.'
       : state === 'dim'
-      ? 'Rumah mulai bercahaya.'
-      : state === 'bright'
-      ? 'Rumah sudah terang.'
-      : 'Rumah bercahaya penuh dengan semangat Qur\'an.';
+        ? 'Rumah mulai bercahaya.'
+        : state === 'bright'
+          ? 'Rumah sudah terang.'
+          : "Rumah bercahaya penuh dengan semangat Qur'an.";
 
   return `${base} ${membersReadToday} dari ${totalMembers} anggota sudah membaca hari ini (${percent}%).`;
 }

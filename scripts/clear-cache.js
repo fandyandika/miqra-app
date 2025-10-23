@@ -51,7 +51,9 @@ async function clearCache() {
     console.log(`   Found ${memberships.length} memberships in Supabase`);
     if (memberships.length > 0) {
       memberships.forEach((membership, index) => {
-        console.log(`   ${index + 1}. User ${membership.user_id} in "${membership.families?.name || 'Unknown'}"`);
+        console.log(
+          `   ${index + 1}. User ${membership.user_id} in "${membership.families?.name || 'Unknown'}"`
+        );
       });
     } else {
       console.log('   ✅ Supabase is clean - no memberships found');
@@ -61,7 +63,6 @@ async function clearCache() {
     console.log('1. Restart your Expo Go app completely');
     console.log('2. Or clear React Query cache in the app');
     console.log('3. The duplicate families should disappear');
-
   } catch (error) {
     console.error('❌ Error:', error);
   }

@@ -1,7 +1,11 @@
 import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
-import { calcHouseLight, getHouseA11yLabel, HouseLight } from '@/lib/familyLight';
+import {
+  calcHouseLight,
+  getHouseA11yLabel,
+  HouseLight,
+} from '@/lib/familyLight';
 import { colors } from '@/theme/colors';
 
 type Props = {
@@ -29,11 +33,16 @@ export default function HouseView(props: Props) {
   } = props;
 
   const state = useMemo(
-    () => calcHouseLight({ membersReadToday, totalMembers, familyStreakDays }),
+    () =>
+      calcHouseLight({
+        membersReadToday: membersReadToday || 0,
+        totalMembers: totalMembers || 0,
+        familyStreakDays: familyStreakDays || 0,
+      }),
     [membersReadToday, totalMembers, familyStreakDays]
   );
   const a11yLabel = useMemo(
-    () => getHouseA11yLabel(state, membersReadToday, totalMembers),
+    () => getHouseA11yLabel(state, membersReadToday || 0, totalMembers || 0),
     [state, membersReadToday, totalMembers]
   );
 
@@ -57,7 +66,9 @@ export default function HouseView(props: Props) {
         alignItems: 'center',
       }}
     >
-      <Text style={{ fontSize: size * 0.45, textAlign: 'center' }}>{emoji}</Text>
+      <Text style={{ fontSize: size * 0.45, textAlign: 'center' }}>
+        {emoji}
+      </Text>
     </View>
   );
 
@@ -75,7 +86,7 @@ export default function HouseView(props: Props) {
   return (
     <View
       accessible
-      accessibilityRole="image"
+      accessibilityRole='image'
       accessibilityLabel={a11yLabel}
       style={containerStyle}
     >

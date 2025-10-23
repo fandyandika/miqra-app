@@ -17,17 +17,19 @@ async function checkStorage() {
 
     // Check if there's any cached data in Supabase
     console.log('📋 Checking for any cached family data...');
-    
+
     // Try to get any data that might be cached
     const { data: cachedData, error: cacheError } = await supabase
       .from('family_members')
-      .select(`
+      .select(
+        `
         family_id, 
         user_id,
         role, 
         created_at,
         families(id, name, created_by)
-      `)
+      `
+      )
       .limit(10);
 
     if (cacheError) {
@@ -36,7 +38,9 @@ async function checkStorage() {
       console.log(`Found ${cachedData?.length || 0} cached family memberships`);
       if (cachedData && cachedData.length > 0) {
         cachedData.forEach((item, index) => {
-          console.log(`${index + 1}. Family: "${item.families?.name || 'Unknown'}"`);
+          console.log(
+            `${index + 1}. Family: "${item.families?.name || 'Unknown'}"`
+          );
           console.log(`   User: ${item.user_id}`);
           console.log(`   Role: ${item.role}`);
         });
@@ -90,7 +94,6 @@ async function checkStorage() {
     console.log('3. App state management has stale data');
     console.log('4. Mock/test data is being used in development');
     console.log('5. Database has data but RLS policies are hiding it');
-
   } catch (error) {
     console.error('❌ Error:', error);
   }

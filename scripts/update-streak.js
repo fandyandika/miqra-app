@@ -16,8 +16,10 @@ async function updateStreak() {
 
   try {
     // Get user ID from auth (you need to be logged in)
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
     if (!user) {
       console.log('❌ No user logged in. Please login first in the app.');
       console.log('📱 Steps:');
@@ -45,15 +47,13 @@ async function updateStreak() {
 
     // For now, let's set to sapling (5 days)
     const selectedStreak = testStreaks[1]; // Sapling
-    
-    const { error } = await supabase
-      .from('streaks')
-      .upsert({
-        user_id: user.id,
-        current: selectedStreak.current,
-        longest: Math.max(selectedStreak.current, 10),
-        last_date: selectedStreak.last_date
-      });
+
+    const { error } = await supabase.from('streaks').upsert({
+      user_id: user.id,
+      current: selectedStreak.current,
+      longest: Math.max(selectedStreak.current, 10),
+      last_date: selectedStreak.last_date,
+    });
 
     if (error) {
       console.error('❌ Error updating streak:', error);
@@ -64,9 +64,8 @@ async function updateStreak() {
     console.log(`   Current: ${selectedStreak.current} days`);
     console.log(`   Last date: ${selectedStreak.last_date}`);
     console.log(`   Expected emoji: 🌿 (sapling)`);
-    
-    console.log('\n📱 Now refresh the app to see the changes!');
 
+    console.log('\n📱 Now refresh the app to see the changes!');
   } catch (error) {
     console.error('❌ Update failed:', error);
   }

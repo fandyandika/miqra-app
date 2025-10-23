@@ -10,5 +10,3 @@ export const STREAK_WARNING_MINUTE = 0;
 
 export const DEFAULT_AYAT_COUNT = 5;
 export const AYAT_COUNT_OPTIONS = [1, 5, 10, 20];
-
-

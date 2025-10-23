@@ -19,7 +19,7 @@ export const getKV = async (key: string): Promise<string | undefined> => {
   if (kv) {
     return kv.getString(key);
   }
-  return await AsyncStorage.getItem(key) || undefined;
+  return (await AsyncStorage.getItem(key)) || undefined;
 };
 
 export const setKV = async (key: string, value: string): Promise<void> => {
@@ -45,5 +45,3 @@ export const clearKV = async (): Promise<void> => {
     await AsyncStorage.clear();
   }
 };
-
-

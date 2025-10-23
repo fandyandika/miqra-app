@@ -1,6 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { useSyncStore } from '@/store/syncStore';
-import { countPending, popPending, deletePending, cacheCheckin } from '@/lib/sqlite';
+import {
+  countPending,
+  popPending,
+  deletePending,
+  cacheCheckin,
+} from '@/lib/sqlite';
 import { upsertCheckin, CheckinPayload } from '@/services/checkins';
 import { setKV, getKV } from '@/lib/storage';
 
@@ -28,7 +33,8 @@ export async function syncPendingCheckins() {
 
   store.setIsSyncing(true);
   const batch = popPending(10);
-  let synced = 0, failed = 0;
+  let synced = 0,
+    failed = 0;
   for (const row of batch) {
     try {
       const payload = JSON.parse(row.payload_json);
@@ -41,7 +47,7 @@ export async function syncPendingCheckins() {
       failed++;
     }
   }
-  
+
   const now = new Date().toISOString();
   setKV(LAST_SYNC_KEY, now);
   store.setLastSyncAt(now);

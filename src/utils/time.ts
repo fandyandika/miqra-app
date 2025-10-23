@@ -1,7 +1,10 @@
 import { format, parseISO } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
-export function getTodayDate(): string {
-  return format(new Date(), 'yyyy-MM-dd');
+export function getTodayDate(timezone: string = 'Asia/Jakarta'): string {
+  const now = new Date();
+  const userNow = toZonedTime(now, timezone);
+  return format(userNow, 'yyyy-MM-dd');
 }
 
 export function formatDate(date: Date | string): string {
@@ -12,5 +15,3 @@ export function formatDate(date: Date | string): string {
 export function getUserTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
-
-

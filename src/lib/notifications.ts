@@ -30,9 +30,15 @@ export async function ensureNotifPermission(): Promise<boolean> {
   return status === 'granted';
 }
 
-export async function scheduleDaily(hour: number, minute: number, body: string) {
+export async function scheduleDaily(
+  hour: number,
+  minute: number,
+  body: string
+) {
   if (!Notifications) {
-    console.log('[Notifications] Notifications not available - cannot schedule');
+    console.log(
+      '[Notifications] Notifications not available - cannot schedule'
+    );
     return;
   }
   await Notifications.cancelAllScheduledNotificationsAsync();
@@ -52,5 +58,3 @@ export async function getPushToken(): Promise<string | null> {
   const token = await Notifications.getExpoPushTokenAsync();
   return token.data;
 }
-
-

@@ -20,25 +20,30 @@ export default function JoinFamilyScreen() {
       const familyId = await redeem.mutateAsync(code);
       Alert.alert('Berhasil', 'Kamu bergabung ke keluarga');
       nav.navigate('FamilyDashboard', { familyId });
-    } catch (e:any) {
+    } catch (e: any) {
       const errorMessage = e?.message || e?.toString() || 'Unknown error';
       Alert.alert('Gagal', errorMessage);
     }
   };
 
   return (
-    <View className="flex-1 bg-background px-5 pt-14">
-      <Text className="text-2xl font-semibold text-charcoal">Gabung Keluarga</Text>
+    <View className='flex-1 bg-background px-5 pt-14'>
+      <Text className='text-2xl font-semibold text-charcoal'>
+        Gabung Keluarga
+      </Text>
       <TextInput
-        className="mt-4 bg-surface rounded-xl px-4 py-3 border border-border"
-        placeholder="Masukkan 6-digit kode"
-        keyboardType="number-pad"
+        className='mt-4 bg-surface rounded-xl px-4 py-3 border border-border'
+        placeholder='Masukkan 6-digit kode'
+        keyboardType='number-pad'
         value={code}
         onChangeText={setCode}
         maxLength={6}
       />
-      <Pressable onPress={handleJoin} className="bg-primary rounded-xl px-4 py-3 mt-4">
-        <Text className="text-white text-center font-medium">Gabung</Text>
+      <Pressable
+        onPress={handleJoin}
+        className='bg-primary rounded-xl px-4 py-3 mt-4'
+      >
+        <Text className='text-white text-center font-medium'>Gabung</Text>
       </Pressable>
     </View>
   );

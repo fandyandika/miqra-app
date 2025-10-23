@@ -1,75 +1,71 @@
-const { createClient } = require('@supabase/supabase-js');
+// Create two test users in Supabase Auth using service role key
+// Usage (PowerShell):
+//   $env:SUPABASE_URL="https://<project>.supabase.co"; $env:SUPABASE_SERVICE_ROLE="<service_role_key>"; npm run create:test-users
+
 require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+async function run() {
+  const url = process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const serviceRole =
+    process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing Supabase credentials');
-  process.exit(1);
-}
+  if (!url || !serviceRole) {
+    console.error('Missing env: SUPABASE_URL or SUPABASE_SERVICE_ROLE');
+    process.exit(1);
+  }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(url, serviceRole, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 
-async function createTestUsers() {
-  try {
-    console.log('👤 Creating test users...');
-    
-    // Create test users using Supabase Auth Admin API
-    const testUsers = [
-      {
-        email: 'test1@miqra.com',
-        password: 'password123',
-        email_confirm: true
-      },
-      {
-        email: 'test2@miqra.com', 
-        password: 'password123',
-        email_confirm: true
-      }
-    ];
-    
-    const createdUsers = [];
-    
-    for (const userData of testUsers) {
-      console.log(`📝 Creating user: ${userData.email}`);
-      
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: userData.email,
-        password: userData.password,
-        email_confirm: userData.email_confirm
-      });
-      
-      if (authError) {
-        console.error(`❌ Error creating user ${userData.email}:`, authError.message);
-        continue;
-      }
-      
-      console.log(`✅ User created: ${authData.user.id}`);
-      createdUsers.push(authData.user);
-      
-      // Create profile for the user
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          display_name: userData.email.split('@')[0],
-          timezone: 'Asia/Jakarta'
-        });
-      
-      if (profileError) {
-        console.error(`❌ Error creating profile for ${userData.email}:`, profileError.message);
+  const users = [
+    {
+      email: 'ahmad.test+miqra@example.com',
+      password: 'Password123!',
+      user_metadata: { name: 'Ahmad Rahman' },
+    },
+    {
+      email: 'sarah.test+miqra@example.com',
+      password: 'Password123!',
+      user_metadata: { name: 'Sarah Putri' },
+    },
+  ];
+
+  for (const u of users) {
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: u.email,
+      password: u.password,
+      email_confirm: true,
+      user_metadata: u.user_metadata,
+    });
+    if (error) {
+      if (String(error.message || '').includes('already registered')) {
+        console.log(`User exists: ${u.email}`);
       } else {
-        console.log(`✅ Profile created for: ${userData.email}`);
+        console.error('Create user error:', error);
+        process.exit(1);
       }
+    } else {
+      console.log(`Created: ${u.email} -> ${data.user?.id}`);
     }
-    
-    console.log(`\n📊 Test users created: ${createdUsers.length}`);
-    console.log('You can now run: node scripts/seed-test-data.js');
-    
-  } catch (error) {
-    console.error('❌ Error creating test users:', error.message);
+  }
+
+  // Print the created users for convenience
+  const { data: list, error: listErr } = await supabase.auth.admin.listUsers({
+    perPage: 50,
+  });
+  if (listErr) {
+    console.error('List users error:', listErr);
+    process.exit(1);
+  }
+  const printed = list.users.filter(u => users.some(x => x.email === u.email));
+  for (const u of printed) {
+    console.log(`User: ${u.email} id=${u.id}`);
   }
 }
 
-createTestUsers();
+run().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

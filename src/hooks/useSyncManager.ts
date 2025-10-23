@@ -5,7 +5,11 @@ import { useSyncStore } from '@/store/syncStore';
 import { useQueryClient } from '@tanstack/react-query';
 
 // Conditional import for NetInfo
-let NetInfo: any = null;
+let NetInfo: any = {
+  addEventListener: () => () => {},
+  fetch: () => Promise.resolve({ isConnected: true }),
+};
+
 try {
   if (Platform.OS !== 'web') {
     NetInfo = require('@react-native-community/netinfo').default;
@@ -20,27 +24,31 @@ export function useSyncManager() {
 
   useEffect(() => {
     // initial kick
-    syncPendingCheckins().then((r) => {
-      if (r.synced > 0) {
-        qc.invalidateQueries({ queryKey: ['checkin'] });
-        qc.invalidateQueries({ queryKey: ['streak'] });
-      }
-    }).catch((error) => {
-      console.error('[SyncManager] Initial sync error:', error);
-    });
+    syncPendingCheckins()
+      .then(r => {
+        if (r.synced > 0) {
+          qc.invalidateQueries({ queryKey: ['checkin'] });
+          qc.invalidateQueries({ queryKey: ['streak'] });
+        }
+      })
+      .catch(error => {
+        console.error('[SyncManager] Initial sync error:', error);
+      });
 
     // 1) Foreground sync
     const appSub = AppState.addEventListener('change', (s: AppStateStatus) => {
       if (s === 'active') {
         console.log('[SyncManager] App foregrounded - syncing');
-        syncPendingCheckins().then((r) => {
-          if (r.synced > 0) {
-            qc.invalidateQueries({ queryKey: ['checkin'] });
-            qc.invalidateQueries({ queryKey: ['streak'] });
-          }
-        }).catch((error) => {
-          console.error('[SyncManager] Foreground sync error:', error);
-        });
+        syncPendingCheckins()
+          .then(r => {
+            if (r.synced > 0) {
+              qc.invalidateQueries({ queryKey: ['checkin'] });
+              qc.invalidateQueries({ queryKey: ['streak'] });
+            }
+          })
+          .catch(error => {
+            console.error('[SyncManager] Foreground sync error:', error);
+          });
       }
     });
 
@@ -50,25 +58,30 @@ export function useSyncManager() {
       netSub = NetInfo.addEventListener((state: any) => {
         if (state.isConnected && state.isInternetReachable) {
           console.log('[SyncManager] Network connected - syncing');
-          syncPendingCheckins().then((r) => {
-            if (r.synced > 0) {
-              qc.invalidateQueries({ queryKey: ['checkin'] });
-              qc.invalidateQueries({ queryKey: ['streak'] });
-            }
-          }).catch((error) => {
-            console.error('[SyncManager] Network sync error:', error);
-          });
+          syncPendingCheckins()
+            .then(r => {
+              if (r.synced > 0) {
+                qc.invalidateQueries({ queryKey: ['checkin'] });
+                qc.invalidateQueries({ queryKey: ['streak'] });
+              }
+            })
+            .catch(error => {
+              console.error('[SyncManager] Network sync error:', error);
+            });
         }
       });
     }
 
     // 3) Background interval (2 min)
-    const id = setInterval(() => {
-      console.log('[SyncManager] Interval sync');
-      syncPendingCheckins().catch((error) => {
-        console.error('[SyncManager] Interval sync error:', error);
-      });
-    }, 2 * 60 * 1000);
+    const id = setInterval(
+      () => {
+        console.log('[SyncManager] Interval sync');
+        syncPendingCheckins().catch(error => {
+          console.error('[SyncManager] Interval sync error:', error);
+        });
+      },
+      2 * 60 * 1000
+    );
 
     return () => {
       appSub.remove();

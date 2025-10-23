@@ -109,7 +109,6 @@ async function cleanupTestData() {
 
     console.log('\n✅ Cleanup completed!');
     console.log('💡 Now restart your app to clear React Query cache');
-
   } catch (error) {
     console.error('❌ Error during cleanup:', error);
   }

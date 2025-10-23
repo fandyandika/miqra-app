@@ -10,7 +10,7 @@ import { getProfileTimezone } from '@/services/profile';
 
 export default function TreeFullScreen() {
   const nav = useNavigation<any>();
-  
+
   const { data: timezoneData } = useQuery({
     queryKey: ['profile', 'timezone'],
     queryFn: getProfileTimezone,
@@ -29,29 +29,42 @@ export default function TreeFullScreen() {
   const broke = didBreakYesterday(last, tz);
 
   const stage = getTreeStage(current);
-  const encouragement =
-    broke
-      ? 'Ayo kembali rutin hari ini agar pohonmu pulih.'
-      : 'Teruskan kebiasaan baikmu — sedikit demi sedikit, insyaAllah konsisten.';
+  const encouragement = broke
+    ? 'Ayo kembali rutin hari ini agar pohonmu pulih.'
+    : 'Teruskan kebiasaan baikmu — sedikit demi sedikit, insyaAllah konsisten.';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface, padding: 16, justifyContent: 'center' }}>
-      <Pressable onPress={() => nav.goBack()} style={{ position: 'absolute', top: 20, right: 16, padding: 8 }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: colors.surface,
+        padding: 16,
+        justifyContent: 'center',
+      }}
+    >
+      <Pressable
+        onPress={() => nav.goBack()}
+        style={{ position: 'absolute', top: 20, right: 16, padding: 8 }}
+      >
         <Text style={{ fontSize: 16 }}>Tutup</Text>
       </Pressable>
 
       <TreeView currentStreakDays={current} brokeYesterday={broke} size={340} />
 
       <View style={{ alignItems: 'center', marginTop: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600' }}>Streak: {current} hari</Text>
+        <Text style={{ fontSize: 16, fontWeight: '600' }}>
+          Streak: {current} hari
+        </Text>
         {stage === 'ancient' && (
-          <Text style={{ 
-            color: '#FFD700', 
-            fontWeight: 'bold', 
-            fontSize: 18, 
-            marginTop: 8,
-            textAlign: 'center'
-          }}>
+          <Text
+            style={{
+              color: '#FFD700',
+              fontWeight: 'bold',
+              fontSize: 18,
+              marginTop: 8,
+              textAlign: 'center',
+            }}
+          >
             👑 LEGENDARY ACHIEVEMENT! 👑
           </Text>
         )}
@@ -60,15 +73,24 @@ export default function TreeFullScreen() {
         </Text>
 
         <Pressable
-          onPress={() => {/* open bottom sheet if available; otherwise simple alert */}}
+          onPress={() => {
+            /* open bottom sheet if available; otherwise simple alert */
+          }}
           style={{ paddingVertical: 12 }}
         >
-          <Text style={{ textDecorationLine: 'underline' }}>Apa arti tahap pohon?</Text>
+          <Text style={{ textDecorationLine: 'underline' }}>
+            Apa arti tahap pohon?
+          </Text>
         </Pressable>
-        <Text style={{ color: colors.mutedText, fontSize: 12, textAlign: 'center' }}>
-          Tahapan: sprout (1–2), sapling (3–9), young (10–29), mature (30–99), 
+        <Text
+          style={{ color: colors.mutedText, fontSize: 12, textAlign: 'center' }}
+        >
+          Tahapan: sprout (1–2), sapling (3–9), young (10–29), mature (30–99),
           {stage === 'ancient' ? (
-            <Text style={{ color: '#FFD700', fontWeight: 'bold' }}> ancient (100+) 👑</Text>
+            <Text style={{ color: '#FFD700', fontWeight: 'bold' }}>
+              {' '}
+              ancient (100+) 👑
+            </Text>
           ) : (
             ' ancient (100+)'
           )}

@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 async function fixRPC() {
   try {
     console.log('🔧 Fixing RPC function...');
-    
+
     const fixSQL = `
 -- Fix the update_streak_after_checkin RPC to accept user_id parameter
 create or replace function update_streak_after_checkin(checkin_user_id uuid, checkin_date date)
@@ -48,13 +48,14 @@ end $$;
 
 grant execute on function update_streak_after_checkin(uuid, date) to authenticated;
     `;
-    
+
     console.log('📋 Copy and run this SQL in Supabase Dashboard > SQL Editor:');
     console.log('\n' + '='.repeat(80));
     console.log(fixSQL);
     console.log('='.repeat(80));
-    console.log('\nAfter running this SQL, run: node scripts/seed-test-data.js');
-    
+    console.log(
+      '\nAfter running this SQL, run: node scripts/seed-test-data.js'
+    );
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

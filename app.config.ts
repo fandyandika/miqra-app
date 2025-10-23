@@ -12,6 +12,7 @@ export default {
     android: { package: 'com.miqra.miqra' },
     plugins: [
       'expo-notifications',
+      'expo-router',
       // Fonts will be added later when assets are ready.
       // ['expo-font', { fonts: ['./assets/fonts/Amiri-Regular.ttf', './assets/fonts/PlusJakartaSans-Regular.ttf'] }]
     ],
@@ -20,7 +21,7 @@ export default {
       SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       POSTHOG_KEY: process.env.EXPO_PUBLIC_POSTHOG_KEY,
       SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
-      SUPABASE_FUNCTIONS_URL: process.env.EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL
-    }
+      SUPABASE_FUNCTIONS_URL: process.env.EXPO_PUBLIC_SUPABASE_FUNCTIONS_URL,
+    },
   },
 };

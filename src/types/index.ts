@@ -54,5 +54,3 @@ export interface InviteCode {
   ttl: string; // ISO
   used: boolean;
 }
-
-

@@ -21,26 +21,32 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 async function runMigration() {
   try {
     console.log('🚀 Starting migration...');
-    
+
     // Read migration file
-    const migrationPath = path.join(__dirname, '..', 'supabase', 'migrations', '20251017_miqra_mvp.sql');
+    const migrationPath = path.join(
+      __dirname,
+      '..',
+      'supabase',
+      'migrations',
+      '20251017_miqra_mvp.sql'
+    );
     const migrationSQL = fs.readFileSync(migrationPath, 'utf8');
-    
+
     // Split by semicolon and execute each statement
     const statements = migrationSQL
       .split(';')
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
-    
+
     console.log(`📝 Found ${statements.length} SQL statements to execute`);
-    
+
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
       if (statement.trim()) {
         console.log(`⏳ Executing statement ${i + 1}/${statements.length}...`);
-        
+
         const { error } = await supabase.rpc('exec_sql', { sql: statement });
-        
+
         if (error) {
           console.error(`❌ Error in statement ${i + 1}:`, error.message);
           console.error('Statement:', statement.substring(0, 100) + '...');
@@ -48,15 +54,16 @@ async function runMigration() {
         }
       }
     }
-    
+
     console.log('✅ Migration completed successfully!');
     console.log('📊 Created:');
-    console.log('  - 7 tables (profiles, families, family_members, checkins, streaks, device_tokens, invite_codes)');
+    console.log(
+      '  - 7 tables (profiles, families, family_members, checkins, streaks, device_tokens, invite_codes)'
+    );
     console.log('  - 3 indexes');
     console.log('  - RLS policies for all tables');
     console.log('  - set_user_id trigger function and trigger');
     console.log('  - update_streak_after_checkin RPC function');
-    
   } catch (error) {
     console.error('❌ Migration failed:', error.message);
     process.exit(1);

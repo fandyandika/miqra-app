@@ -20,7 +20,7 @@ async function testStreakValues() {
       .from('profiles')
       .select('user_id')
       .limit(1);
-    
+
     if (!profiles || profiles.length === 0) {
       console.error('❌ No users found. Run seed script first.');
       return;
@@ -41,41 +41,41 @@ async function testStreakValues() {
 
     for (const testCase of testCases) {
       console.log(`\n📊 Testing: ${testCase.name}`);
-      
+
       // Update streak
-      const { error: streakError } = await supabase
-        .from('streaks')
-        .upsert({
-          user_id: userId,
-          current: testCase.current,
-          longest: Math.max(testCase.current, 10),
-          last_date: testCase.last_date
-        });
+      const { error: streakError } = await supabase.from('streaks').upsert({
+        user_id: userId,
+        current: testCase.current,
+        longest: Math.max(testCase.current, 10),
+        last_date: testCase.last_date,
+      });
 
       if (streakError) {
         console.error(`❌ Error updating streak:`, streakError);
         continue;
       }
 
-      console.log(`✅ Streak updated: ${testCase.current} days, last: ${testCase.last_date}`);
-      
+      console.log(
+        `✅ Streak updated: ${testCase.current} days, last: ${testCase.last_date}`
+      );
+
       // Test didBreakYesterday function
       const { didBreakYesterday } = require('../src/lib/streak');
       const broke = didBreakYesterday(testCase.last_date, 'Asia/Jakarta');
       console.log(`🌱 Broke yesterday: ${broke ? 'Yes' : 'No'}`);
-      
+
       // Show expected tree stage
       const { getTreeStage } = require('../src/lib/streak');
       const stage = getTreeStage(testCase.current);
       console.log(`🌳 Tree stage: ${stage}`);
-      
+
       // Show expected emoji
       const emojiMap = {
         sprout: '🌱',
-        sapling: '🌿', 
+        sapling: '🌿',
         young: '🌳',
         mature: '🌲',
-        ancient: '🌲'
+        ancient: '🌲',
       };
       console.log(`🎨 Expected emoji: ${emojiMap[stage]}`);
     }
@@ -86,7 +86,6 @@ async function testStreakValues() {
     console.log('2. Check TreeView in HomeScreen');
     console.log('3. Tap TreeView to open full screen modal');
     console.log('4. Try different streak values by running this script again');
-
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

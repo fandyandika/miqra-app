@@ -1,5 +1,12 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Text, Pressable, useColorScheme, Animated, Platform } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  Pressable,
+  useColorScheme,
+  Animated,
+  Platform,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -10,11 +17,10 @@ import { colors } from '@/theme/colors';
 import FabCatat from '@/components/FabCatat';
 
 // Import screens
-import HomeScreen from '@/screens/HomeScreen';
-import ReadingHistoryScreen from '@/features/reading/ReadingHistoryScreen';
-import FamilyScreen from '@/screens/FamilyScreen';
-import ProfileScreen from '@/screens/ProfileScreen';
-import CatatBacaanScreen from '@/screens/CatatBacaanScreen';
+import HomeScreen from '@/screens/home/HomeScreen';
+import ProgressScreen from '@/screens/stats/ProgressScreen';
+import FamilyScreen from '@/screens/family/FamilyTabScreen';
+import ProfileScreen from '@/features/profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
@@ -35,7 +41,9 @@ function usePalette(): Palette {
   return {
     barBg: isDark ? colors.dark.barBg : colors.barBg,
     barShadow: colors.barShadow,
-    text: isDark ? colors.dark.text : (colors as any).text?.primary || '#1A1A1A',
+    text: isDark
+      ? colors.dark.text
+      : (colors as any).text?.primary || '#1A1A1A',
     neutral: isDark ? colors.dark.neutral : colors.neutral,
     primary: colors.primary,
     primarySoft: colors.primarySoft,
@@ -55,7 +63,15 @@ type TabItemProps = {
   palette: Palette;
 };
 
-function TabItem({ icon, label, isActive, onPress, onLongPress, badgeCount, palette }: TabItemProps) {
+function TabItem({
+  icon,
+  label,
+  isActive,
+  onPress,
+  onLongPress,
+  badgeCount,
+  palette,
+}: TabItemProps) {
   const activeAnim = useRef(new Animated.Value(isActive ? -2 : -1)).current;
 
   useEffect(() => {
@@ -67,8 +83,14 @@ function TabItem({ icon, label, isActive, onPress, onLongPress, badgeCount, pale
     }).start();
   }, [isActive]);
 
-  const iconScale = activeAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.08] });
-  const labelOpacity = activeAnim.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
+  const iconScale = activeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.08],
+  });
+  const labelOpacity = activeAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.8, 1],
+  });
   // Nudge icons slightly downward; keep labels fixed
   const iconNudgeY = Platform.OS === 'android' ? -3 : -3;
   // Nudge labels upward slightly (home/progress/family/profile)
@@ -78,7 +100,7 @@ function TabItem({ icon, label, isActive, onPress, onLongPress, badgeCount, pale
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      accessibilityRole="button"
+      accessibilityRole='button'
       accessibilityLabel={label}
       style={{
         flex: 1,
@@ -90,9 +112,22 @@ function TabItem({ icon, label, isActive, onPress, onLongPress, badgeCount, pale
         height: '100%',
       }}
     >
-      <View style={{ alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      <View
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          position: 'relative',
+        }}
+      >
         {/* Icon + badge group (translated) */}
-        <View style={{ alignItems: 'center', justifyContent: 'center', position: 'relative', transform: [{ translateY: iconNudgeY }] }}>
+        <View
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            transform: [{ translateY: iconNudgeY }],
+          }}
+        >
           <Animated.View style={{ transform: [{ scale: iconScale }] }}>
             <MaterialCommunityIcons
               name={icon as any}
@@ -118,7 +153,15 @@ function TabItem({ icon, label, isActive, onPress, onLongPress, badgeCount, pale
                 borderColor: palette.barBg,
               }}
             >
-              <Text style={{ color: '#fff', fontSize: 10, fontWeight: '700', includeFontPadding: false }} numberOfLines={1}>
+              <Text
+                style={{
+                  color: '#fff',
+                  fontSize: 10,
+                  fontWeight: '700',
+                  includeFontPadding: false,
+                }}
+                numberOfLines={1}
+              >
                 {badgeCount > 99 ? '99+' : String(badgeCount)}
               </Text>
             </View>
@@ -168,20 +211,24 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const hideFab = route.name === 'CatatBacaan';
 
   // Normalize bottom inset: some Android devices report large insets in Expo Go
-  const bottomInset = Platform.OS === 'android' ? Math.min(insets.bottom, 6) : insets.bottom;
+  const bottomInset =
+    Platform.OS === 'android' ? Math.min(insets.bottom, 6) : insets.bottom;
 
   // Slightly more compact height and padding to keep content visually centered
   const tabBarHeight = 68 + bottomInset; // slightly taller
   const FAB_SIZE = 58;
-  const FAB_MARGIN_TOP = -(FAB_SIZE / 2) - (Platform.OS === 'android' ? 17 : 13); // raise a bit more so it clears the label
+  const FAB_MARGIN_TOP =
+    -(FAB_SIZE / 2) - (Platform.OS === 'android' ? 17 : 13); // raise a bit more so it clears the label
 
   const Container = Platform.OS === 'ios' ? BlurView : View;
-  const containerProps = Platform.OS === 'ios' ? { tint: palette.blurTint, intensity: 28 } : {};
+  const containerProps =
+    Platform.OS === 'ios' ? { tint: palette.blurTint, intensity: 28 } : {};
 
   return (
     <View
       style={{
-        backgroundColor: Platform.OS === 'android' ? palette.translucentBg : 'transparent',
+        backgroundColor:
+          Platform.OS === 'android' ? palette.translucentBg : 'transparent',
         borderTopWidth: 1,
         borderTopColor: palette.barShadow,
         shadowColor: '#000',
@@ -194,10 +241,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
         paddingTop: 8,
       }}
     >
-      <Container
-        {...(containerProps as any)}
-        style={{ flex: 1 }}
-      >
+      <Container {...(containerProps as any)} style={{ flex: 1 }}>
         <View
           style={{
             flexDirection: 'row',
@@ -214,10 +258,17 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               const label = options.tabBarLabel || options.title || r.name;
               const icon = options.tabBarIcon || 'home-variant';
               const isFocused = state.index === i;
-              const badgeCount = typeof options.tabBarBadge === 'number' ? options.tabBarBadge : undefined;
+              const badgeCount =
+                typeof options.tabBarBadge === 'number'
+                  ? options.tabBarBadge
+                  : undefined;
 
               const onPress = () => {
-                const evt = navigation.emit({ type: 'tabPress', target: r.key, canPreventDefault: true });
+                const evt = navigation.emit({
+                  type: 'tabPress',
+                  target: r.key,
+                  canPreventDefault: true,
+                });
                 if (!isFocused && !evt.defaultPrevented) {
                   Haptics.selectionAsync().catch(() => {});
                   navigation.navigate(r.name, r.params);
@@ -227,32 +278,52 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 navigation.emit({ type: 'tabLongPress', target: r.key });
               };
               return (
-                <TabItem key={r.key} icon={icon} label={label} isActive={isFocused} onPress={onPress} onLongPress={onLongPress} badgeCount={badgeCount} palette={palette} />
+                <TabItem
+                  key={r.key}
+                  icon={icon}
+                  label={label}
+                  isActive={isFocused}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                  badgeCount={badgeCount}
+                  palette={palette}
+                />
               );
             })}
           </View>
 
           {/* Center FAB area */}
-          <View style={{ 
-            width: 92, 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            height: '100%',
-          }}>
+          <View
+            style={{
+              width: 92,
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+            }}
+          >
             {!hideFab && (
               <>
                 <View style={{ marginTop: FAB_MARGIN_TOP }}>
-                  <FabCatat onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {}); navigation.navigate('CatatBacaan'); }} />
+                  <FabCatat
+                    onPress={() => {
+                      Haptics.impactAsync(
+                        Haptics.ImpactFeedbackStyle.Medium
+                      ).catch(() => {});
+                      navigation.navigate('CatatBacaan');
+                    }}
+                  />
                 </View>
-                <Text style={{ 
-                  marginTop: 16, // slightly lower label for readability
-                  fontSize: 12,
-                  fontWeight: '600',
-                  color: palette.neutral,
-                  textAlign: 'center',
-                  includeFontPadding: false,
-                  lineHeight: 12,
-                }}>
+                <Text
+                  style={{
+                    marginTop: 16, // slightly lower label for readability
+                    fontSize: 12,
+                    fontWeight: '600',
+                    color: palette.neutral,
+                    textAlign: 'center',
+                    includeFontPadding: false,
+                    lineHeight: 12,
+                  }}
+                >
                   Catat Bacaan
                 </Text>
               </>
@@ -267,10 +338,17 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
               const label = options.tabBarLabel || options.title || r.name;
               const icon = options.tabBarIcon || 'home-variant';
               const isFocused = state.index === routeIndex;
-              const badgeCount = typeof options.tabBarBadge === 'number' ? options.tabBarBadge : undefined;
+              const badgeCount =
+                typeof options.tabBarBadge === 'number'
+                  ? options.tabBarBadge
+                  : undefined;
 
               const onPress = () => {
-                const evt = navigation.emit({ type: 'tabPress', target: r.key, canPreventDefault: true });
+                const evt = navigation.emit({
+                  type: 'tabPress',
+                  target: r.key,
+                  canPreventDefault: true,
+                });
                 if (!isFocused && !evt.defaultPrevented) {
                   Haptics.selectionAsync().catch(() => {});
                   navigation.navigate(r.name, r.params);
@@ -280,7 +358,16 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 navigation.emit({ type: 'tabLongPress', target: r.key });
               };
               return (
-                <TabItem key={r.key} icon={icon} label={label} isActive={isFocused} onPress={onPress} onLongPress={onLongPress} badgeCount={badgeCount} palette={palette} />
+                <TabItem
+                  key={r.key}
+                  icon={icon}
+                  label={label}
+                  isActive={isFocused}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                  badgeCount={badgeCount}
+                  palette={palette}
+                />
               );
             })}
           </View>
@@ -295,14 +382,14 @@ export default function BottomTabs() {
 
   return (
     <Tab.Navigator
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={props => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen
-        name="Home"
+        name='Home'
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
@@ -310,15 +397,15 @@ export default function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Progress"
-        component={ReadingHistoryScreen}
+        name='Progress'
+        component={ProgressScreen}
         options={{
           tabBarLabel: 'Progress',
           tabBarIcon: 'chart-bar' as any,
         }}
       />
       <Tab.Screen
-        name="Family"
+        name='Family'
         component={FamilyScreen}
         options={{
           tabBarLabel: 'Family',
@@ -326,7 +413,7 @@ export default function BottomTabs() {
         }}
       />
       <Tab.Screen
-        name="Profile"
+        name='Profile'
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',

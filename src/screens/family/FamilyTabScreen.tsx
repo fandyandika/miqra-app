@@ -28,8 +28,8 @@ export default function FamilyTabScreen() {
 
   if (familiesQ.isLoading) {
     return (
-      <View className="flex-1 bg-background items-center justify-center">
-        <Text className="text-text-secondary">Memuat...</Text>
+      <View className='flex-1 bg-background items-center justify-center'>
+        <Text className='text-text-secondary'>Memuat...</Text>
       </View>
     );
   }
@@ -37,14 +37,26 @@ export default function FamilyTabScreen() {
   if (!familiesQ.data || familiesQ.data.length === 0) {
     console.log('[FamilyTab] No families data:', familiesQ.data);
     return (
-      <View className="flex-1 bg-background px-5 pt-14">
-        <Header title="Keluarga" subtitle="Baca bersama keluarga" />
-        <View className="items-center justify-center flex-1 -mt-20">
-          <Text className="text-6xl mb-4">👨‍👩‍👧‍👦</Text>
-          <Text className="text-lg text-charcoal font-medium mb-2">Belum Ada Keluarga</Text>
-          <Text className="text-text-secondary text-center mb-6">Buat keluarga baru atau gabung dengan kode undangan</Text>
-          <Button title="Buat Keluarga" onPress={() => nav.navigate('CreateFamily')} />
-          <Button title="Gabung Keluarga" variant="secondary" onPress={() => nav.navigate('JoinFamily')} style={{ marginTop: 12 }} />
+      <View className='flex-1 bg-background px-5 pt-14'>
+        <Header title='Keluarga' subtitle='Baca bersama keluarga' />
+        <View className='items-center justify-center flex-1 -mt-20'>
+          <Text className='text-6xl mb-4'>👨‍👩‍👧‍👦</Text>
+          <Text className='text-lg text-charcoal font-medium mb-2'>
+            Belum Ada Keluarga
+          </Text>
+          <Text className='text-text-secondary text-center mb-6'>
+            Buat keluarga baru atau gabung dengan kode undangan
+          </Text>
+          <Button
+            title='Buat Keluarga'
+            onPress={() => nav.navigate('CreateFamily')}
+          />
+          <Button
+            title='Gabung Keluarga'
+            variant='secondary'
+            onPress={() => nav.navigate('JoinFamily')}
+            style={{ marginTop: 12 }}
+          />
         </View>
       </View>
     );
@@ -53,8 +65,8 @@ export default function FamilyTabScreen() {
   console.log('[FamilyTab] Families data:', familiesQ.data);
 
   return (
-    <View className="flex-1 bg-background px-5 pt-14">
-      <Header title="Keluarga" subtitle="Keluargaku" />
+    <View className='flex-1 bg-background px-5 pt-14'>
+      <Header title='Keluarga' subtitle='Keluargaku' />
       <FlatList
         data={familiesQ.data}
         keyExtractor={(item: any) => item.id}
@@ -62,22 +74,40 @@ export default function FamilyTabScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#00C896"
+            tintColor='#00C896'
             colors={['#00C896']}
           />
         }
         renderItem={({ item }) => (
-          <Pressable onPress={() => nav.navigate('FamilyDashboard', { familyId: item.id })}>
+          <Pressable
+            onPress={() =>
+              nav.navigate('FamilyDashboard', { familyId: item.id })
+            }
+          >
             <Card style={{ marginBottom: 12 }}>
-              <Text className="text-lg font-medium text-charcoal">{item.name}</Text>
-              <Text className="text-text-secondary text-xs mt-1">{item.role === 'owner' ? '👑 Owner' : '👤 Member'}</Text>
+              <Text className='text-lg font-medium text-charcoal'>
+                {item.name}
+              </Text>
+              <Text className='text-text-secondary text-xs mt-1'>
+                {item.role === 'owner' ? '👑 Owner' : '👤 Member'}
+              </Text>
             </Card>
           </Pressable>
         )}
       />
-      <View className="flex-row gap-2 pb-4">
-        <Button title="Buat Keluarga Baru" variant="ghost" onPress={() => nav.navigate('CreateFamily')} style={{ flex: 1 }} />
-        <Button title="Gabung" variant="secondary" onPress={() => nav.navigate('JoinFamily')} style={{ flex: 1 }} />
+      <View className='flex-row gap-2 pb-4'>
+        <Button
+          title='Buat Keluarga Baru'
+          variant='ghost'
+          onPress={() => nav.navigate('CreateFamily')}
+          style={{ flex: 1 }}
+        />
+        <Button
+          title='Gabung'
+          variant='secondary'
+          onPress={() => nav.navigate('JoinFamily')}
+          style={{ flex: 1 }}
+        />
       </View>
     </View>
   );

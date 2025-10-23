@@ -16,7 +16,9 @@ async function checkFamilies() {
     console.log('🔍 Checking families data...\n');
 
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
       console.log('❌ No authenticated user');
       return;
@@ -48,12 +50,14 @@ async function checkFamilies() {
     console.log('👥 Family members for current user:');
     const { data: myMemberships, error: membersError } = await supabase
       .from('family_members')
-      .select(`
+      .select(
+        `
         family_id, 
         role, 
         created_at,
         families(id, name, created_by)
-      `)
+      `
+      )
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
@@ -73,8 +77,10 @@ async function checkFamilies() {
 
     // Check for duplicates
     const familyNames = allFamilies.map(f => f.name);
-    const duplicates = familyNames.filter((name, index) => familyNames.indexOf(name) !== index);
-    
+    const duplicates = familyNames.filter(
+      (name, index) => familyNames.indexOf(name) !== index
+    );
+
     if (duplicates.length > 0) {
       console.log('⚠️  DUPLICATE FAMILY NAMES FOUND:');
       duplicates.forEach(name => {
@@ -87,7 +93,6 @@ async function checkFamilies() {
     } else {
       console.log('✅ No duplicate family names found');
     }
-
   } catch (error) {
     console.error('❌ Error:', error);
   }

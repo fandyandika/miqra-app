@@ -28,5 +28,3 @@ export const supabase = createClient(
 );
 
 console.log('[Supabase] Client initialized');
-
-

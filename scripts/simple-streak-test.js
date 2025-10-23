@@ -16,10 +16,14 @@ async function testStreak() {
 
   try {
     // Test the streak functions directly
-    const { didBreakYesterday, getTreeStage, getTreeVisual } = require('../src/lib/streak');
-    
+    const {
+      didBreakYesterday,
+      getTreeStage,
+      getTreeVisual,
+    } = require('../src/lib/streak');
+
     console.log('📊 Testing streak functions:');
-    
+
     // Test different scenarios
     const scenarios = [
       { name: 'Sprout (1 day)', days: 1, lastDate: '2025-10-17' },
@@ -34,26 +38,26 @@ async function testStreak() {
       console.log(`\n🌱 ${scenario.name}:`);
       console.log(`   Days: ${scenario.days}`);
       console.log(`   Last date: ${scenario.lastDate}`);
-      
+
       const broke = didBreakYesterday(scenario.lastDate, 'Asia/Jakarta');
       console.log(`   Broke yesterday: ${broke ? 'Yes' : 'No'}`);
-      
+
       const stage = getTreeStage(scenario.days);
       console.log(`   Tree stage: ${stage}`);
-      
-      const visual = getTreeVisual({ 
-        currentStreakDays: scenario.days, 
-        brokeYesterday: broke 
+
+      const visual = getTreeVisual({
+        currentStreakDays: scenario.days,
+        brokeYesterday: broke,
       });
       console.log(`   Visual: ${visual.stage} (${visual.variant})`);
-      
+
       // Show expected emoji
       const emojiMap = {
         sprout: '🌱',
-        sapling: '🌿', 
+        sapling: '🌿',
         young: '🌳',
         mature: '🌲',
-        ancient: '🌲'
+        ancient: '🌲',
       };
       console.log(`   Emoji: ${emojiMap[stage]}`);
     });
@@ -64,7 +68,6 @@ async function testStreak() {
     console.log('2. Login with test1@miqra.com / password123');
     console.log('3. Check TreeView in HomeScreen');
     console.log('4. Tap TreeView to open full screen modal');
-
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

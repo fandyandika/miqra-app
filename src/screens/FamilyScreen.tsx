@@ -23,8 +23,8 @@ export default function FamilyScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-5 pt-14">
-      <Header title="Keluarga" subtitle="Keluargaku" />
+    <View className='flex-1 bg-background px-5 pt-14'>
+      <Header title='Keluarga' subtitle='Keluargaku' />
       <FlatList
         data={familiesQ.data}
         keyExtractor={(item: any) => item.id}
@@ -32,22 +32,28 @@ export default function FamilyScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#00C896"
+            tintColor='#00C896'
             colors={['#00C896']}
           />
         }
         renderItem={({ item }) => (
           <Pressable
-            onPress={() => nav.navigate('FamilyDashboard', { familyId: item.id })}
-            className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border"
+            onPress={() =>
+              nav.navigate('FamilyDashboard', { familyId: item.id })
+            }
+            className='bg-surface rounded-xl px-4 py-3 mb-2 border border-border'
           >
-            <Text className="text-charcoal font-medium">{item.name}</Text>
-            <Text className="text-text-secondary text-sm mt-1">{item.role}</Text>
+            <Text className='text-charcoal font-medium'>{item.name}</Text>
+            <Text className='text-text-secondary text-sm mt-1'>
+              {item.role}
+            </Text>
           </Pressable>
         )}
         ListEmptyComponent={
-          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
-            <Text className="text-gray-600 text-center">Belum ada keluarga</Text>
+          <View className='mt-4 p-4 bg-gray-100 rounded-xl'>
+            <Text className='text-gray-600 text-center'>
+              Belum ada keluarga
+            </Text>
           </View>
         }
       />
