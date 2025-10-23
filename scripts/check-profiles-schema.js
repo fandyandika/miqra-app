@@ -57,10 +57,7 @@ async function checkProfilesSchema() {
 
     for (const column of columnsToCheck) {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select(column)
-          .limit(1);
+        const { data, error } = await supabase.from('profiles').select(column).limit(1);
 
         if (error) {
           console.log(`❌ Column '${column}': ${error.message}`);

@@ -128,7 +128,7 @@ const { data: weeklyData } = useQuery({
 ```typescript
 // Transform untuk charts
 const weeklyChartData =
-  weeklyData?.map(w => ({
+  weeklyData?.map((w) => ({
     label: format(new Date(w.week_start), 'dd MMM'),
     value: w.total_ayat,
   })) || [];

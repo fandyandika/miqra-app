@@ -27,8 +27,7 @@ export function calculateProgress(
   currentAyat: number,
   khatamCount: number = 0
 ): ProgressData {
-  const adjustedRead =
-    ((totalAyatRead % TOTAL_QURAN_AYAT) + TOTAL_QURAN_AYAT) % TOTAL_QURAN_AYAT; // guard
+  const adjustedRead = ((totalAyatRead % TOTAL_QURAN_AYAT) + TOTAL_QURAN_AYAT) % TOTAL_QURAN_AYAT; // guard
   const percentage = Math.min(100, (adjustedRead / TOTAL_QURAN_AYAT) * 100);
   const remaining = Math.max(0, TOTAL_QURAN_AYAT - adjustedRead);
 
@@ -46,7 +45,7 @@ export function calculateProgress(
 /** Estimate completion date from recent pace (unique active days) */
 export function estimateCompletion(
   totalAyatRead: number,
-  recentSessions: Array<{ date: string; ayat_count: number }>,
+  recentSessions: { date: string; ayat_count: number }[],
   daysWindow: number = 30
 ): CompletionEstimate {
   if (!recentSessions || recentSessions.length === 0) {
@@ -58,11 +57,8 @@ export function estimateCompletion(
     };
   }
 
-  const totalRecent = recentSessions.reduce(
-    (sum, s) => sum + (s.ayat_count || 0),
-    0
-  );
-  const uniqueDates = new Set(recentSessions.map(s => s.date));
+  const totalRecent = recentSessions.reduce((sum, s) => sum + (s.ayat_count || 0), 0);
+  const uniqueDates = new Set(recentSessions.map((s) => s.date));
   const daysRead = uniqueDates.size;
   const avgPerDay = daysRead > 0 ? Math.round(totalRecent / daysRead) : 0;
 
@@ -99,8 +95,7 @@ export type Milestone = {
 };
 
 export function getMilestones(totalAyatRead: number): Milestone[] {
-  const current =
-    ((totalAyatRead % TOTAL_QURAN_AYAT) + TOTAL_QURAN_AYAT) % TOTAL_QURAN_AYAT;
+  const current = ((totalAyatRead % TOTAL_QURAN_AYAT) + TOTAL_QURAN_AYAT) % TOTAL_QURAN_AYAT;
   const p = (x: number) => Math.round(TOTAL_QURAN_AYAT * x);
 
   const list: Milestone[] = [
@@ -173,5 +168,5 @@ export function getMilestones(totalAyatRead: number): Milestone[] {
 }
 
 export function getNextMilestone(totalAyatRead: number): Milestone | null {
-  return getMilestones(totalAyatRead).find(m => !m.achieved) || null;
+  return getMilestones(totalAyatRead).find((m) => !m.achieved) || null;
 }

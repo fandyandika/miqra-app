@@ -2,11 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, Pressable, Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import {
-  getReadingProgress,
-  createReadingSession,
-  ReadingSessionInput,
-} from '@/services/reading';
+import { getReadingProgress, createReadingSession, ReadingSessionInput } from '@/services/reading';
 import { getAyatCount, getNextPosition } from '@/data/quran_meta';
 import { SurahPicker } from './SurahPicker';
 import { AyatRangeInput } from './AyatRangeInput';
@@ -59,13 +55,9 @@ export default function LogReadingScreen() {
   function submit() {
     if (!surah || !range.start || !range.end) return;
     if (range.end < range.start)
-      return Alert.alert(
-        'Cek lagi',
-        'Ayat akhir tidak boleh lebih kecil dari awal.'
-      );
+      return Alert.alert('Cek lagi', 'Ayat akhir tidak boleh lebih kecil dari awal.');
     const max = getAyatCount(surah);
-    if (range.end > max)
-      return Alert.alert('Cek lagi', `Surah ini hanya ${max} ayat.`);
+    if (range.end > max) return Alert.alert('Cek lagi', `Surah ini hanya ${max} ayat.`);
     m.mutate({
       surah_number: surah,
       ayat_start: range.start,
@@ -82,9 +74,7 @@ export default function LogReadingScreen() {
         </Pressable>
       </View>
 
-      <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>
-        Catat Bacaan
-      </Text>
+      <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>Catat Bacaan</Text>
 
       <Pressable
         onPress={prefillFromCurrent}
@@ -103,10 +93,10 @@ export default function LogReadingScreen() {
 
       <SurahPicker
         value={surah}
-        onChange={n => {
+        onChange={(n) => {
           setSurah(n);
           const max = getAyatCount(n);
-          setRange(r => ({
+          setRange((r) => ({
             start: Math.min(r.start, max),
             end: Math.min(r.end, max),
           }));
@@ -124,7 +114,7 @@ export default function LogReadingScreen() {
         <TextInput
           value={notes}
           onChangeText={setNotes}
-          placeholder='Refleksi singkat...'
+          placeholder="Refleksi singkat..."
           multiline
           style={{
             minHeight: 80,

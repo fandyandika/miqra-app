@@ -1,12 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { SURAH_META } from '@/data/quran_meta';
@@ -68,7 +61,7 @@ export function OptimizedReadingList({
 
   const loadMore = () => {
     if (hasMore && !isLoading) {
-      setDisplayCount(prev => prev + ITEMS_PER_PAGE);
+      setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
       onLoadMore?.();
     }
   };
@@ -125,16 +118,14 @@ export function OptimizedReadingList({
   if (groupedSessions.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>
-          Belum ada catatan bacaan bulan ini.
-        </Text>
+        <Text style={styles.emptyText}>Belum ada catatan bacaan bulan ini.</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {paginatedData.map(group => {
+      {paginatedData.map((group) => {
         const isExpanded = expandedDates.has(group.date);
         const sessionCount = group.sessions.length;
 
@@ -143,7 +134,7 @@ export function OptimizedReadingList({
             <Pressable
               style={styles.dateHeader}
               onPress={() => toggleDateExpansion(group.date)}
-              accessibilityRole='button'
+              accessibilityRole="button"
               accessibilityLabel={`${isValidDate(group.date) ? format(new Date(group.date), 'EEEE, d MMMM yyyy', { locale: id }) : 'Tanggal tidak valid'} - ${sessionCount} sesi, ${group.totalAyat} ayat`}
             >
               <View style={styles.dateHeaderContent}>
@@ -163,10 +154,8 @@ export function OptimizedReadingList({
 
             {isExpanded && (
               <View style={styles.sessionsContainer}>
-                {group.sessions.map(session => (
-                  <View key={session.id}>
-                    {renderSession({ item: session })}
-                  </View>
+                {group.sessions.map((session) => (
+                  <View key={session.id}>{renderSession({ item: session })}</View>
                 ))}
               </View>
             )}

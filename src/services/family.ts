@@ -26,10 +26,7 @@ export async function createFamily(name: string) {
       .insert({ family_id: data.id, user_id: uid, role: 'owner' });
 
     if (memberError) {
-      console.warn(
-        '[Family] Failed to add owner to family_members:',
-        memberError
-      );
+      console.warn('[Family] Failed to add owner to family_members:', memberError);
     } else {
       // owner added
     }
@@ -67,12 +64,12 @@ export async function myFamilies() {
 
 export async function familyMembers(familyId: string) {
   // Try with relationship first
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('family_members')
     .select(
       `
-      user_id, 
-      role, 
+      user_id,
+      role,
       created_at,
       profiles(display_name)
     `
@@ -89,17 +86,17 @@ export async function familyMembers(familyId: string) {
     if (membersError) throw membersError;
 
     // Get profiles separately
-    const userIds = membersData?.map(m => m.user_id) || [];
+    const userIds = membersData?.map((m) => m.user_id) || [];
     const { data: profilesData } = await supabase
       .from('profiles')
       .select('user_id, display_name')
       .in('user_id', userIds);
 
     // Combine data
-    data = membersData?.map(member => ({
+    data = membersData?.map((member) => ({
       ...member,
       profiles: [
-        profilesData?.find(p => p.user_id === member.user_id) || {
+        profilesData?.find((p) => p.user_id === member.user_id) || {
           user_id: member.user_id,
           display_name: null,
         },
@@ -126,10 +123,7 @@ export async function redeemInvite(code: string) {
   return data as string; // family_id
 }
 
-export async function getFamilyTodayStats(
-  familyId: string,
-  timezone = 'Asia/Jakarta'
-) {
+export async function getFamilyTodayStats(familyId: string, timezone = 'Asia/Jakarta') {
   if (!familyId) throw new Error('familyId required');
 
   // 1. Fetch family members
@@ -142,8 +136,8 @@ export async function getFamilyTodayStats(
   }
 
   // 2. Fetch profiles separately to avoid relationship issues
-  const memberIds = members?.map(m => m.user_id) || [];
-  let memberList: Array<{ id: string; name: string }> = [];
+  const memberIds = members?.map((m) => m.user_id) || [];
+  let memberList: { id: string; name: string }[] = [];
 
   if (memberIds.length > 0) {
     const { data: profiles, error: profilesErr } = await supabase
@@ -152,13 +146,13 @@ export async function getFamilyTodayStats(
       .in('user_id', memberIds);
 
     if (profilesErr) {
-      memberList = memberIds.map(id => ({
+      memberList = memberIds.map((id) => ({
         id,
         name: `User ${id.slice(0, 6)}`,
       }));
     } else {
-      memberList = memberIds.map(id => {
-        const profile = profiles?.find(p => p.user_id === id);
+      memberList = memberIds.map((id) => {
+        const profile = profiles?.find((p) => p.user_id === id);
         return {
           id,
           name: profile?.display_name || `User ${id.slice(0, 6)}`,
@@ -192,13 +186,13 @@ export async function getFamilyTodayStats(
   }
 
   // 4. Compute membersReadToday
-  const todayCheckins = checkins.filter(c => c.date === todayStr);
-  const readTodayIds = new Set(todayCheckins.map(c => c.user_id));
+  const todayCheckins = checkins.filter((c) => c.date === todayStr);
+  const readTodayIds = new Set(todayCheckins.map((c) => c.user_id));
   const membersReadToday = readTodayIds.size;
 
   // 5. Simple familyStreakDays (client-side)
   // Count consecutive days from today backward with any checkin
-  const distinctDates = Array.from(new Set(checkins.map(c => c.date)))
+  const distinctDates = Array.from(new Set(checkins.map((c) => c.date)))
     .sort()
     .reverse();
   let streak = 0;
@@ -217,7 +211,7 @@ export async function getFamilyTodayStats(
     totalMembers: memberIds.length,
     membersReadToday,
     familyStreakDays: streak,
-    members: memberList.map(m => ({
+    members: memberList.map((m) => ({
       name: m.name,
       readToday: readTodayIds.has(m.id),
     })),

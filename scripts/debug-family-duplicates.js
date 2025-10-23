@@ -68,7 +68,7 @@ async function debugFamilyDuplicates() {
     });
 
     // Check for duplicates by name
-    const familyNames = allFamilies.map(f => f.name);
+    const familyNames = allFamilies.map((f) => f.name);
     const uniqueNames = [...new Set(familyNames)];
 
     console.log('🔍 Duplicate analysis:');
@@ -78,13 +78,11 @@ async function debugFamilyDuplicates() {
     if (allFamilies.length !== uniqueNames.length) {
       console.log('⚠️  DUPLICATES FOUND!');
 
-      uniqueNames.forEach(name => {
-        const familiesWithName = allFamilies.filter(f => f.name === name);
+      uniqueNames.forEach((name) => {
+        const familiesWithName = allFamilies.filter((f) => f.name === name);
         if (familiesWithName.length > 1) {
-          console.log(
-            `\n📌 Name "${name}" appears ${familiesWithName.length} times:`
-          );
-          familiesWithName.forEach(f => {
+          console.log(`\n📌 Name "${name}" appears ${familiesWithName.length} times:`);
+          familiesWithName.forEach((f) => {
             console.log(`   - ID: ${f.id}`);
             console.log(`   - Created by: ${f.created_by}`);
             console.log(`   - Created at: ${f.created_at}`);
@@ -97,9 +95,7 @@ async function debugFamilyDuplicates() {
 
     // Check for duplicate memberships (same user in same family)
     console.log('\n🔍 Duplicate membership analysis:');
-    const membershipKeys = allMemberships.map(
-      m => `${m.user_id}-${m.family_id}`
-    );
+    const membershipKeys = allMemberships.map((m) => `${m.user_id}-${m.family_id}`);
     const uniqueMemberships = [...new Set(membershipKeys)];
 
     console.log(`Total memberships: ${allMemberships.length}`);
@@ -109,7 +105,7 @@ async function debugFamilyDuplicates() {
       console.log('⚠️  DUPLICATE MEMBERSHIPS FOUND!');
 
       const membershipCounts = {};
-      allMemberships.forEach(m => {
+      allMemberships.forEach((m) => {
         const key = `${m.user_id}-${m.family_id}`;
         membershipCounts[key] = (membershipCounts[key] || 0) + 1;
       });
@@ -117,7 +113,7 @@ async function debugFamilyDuplicates() {
       Object.entries(membershipCounts).forEach(([key, count]) => {
         if (count > 1) {
           const [userId, familyId] = key.split('-');
-          const family = allFamilies.find(f => f.id === familyId);
+          const family = allFamilies.find((f) => f.id === familyId);
           console.log(
             `   - User ${userId} in family "${family?.name}" (${familyId}) appears ${count} times`
           );

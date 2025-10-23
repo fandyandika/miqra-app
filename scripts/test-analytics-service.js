@@ -48,9 +48,7 @@ async function getDailyStats(startDate, endDate) {
 
   if (error) {
     console.error('❌ getDailyStats error:', error);
-    throw new Error(
-      `getDailyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getDailyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -74,9 +72,7 @@ async function getWeeklyStats(weeks = 8) {
 
   if (error) {
     console.error('❌ getWeeklyStats error:', error);
-    throw new Error(
-      `getWeeklyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getWeeklyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -97,9 +93,7 @@ async function getMonthlyStats(months = 6) {
 
   if (error) {
     console.error('❌ getMonthlyStats error:', error);
-    throw new Error(
-      `getMonthlyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getMonthlyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -132,7 +126,7 @@ async function getReadingPattern() {
   }
 
   // Aggregate by hour
-  (data ?? []).forEach(session => {
+  (data ?? []).forEach((session) => {
     const timestamp = session.session_time ?? session.created_at;
     const hour = new Date(timestamp).getHours();
 
@@ -152,7 +146,7 @@ async function getReadingPattern() {
 
   console.log(
     '✅ Reading pattern fetched:',
-    result.filter(r => r.count > 0).length,
+    result.filter((r) => r.count > 0).length,
     'active hours'
   );
 
@@ -170,9 +164,7 @@ async function getUserTotalStats() {
 
   if (error) {
     console.error('❌ getUserTotalStats error:', error);
-    throw new Error(
-      `getUserTotalStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getUserTotalStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data;
@@ -203,12 +195,9 @@ async function getComparativeStats() {
   }
 
   // Get family stats
-  const { data: familyData, error: familyError } = await supabase.rpc(
-    'get_family_stats',
-    {
-      p_family_id: familyMember.family_id,
-    }
-  );
+  const { data: familyData, error: familyError } = await supabase.rpc('get_family_stats', {
+    p_family_id: familyMember.family_id,
+  });
 
   if (familyError) {
     console.error('❌ Family stats error:', familyError);
@@ -227,11 +216,10 @@ async function testAnalyticsService() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);
@@ -272,7 +260,7 @@ async function testAnalyticsService() {
       const pattern = await getReadingPattern();
       console.log(
         '✅ Reading pattern test passed:',
-        pattern.filter(p => p.count > 0).length,
+        pattern.filter((p) => p.count > 0).length,
         'active hours'
       );
     } catch (err) {

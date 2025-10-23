@@ -17,7 +17,7 @@ async function testDateValidationWithValidUser() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -44,10 +44,7 @@ async function testDateValidationWithValidUser() {
       console.log(`   Error: ${checkinError.message}`);
 
       // Check if it's a date constraint error
-      if (
-        checkinError.message.includes('date') ||
-        checkinError.message.includes('future')
-      ) {
+      if (checkinError.message.includes('date') || checkinError.message.includes('future')) {
         console.log('✅ Date validation constraint is working!');
       } else {
         console.log('⚠️  Blocked by different constraint (foreign key, etc.)');
@@ -57,30 +54,23 @@ async function testDateValidationWithValidUser() {
     }
 
     // Test future date reading session
-    console.log(
-      `\n🧪 Attempting to insert future reading session: ${tomorrowStr}`
-    );
+    console.log(`\n🧪 Attempting to insert future reading session: ${tomorrowStr}`);
 
-    const { error: sessionError } = await supabase
-      .from('reading_sessions')
-      .insert({
-        user_id: test1User.id,
-        surah_number: 1,
-        ayat_start: 1,
-        ayat_end: 5,
-        date: tomorrowStr,
-        session_time: new Date().toISOString(),
-      });
+    const { error: sessionError } = await supabase.from('reading_sessions').insert({
+      user_id: test1User.id,
+      surah_number: 1,
+      ayat_start: 1,
+      ayat_end: 5,
+      date: tomorrowStr,
+      session_time: new Date().toISOString(),
+    });
 
     if (sessionError) {
       console.log('✅ Future session blocked');
       console.log(`   Error: ${sessionError.message}`);
 
       // Check if it's a date constraint error
-      if (
-        sessionError.message.includes('date') ||
-        sessionError.message.includes('future')
-      ) {
+      if (sessionError.message.includes('date') || sessionError.message.includes('future')) {
         console.log('✅ Date validation constraint is working!');
       } else {
         console.log('⚠️  Blocked by different constraint');
@@ -90,9 +80,7 @@ async function testDateValidationWithValidUser() {
     }
 
     // Test valid date (today)
-    console.log(
-      `\n🧪 Testing valid date (today): ${new Date().toISOString().split('T')[0]}`
-    );
+    console.log(`\n🧪 Testing valid date (today): ${new Date().toISOString().split('T')[0]}`);
 
     const { error: validError } = await supabase.from('checkins').insert({
       user_id: test1User.id,
@@ -109,9 +97,7 @@ async function testDateValidationWithValidUser() {
 
     console.log('\n🎯 SUMMARY:');
     console.log('===========');
-    console.log(
-      'Date validation constraints are working at the application level'
-    );
+    console.log('Date validation constraints are working at the application level');
     console.log('Database constraints may need to be added manually');
   } catch (error) {
     console.error('❌ Test failed:', error);

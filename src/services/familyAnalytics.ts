@@ -123,7 +123,7 @@ export async function getComparativeStatsWithFamilies(
 
   // Get user's families
   const families = await getUserFamilies();
-  
+
   // Get personal stats
   const personal = await getUserTotalStats();
 
@@ -139,7 +139,7 @@ export async function getComparativeStatsWithFamilies(
 
   // Use selected family or first family as default
   const familyId = selectedFamilyId || families[0].id;
-  
+
   // Get family stats
   const family = await getFamilyStats(familyId);
 

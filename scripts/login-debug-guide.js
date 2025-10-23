@@ -48,9 +48,7 @@ console.log('      - Check if navigation is working\n');
 
 console.log('5️⃣ EMERGENCY FIXES:');
 console.log('   - Clear Metro cache: npx expo start --clear');
-console.log(
-  '   - Clear React Native cache: npx react-native start --reset-cache'
-);
+console.log('   - Clear React Native cache: npx react-native start --reset-cache');
 console.log('   - Restart Metro bundler');
 console.log('   - Restart the app on device/simulator\n');
 

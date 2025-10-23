@@ -133,7 +133,7 @@ export async function getFamilyStatsDirect(familyId: string): Promise<FamilyStat
       };
     }
 
-    const memberIds = members.map(m => m.user_id);
+    const memberIds = members.map((m) => m.user_id);
 
     // Get reading sessions for all family members
     const { data: sessions, error: sessionsError } = await supabase
@@ -147,7 +147,8 @@ export async function getFamilyStatsDirect(familyId: string): Promise<FamilyStat
     }
 
     // Calculate stats
-    const totalFamilyAyat = sessions?.reduce((sum, session) => sum + (session.ayat_count || 0), 0) || 0;
+    const totalFamilyAyat =
+      sessions?.reduce((sum, session) => sum + (session.ayat_count || 0), 0) || 0;
     const memberCount = memberIds.length;
     const avgAyatPerMember = memberCount > 0 ? totalFamilyAyat / memberCount : 0;
 
@@ -158,7 +159,7 @@ export async function getFamilyStatsDirect(familyId: string): Promise<FamilyStat
       memberCount,
       avgAyatPerMember,
       sessionsCount: sessions?.length || 0,
-      sessions: sessions?.map(s => ({ userId: s.user_id, ayat: s.ayat_count })) || [],
+      sessions: sessions?.map((s) => ({ userId: s.user_id, ayat: s.ayat_count })) || [],
     });
 
     return {
@@ -182,7 +183,7 @@ export async function getComparativeStatsWithFamiliesDirect(
 
   // Get user's families
   const families = await getUserFamilies();
-  
+
   // Get personal stats
   const personal = await getUserTotalStatsDirect();
 
@@ -198,7 +199,7 @@ export async function getComparativeStatsWithFamiliesDirect(
 
   // Use selected family or first family as default
   const familyId = selectedFamilyId || families[0].id;
-  
+
   // Get family stats
   const family = await getFamilyStatsDirect(familyId);
 

@@ -53,9 +53,7 @@ grant execute on function update_streak_after_checkin(uuid, date) to authenticat
     console.log('\n' + '='.repeat(80));
     console.log(fixSQL);
     console.log('='.repeat(80));
-    console.log(
-      '\nAfter running this SQL, run: node scripts/seed-test-data.js'
-    );
+    console.log('\nAfter running this SQL, run: node scripts/seed-test-data.js');
   } catch (error) {
     console.error('❌ Error:', error.message);
   }

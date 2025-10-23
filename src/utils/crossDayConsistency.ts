@@ -18,10 +18,7 @@ export function isTodayInUserTimezone(
 
     return isSameDay(userToday, userCheckDate);
   } catch (error) {
-    console.error(
-      '[CrossDayConsistency] Error checking if date is today:',
-      error
-    );
+    console.error('[CrossDayConsistency] Error checking if date is today:', error);
     return false;
   }
 }
@@ -29,24 +26,16 @@ export function isTodayInUserTimezone(
 /**
  * Get the start of today in user timezone
  */
-export function getTodayStartInUserTimezone(
-  userTimezone: string = 'Asia/Jakarta'
-): Date {
+export function getTodayStartInUserTimezone(userTimezone: string = 'Asia/Jakarta'): Date {
   const today = new Date();
   const userToday = toZonedTime(today, userTimezone);
-  return new Date(
-    userToday.getFullYear(),
-    userToday.getMonth(),
-    userToday.getDate()
-  );
+  return new Date(userToday.getFullYear(), userToday.getMonth(), userToday.getDate());
 }
 
 /**
  * Get the end of today in user timezone
  */
-export function getTodayEndInUserTimezone(
-  userTimezone: string = 'Asia/Jakarta'
-): Date {
+export function getTodayEndInUserTimezone(userTimezone: string = 'Asia/Jakarta'): Date {
   const today = new Date();
   const userToday = toZonedTime(today, userTimezone);
   return new Date(
@@ -119,11 +108,7 @@ export function getTreeGrowthLevel(
   shouldGrow: boolean;
   shouldMaintain: boolean;
 } {
-  const { shouldMaintain } = shouldMaintainStreak(
-    lastCheckinDate,
-    currentStreak,
-    userTimezone
-  );
+  const { shouldMaintain } = shouldMaintainStreak(lastCheckinDate, currentStreak, userTimezone);
 
   if (!shouldMaintain) {
     return {

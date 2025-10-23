@@ -37,9 +37,7 @@ export default function Button({
       style={{ minHeight: minH, ...style }}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'ghost' ? '#1A1A1A' : '#FFFFFF'}
-        />
+        <ActivityIndicator color={variant === 'ghost' ? '#1A1A1A' : '#FFFFFF'} />
       ) : (
         <Text
           className={clsx(

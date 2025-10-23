@@ -27,9 +27,7 @@ async function testProfileFunctions() {
 
     if (userError || !users || users.length === 0) {
       console.log('❌ No users found for testing');
-      console.log(
-        '⚠️  Please run the SQL migration first to create profiles table'
-      );
+      console.log('⚠️  Please run the SQL migration first to create profiles table');
       return;
     }
 

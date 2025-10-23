@@ -34,15 +34,11 @@ async function runMigration() {
 
     console.log('📝 Migration SQL loaded');
     console.log('⚠️  Note: This script will show you the SQL to run manually.');
-    console.log(
-      '📋 Copy the following SQL and run it in Supabase Dashboard > SQL Editor:'
-    );
+    console.log('📋 Copy the following SQL and run it in Supabase Dashboard > SQL Editor:');
     console.log('\n' + '='.repeat(80));
     console.log(migrationSQL);
     console.log('='.repeat(80));
-    console.log(
-      '\n✅ After running the SQL in Dashboard, your migration will be complete!'
-    );
+    console.log('\n✅ After running the SQL in Dashboard, your migration will be complete!');
   } catch (error) {
     console.error('❌ Error reading migration file:', error.message);
     process.exit(1);

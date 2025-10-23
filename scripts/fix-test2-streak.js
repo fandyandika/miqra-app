@@ -17,7 +17,7 @@ async function fixTest2Streak() {
   try {
     // Get test2 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test2User) {
       console.log('❌ test2@miqra.com not found');
@@ -36,11 +36,11 @@ async function fixTest2Streak() {
     console.log(`📊 Found ${checkins.length} checkins`);
     console.log(
       '📅 Checkin dates:',
-      checkins.map(c => c.date)
+      checkins.map((c) => c.date)
     );
 
     // Calculate correct streak
-    const checkinDates = checkins.map(c => c.date).sort();
+    const checkinDates = checkins.map((c) => c.date).sort();
     let consecutiveDays = 0;
     let currentStreak = 1;
     let maxStreak = 1;
@@ -51,11 +51,8 @@ async function fixTest2Streak() {
       const prevDate = i > 0 ? new Date(checkinDates[i - 1]) : null;
 
       if (prevDate) {
-        const daysDiff =
-          (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
-        console.log(
-          `📅 ${checkinDates[i]} vs ${checkinDates[i - 1]}: ${daysDiff} days diff`
-        );
+        const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        console.log(`📅 ${checkinDates[i]} vs ${checkinDates[i - 1]}: ${daysDiff} days diff`);
 
         if (daysDiff === 1) {
           currentStreak++;
@@ -79,9 +76,7 @@ async function fixTest2Streak() {
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
     const lastCheckinDate = checkinDates[checkinDates.length - 1];
-    console.log(
-      `📅 Last checkin: ${lastCheckinDate}, Today: ${today}, Yesterday: ${yesterdayStr}`
-    );
+    console.log(`📅 Last checkin: ${lastCheckinDate}, Today: ${today}, Yesterday: ${yesterdayStr}`);
 
     if (lastCheckinDate === today || lastCheckinDate === yesterdayStr) {
       consecutiveDays = currentStreak;
@@ -89,9 +84,7 @@ async function fixTest2Streak() {
       consecutiveDays = 0; // Streak broken
     }
 
-    console.log(
-      `📊 Calculated streak: ${consecutiveDays} current, ${maxStreak} longest`
-    );
+    console.log(`📊 Calculated streak: ${consecutiveDays} current, ${maxStreak} longest`);
 
     // Update streak in database
     console.log('\n🔄 Updating streak in database...');

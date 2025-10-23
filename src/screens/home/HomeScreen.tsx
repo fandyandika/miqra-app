@@ -57,26 +57,16 @@ export default function HomeScreen() {
   useEffect(() => {
     const channel = supabase
       .channel('home-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'checkins' },
-        () => {
-          console.log('[HomeScreen] Checkins updated, invalidating queries');
-          queryClient.invalidateQueries({ queryKey: ['checkin'] });
-          queryClient.invalidateQueries({ queryKey: ['streak'] });
-          queryClient.invalidateQueries({ queryKey: ['reading'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reading_sessions' },
-        () => {
-          console.log(
-            '[HomeScreen] Reading sessions updated, invalidating queries'
-          );
-          queryClient.invalidateQueries({ queryKey: ['reading'] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkins' }, () => {
+        console.log('[HomeScreen] Checkins updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['checkin'] });
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
+        console.log('[HomeScreen] Reading sessions updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+      })
       .subscribe();
 
     return () => {
@@ -137,28 +127,26 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View className='flex-1 bg-background items-center justify-center'>
-        <ActivityIndicator size='large' color='#00C896' />
+      <View className="flex-1 bg-background items-center justify-center">
+        <ActivityIndicator size="large" color="#00C896" />
       </View>
     );
   }
 
   return (
     <ScrollView
-      className='flex-1 bg-background'
+      className="flex-1 bg-background"
       contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 56 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          tintColor='#00C896'
+          tintColor="#00C896"
           colors={['#00C896']}
         />
       }
     >
-      <Text className='text-2xl font-semibold text-charcoal'>
-        As-salamu alaykum
-      </Text>
+      <Text className="text-2xl font-semibold text-charcoal">As-salamu alaykum</Text>
 
       {/* TreeView Hero Section */}
       {(() => {
@@ -166,18 +154,14 @@ export default function HomeScreen() {
           return (
             <View style={{ alignItems: 'center', paddingVertical: 16 }}>
               <ActivityIndicator />
-              <Text style={{ color: colors.mutedText, marginTop: 8 }}>
-                Memuat progres...
-              </Text>
+              <Text style={{ color: colors.mutedText, marginTop: 8 }}>Memuat progres...</Text>
             </View>
           );
         } else if (streakError || !streakData) {
           return (
             <View style={{ alignItems: 'center', paddingVertical: 12 }}>
               <TreeView currentStreakDays={0} brokeYesterday={false} />
-              <Text
-                style={{ color: colors.mutedText, fontSize: 12, marginTop: 6 }}
-              >
+              <Text style={{ color: colors.mutedText, fontSize: 12, marginTop: 6 }}>
                 Data tersimpan offline. Akan tersinkron otomatis.
               </Text>
             </View>
@@ -197,17 +181,15 @@ export default function HomeScreen() {
       })()}
 
       {(isSyncing || pendingCount > 0) && (
-        <View className='mt-2 flex-row items-center'>
+        <View className="mt-2 flex-row items-center">
           {isSyncing ? (
             <>
-              <ActivityIndicator size='small' color='#00C896' />
-              <Text className='text-sm text-text-secondary ml-2'>
-                Menyinkronkan...
-              </Text>
+              <ActivityIndicator size="small" color="#00C896" />
+              <Text className="text-sm text-text-secondary ml-2">Menyinkronkan...</Text>
             </>
           ) : (
-            <View className='flex-row items-center bg-accent/20 px-3 py-1 rounded-full'>
-              <Text className='text-xs text-accent font-medium'>
+            <View className="flex-row items-center bg-accent/20 px-3 py-1 rounded-full">
+              <Text className="text-xs text-accent font-medium">
                 {pendingCount} menunggu sinkron
               </Text>
             </View>
@@ -215,75 +197,63 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <View className='mt-4'>
-        <View className='flex-row'>
+      <View className="mt-4">
+        <View className="flex-row">
           <Pressable
             onPress={() => nav.navigate('CreateFamily')}
-            className='bg-primary rounded-xl px-4 py-3 mr-2'
+            className="bg-primary rounded-xl px-4 py-3 mr-2"
           >
-            <Text className='text-white font-medium'>Buat Keluarga</Text>
+            <Text className="text-white font-medium">Buat Keluarga</Text>
           </Pressable>
           <Pressable
             onPress={() => nav.navigate('JoinFamily')}
-            className='bg-forest rounded-xl px-4 py-3'
+            className="bg-forest rounded-xl px-4 py-3"
           >
-            <Text className='text-white font-medium'>Gabung</Text>
+            <Text className="text-white font-medium">Gabung</Text>
           </Pressable>
         </View>
 
         {familiesQ.isLoading ? (
-          <View className='mt-4 p-4 bg-gray-100 rounded-xl'>
-            <ActivityIndicator color='#00C896' />
-            <Text className='text-gray-600 text-center mt-2'>
-              Memuat keluarga...
-            </Text>
+          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
+            <ActivityIndicator color="#00C896" />
+            <Text className="text-gray-600 text-center mt-2">Memuat keluarga...</Text>
           </View>
         ) : familiesQ.error ? (
-          <View className='mt-4 p-4 bg-red-100 rounded-xl'>
-            <Text className='text-red-800'>
-              Error: {familiesQ.error.message}
-            </Text>
+          <View className="mt-4 p-4 bg-red-100 rounded-xl">
+            <Text className="text-red-800">Error: {familiesQ.error.message}</Text>
           </View>
         ) : familiesQ.data && familiesQ.data.length > 0 ? (
-          <View className='mt-4'>
-            <Text className='text-charcoal font-medium mb-2'>Keluargaku</Text>
+          <View className="mt-4">
+            <Text className="text-charcoal font-medium mb-2">Keluargaku</Text>
             {(familiesQ.data || []).map((f: any) => (
               <Pressable
                 key={f.id || Math.random()}
-                onPress={() =>
-                  nav.navigate('FamilyDashboard', { familyId: f.id })
-                }
-                className='bg-surface rounded-xl px-4 py-3 mb-2 border border-border'
+                onPress={() => nav.navigate('FamilyDashboard', { familyId: f.id })}
+                className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border"
               >
-                <Text className='text-charcoal'>
-                  {f.name || 'Unknown Family'}
-                </Text>
-                <Text className='text-text-secondary text-xs mt-1'>
-                  {f.role || 'member'}
-                </Text>
+                <Text className="text-charcoal">{f.name || 'Unknown Family'}</Text>
+                <Text className="text-text-secondary text-xs mt-1">{f.role || 'member'}</Text>
               </Pressable>
             ))}
           </View>
         ) : (
-          <View className='mt-4 p-4 bg-gray-100 rounded-xl'>
-            <Text className='text-gray-600 text-center'>
-              Belum ada keluarga
-            </Text>
+          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
+            <Text className="text-gray-600 text-center">Belum ada keluarga</Text>
           </View>
         )}
       </View>
 
       {streak && streak.current && (
-        <View className='mt-4 flex-row items-center'>
-          <Text className='text-4xl'>🔥</Text>
-          <Text className='text-xl font-bold text-charcoal ml-2'>
+        <View className="mt-4 flex-row items-center">
+          <Text className="text-4xl">🔥</Text>
+          <Text className="text-xl font-bold text-charcoal ml-2">
             {streak.current} hari berturut-turut
           </Text>
         </View>
       )}
 
-      <View className='mt-6 p-4 rounded-xl bg-surface'>
-        <Text className='text-base text-charcoal mb-3'>
+      <View className="mt-6 p-4 rounded-xl bg-surface">
+        <Text className="text-base text-charcoal mb-3">
           {hasCheckedInToday
             ? `Alhamdulillah! Sudah ${todayCheckin?.ayat_count} ayat hari ini ✅`
             : "Sudah baca Al-Qur'an hari ini?"}
@@ -291,8 +261,8 @@ export default function HomeScreen() {
 
         {!hasCheckedInToday && (
           <>
-            <View className='flex-row justify-around mb-4'>
-              {(AYAT_COUNT_OPTIONS || []).map(n => (
+            <View className="flex-row justify-around mb-4">
+              {(AYAT_COUNT_OPTIONS || []).map((n) => (
                 <Pressable
                   key={n}
                   onPress={() => setAyatCount(n)}
@@ -300,9 +270,7 @@ export default function HomeScreen() {
                 >
                   <Text
                     className={
-                      ayatCount === n
-                        ? 'text-white font-medium'
-                        : 'text-charcoal font-medium'
+                      ayatCount === n ? 'text-white font-medium' : 'text-charcoal font-medium'
                     }
                   >
                     {n} ayat
@@ -325,32 +293,25 @@ export default function HomeScreen() {
                 Alert.alert('Alhamdulillah! ✅', `${ayatCount} ayat tercatat.`);
               }}
               disabled={isSubmitting}
-              className='bg-primary rounded-xl px-4 py-3 active:opacity-80'
+              className="bg-primary rounded-xl px-4 py-3 active:opacity-80"
               style={{ minHeight: 48 }}
             >
               {isSubmitting ? (
-                <ActivityIndicator color='#FFFFFF' />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text className='text-white text-center font-medium'>
-                  Catat Bacaan Hari Ini
-                </Text>
+                <Text className="text-white text-center font-medium">Catat Bacaan Hari Ini</Text>
               )}
             </Pressable>
           </>
         )}
 
-        <Pressable
-          onPress={handleSetReminder}
-          className='bg-forest rounded-xl px-4 py-3 mt-3'
-        >
-          <Text className='text-white text-center font-medium'>
-            Atur Pengingat Harian
-          </Text>
+        <Pressable onPress={handleSetReminder} className="bg-forest rounded-xl px-4 py-3 mt-3">
+          <Text className="text-white text-center font-medium">Atur Pengingat Harian</Text>
         </Pressable>
       </View>
 
-      <View className='mt-4 p-4 rounded-xl bg-sand'>
-        <Text className='text-sm text-text-secondary'>
+      <View className="mt-4 p-4 rounded-xl bg-sand">
+        <Text className="text-sm text-text-secondary">
           💡 Tip: Progres kamu tersimpan offline. Akan tersinkron saat online.
         </Text>
       </View>

@@ -17,7 +17,7 @@ async function testAllReadingFunctions() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -30,9 +30,7 @@ async function testAllReadingFunctions() {
     console.log('\n1️⃣ Testing getTodaySessions...');
     const { data: sessions, error: sessionsError } = await supabase
       .from('reading_sessions')
-      .select(
-        'id,surah_number,ayat_start,ayat_end,ayat_count,session_time,notes'
-      )
+      .select('id,surah_number,ayat_start,ayat_end,ayat_count,session_time,notes')
       .eq('user_id', test1User.id)
       .eq('date', new Date().toISOString().split('T')[0])
       .order('session_time', { ascending: false });
@@ -73,17 +71,14 @@ async function testAllReadingFunctions() {
       return acc;
     }, {});
 
-    (checkins || []).forEach(c => {
+    (checkins || []).forEach((c) => {
       if (!dateGroups[c.date]) {
         dateGroups[c.date] = 1;
       }
     });
 
     const daysRead = Object.keys(dateGroups).length;
-    const totalAyat = (readingSessions || []).reduce(
-      (sum, s) => sum + (s.ayat_count || 0),
-      0
-    );
+    const totalAyat = (readingSessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
     const avgPerDay = daysRead > 0 ? Math.round(totalAyat / daysRead) : 0;
 
     console.log(`✅ Stats calculated:`);

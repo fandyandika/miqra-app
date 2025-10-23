@@ -27,19 +27,14 @@ async function finalCleanupAndTest() {
       .gt('date', today);
 
     if (futureCheckins && futureCheckins.length > 0) {
-      console.log(
-        `🗑️ Found ${futureCheckins.length} future checkins to remove:`
-      );
+      console.log(`🗑️ Found ${futureCheckins.length} future checkins to remove:`);
       futureCheckins.forEach((checkin, index) => {
         console.log(
           `  ${index + 1}. User: ${checkin.user_id}, Date: ${checkin.date}, Ayat: ${checkin.ayat_count}`
         );
       });
 
-      const { error: deleteError } = await supabase
-        .from('checkins')
-        .delete()
-        .gt('date', today);
+      const { error: deleteError } = await supabase.from('checkins').delete().gt('date', today);
 
       if (deleteError) {
         console.log('❌ Error deleting future checkins:', deleteError.message);
@@ -54,7 +49,7 @@ async function finalCleanupAndTest() {
     console.log('\n2️⃣ TESTING APPLICATION-LEVEL DATE VALIDATION...');
 
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (test1User) {
       // Test with future date
@@ -101,8 +96,8 @@ async function finalCleanupAndTest() {
     console.log(`📊 Total sessions: ${allSessions?.length || 0}`);
 
     // Check for future data
-    const futureCheckinsFinal = allCheckins?.filter(c => c.date > today) || [];
-    const futureSessionsFinal = allSessions?.filter(s => s.date > today) || [];
+    const futureCheckinsFinal = allCheckins?.filter((c) => c.date > today) || [];
+    const futureSessionsFinal = allSessions?.filter((s) => s.date > today) || [];
 
     console.log(`📊 Future checkins: ${futureCheckinsFinal.length}`);
     console.log(`📊 Future sessions: ${futureSessionsFinal.length}`);

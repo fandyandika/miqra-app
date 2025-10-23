@@ -168,18 +168,18 @@ const AnalyticsScreen = () => {
 // Transform analytics data untuk charts
 const barChartData =
   dailyStats
-    ?.filter(stat => stat.ayat_count > 0)
+    ?.filter((stat) => stat.ayat_count > 0)
     .slice(-7)
-    .map(stat => ({
+    .map((stat) => ({
       label: format(new Date(stat.date), 'EEE'),
       value: stat.ayat_count,
     })) ?? [];
 
 const lineChartData =
   monthlyStats
-    ?.filter(stat => stat.ayat_count > 0)
+    ?.filter((stat) => stat.ayat_count > 0)
     .slice(-14)
-    .map(stat => ({
+    .map((stat) => ({
       label: format(new Date(stat.date), 'MMM dd'),
       value: stat.ayat_count,
     })) ?? [];

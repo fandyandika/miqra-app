@@ -17,7 +17,7 @@ async function testTimezoneSync() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -108,8 +108,8 @@ async function testTimezoneSync() {
 
     // Check for future data
     const today = new Date().toISOString().split('T')[0];
-    const futureCheckins = allCheckins?.filter(c => c.date > today) || [];
-    const futureSessions = allSessions?.filter(s => s.date > today) || [];
+    const futureCheckins = allCheckins?.filter((c) => c.date > today) || [];
+    const futureSessions = allSessions?.filter((s) => s.date > today) || [];
 
     console.log(`📊 Future checkins: ${futureCheckins.length}`);
     console.log(`📊 Future sessions: ${futureSessions.length}`);

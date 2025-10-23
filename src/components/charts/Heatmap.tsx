@@ -69,7 +69,7 @@ export function Heatmap({ data, title }: HeatmapProps) {
   let lastMonth = -1;
 
   weeks.forEach((week, weekIndex) => {
-    week.forEach(day => {
+    week.forEach((day) => {
       if (day.date) {
         const month = new Date(day.date).getMonth();
         if (month !== lastMonth) {
@@ -109,10 +109,7 @@ export function Heatmap({ data, title }: HeatmapProps) {
             {monthLabels.map((ml, idx) => (
               <Text
                 key={idx}
-                style={[
-                  styles.monthLabel,
-                  { left: ml.week * (CELL_SIZE + CELL_GAP) },
-                ]}
+                style={[styles.monthLabel, { left: ml.week * (CELL_SIZE + CELL_GAP) }]}
               >
                 {ml.label}
               </Text>
@@ -139,9 +136,7 @@ export function Heatmap({ data, title }: HeatmapProps) {
                       style={[
                         styles.cell,
                         {
-                          backgroundColor: day.date
-                            ? LEVEL_COLORS[day.level]
-                            : 'transparent',
+                          backgroundColor: day.date ? LEVEL_COLORS[day.level] : 'transparent',
                         },
                       ]}
                     />
@@ -156,14 +151,8 @@ export function Heatmap({ data, title }: HeatmapProps) {
       {/* Legend */}
       <View style={styles.legend}>
         <Text style={styles.legendText}>Sedikit</Text>
-        {([0, 1, 2, 3, 4] as const).map(level => (
-          <View
-            key={level}
-            style={[
-              styles.legendCell,
-              { backgroundColor: LEVEL_COLORS[level] },
-            ]}
-          />
+        {([0, 1, 2, 3, 4] as const).map((level) => (
+          <View key={level} style={[styles.legendCell, { backgroundColor: LEVEL_COLORS[level] }]} />
         ))}
         <Text style={styles.legendText}>Banyak</Text>
       </View>

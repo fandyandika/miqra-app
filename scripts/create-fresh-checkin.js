@@ -27,13 +27,7 @@ async function createFreshCheckin() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create a fresh checkin for today
     const today = new Date().toISOString().split('T')[0];
@@ -75,9 +69,7 @@ async function createFreshCheckin() {
     let lastDate = null;
 
     if (allCheckins && allCheckins.length > 0) {
-      const sortedCheckins = allCheckins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = allCheckins.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -87,9 +79,7 @@ async function createFreshCheckin() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           currentStreak++;
@@ -135,7 +125,7 @@ async function createFreshCheckin() {
       .limit(5);
 
     console.log('Recent checkins:');
-    finalCheckins?.forEach(checkin => {
+    finalCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 

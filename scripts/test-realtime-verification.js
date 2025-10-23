@@ -27,13 +27,7 @@ async function testRealtimeVerification() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create a new reading session
     const testSession = {
@@ -69,8 +63,7 @@ async function testRealtimeVerification() {
       .eq('user_id', testUser.user_id)
       .eq('date', today);
 
-    const totalAyatToday =
-      todaySessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
+    const totalAyatToday = todaySessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
     console.log('📈 Total ayat today:', totalAyatToday);
 
     // 4. Get all sessions for cumulative progress
@@ -79,8 +72,7 @@ async function testRealtimeVerification() {
       .select('*')
       .eq('user_id', testUser.user_id);
 
-    const totalAyatAll =
-      allSessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
+    const totalAyatAll = allSessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
     const khatamCount = Math.floor(totalAyatAll / 6236);
     console.log('📚 Total ayat all time:', totalAyatAll);
     console.log('🎯 Khatam count:', khatamCount);
@@ -101,12 +93,11 @@ async function testRealtimeVerification() {
     console.log('📅 Recent 30 days sessions:', recentSessions?.length || 0);
 
     // 6. Calculate unique reading days
-    const uniqueDates = new Set(recentSessions?.map(s => s.date) || []);
+    const uniqueDates = new Set(recentSessions?.map((s) => s.date) || []);
     console.log('📆 Unique reading days (30d):', uniqueDates.size);
 
     // 7. Calculate average per day
-    const avgPerDay =
-      uniqueDates.size > 0 ? Math.round(totalAyatAll / uniqueDates.size) : 0;
+    const avgPerDay = uniqueDates.size > 0 ? Math.round(totalAyatAll / uniqueDates.size) : 0;
     console.log('📊 Average per day:', avgPerDay, 'ayat');
 
     console.log('\n✅ Real-time verification data prepared!');
@@ -114,18 +105,11 @@ async function testRealtimeVerification() {
     console.log('1. Home screen should show:', totalAyatToday, 'ayat hari ini');
     console.log('2. Khatam Progress should show:', totalAyatAll, 'total ayat');
     console.log('3. Khatam Progress should show:', khatamCount, 'khatam count');
-    console.log(
-      '4. Progress tab should show',
-      todaySessions?.length || 0,
-      'sessions today'
-    );
+    console.log('4. Progress tab should show', todaySessions?.length || 0, 'sessions today');
     console.log('5. All data should update immediately without app restart');
 
     console.log('\n🔍 Debug Info:');
-    console.log(
-      '- Today sessions:',
-      JSON.stringify(todaySessions?.slice(0, 3), null, 2)
-    );
+    console.log('- Today sessions:', JSON.stringify(todaySessions?.slice(0, 3), null, 2));
     console.log('- Recent sessions count:', recentSessions?.length || 0);
     console.log('- Total ayat calculation:', totalAyatAll);
   } catch (error) {

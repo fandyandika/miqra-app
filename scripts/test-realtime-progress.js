@@ -17,7 +17,7 @@ async function testRealTimeProgressUpdates() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -61,7 +61,7 @@ async function testRealTimeProgressUpdates() {
       return acc;
     }, {});
 
-    (initialCheckins || []).forEach(c => {
+    (initialCheckins || []).forEach((c) => {
       if (!initialDateGroups[c.date]) {
         initialDateGroups[c.date] = 1;
       }
@@ -80,16 +80,14 @@ async function testRealTimeProgressUpdates() {
     console.log('\n➕ Adding new reading session...');
 
     const today = new Date().toISOString().split('T')[0];
-    const { error: sessionError } = await supabase
-      .from('reading_sessions')
-      .insert({
-        user_id: test1User.id,
-        surah_number: 1,
-        ayat_start: 1,
-        ayat_end: 5,
-        date: today,
-        session_time: new Date().toISOString(),
-      });
+    const { error: sessionError } = await supabase.from('reading_sessions').insert({
+      user_id: test1User.id,
+      surah_number: 1,
+      ayat_start: 1,
+      ayat_end: 5,
+      date: today,
+      session_time: new Date().toISOString(),
+    });
 
     if (sessionError) {
       console.log('❌ Error adding session:', sessionError.message);
@@ -117,7 +115,7 @@ async function testRealTimeProgressUpdates() {
 
     // Wait a moment for real-time updates
     console.log('\n⏳ Waiting for real-time updates...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Get updated data
     const { data: updatedSessions } = await supabase
@@ -144,7 +142,7 @@ async function testRealTimeProgressUpdates() {
       return acc;
     }, {});
 
-    (updatedCheckins || []).forEach(c => {
+    (updatedCheckins || []).forEach((c) => {
       if (!updatedDateGroups[c.date]) {
         updatedDateGroups[c.date] = 1;
       }

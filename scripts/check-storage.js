@@ -38,9 +38,7 @@ async function checkStorage() {
       console.log(`Found ${cachedData?.length || 0} cached family memberships`);
       if (cachedData && cachedData.length > 0) {
         cachedData.forEach((item, index) => {
-          console.log(
-            `${index + 1}. Family: "${item.families?.name || 'Unknown'}"`
-          );
+          console.log(`${index + 1}. Family: "${item.families?.name || 'Unknown'}"`);
           console.log(`   User: ${item.user_id}`);
           console.log(`   Role: ${item.role}`);
         });

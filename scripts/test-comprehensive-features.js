@@ -27,13 +27,7 @@ async function testComprehensiveFeatures() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create test sessions with repeated ayat (to test unique tracking)
     const testSessions = [
@@ -98,9 +92,7 @@ async function testComprehensiveFeatures() {
       },
     ];
 
-    console.log(
-      '📚 Creating test sessions with repeated and non-sequential reading...'
-    );
+    console.log('📚 Creating test sessions with repeated and non-sequential reading...');
     for (const session of testSessions) {
       const { error } = await supabase.from('reading_sessions').insert(session);
 
@@ -168,7 +160,7 @@ async function testComprehensiveFeatures() {
 
     // Manual calculation of unique ayat
     const uniquePositions = new Set();
-    allSessions?.forEach(session => {
+    allSessions?.forEach((session) => {
       for (let ayat = session.ayat_start; ayat <= session.ayat_end; ayat++) {
         uniquePositions.add(`${session.surah_number}-${ayat}`);
       }
@@ -176,17 +168,12 @@ async function testComprehensiveFeatures() {
 
     const totalUniqueAyat = uniquePositions.size;
     const totalSessions = allSessions?.length || 0;
-    const totalRawAyat =
-      allSessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
+    const totalRawAyat = allSessions?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
 
     console.log('📈 Raw total ayat (with repeats):', totalRawAyat);
     console.log('🎯 Unique ayat (no repeats):', totalUniqueAyat);
     console.log('📚 Total sessions:', totalSessions);
-    console.log(
-      '💡 Efficiency:',
-      Math.round((totalUniqueAyat / totalRawAyat) * 100),
-      '%'
-    );
+    console.log('💡 Efficiency:', Math.round((totalUniqueAyat / totalRawAyat) * 100), '%');
 
     // 5. Test position tracking
     console.log('\n🎯 Testing position tracking...');
@@ -194,12 +181,7 @@ async function testComprehensiveFeatures() {
     // Find last read position
     const lastSession = allSessions?.[allSessions.length - 1];
     if (lastSession) {
-      console.log(
-        '📍 Last read position:',
-        lastSession.surah_number,
-        ':',
-        lastSession.ayat_end
-      );
+      console.log('📍 Last read position:', lastSession.surah_number, ':', lastSession.ayat_end);
     }
 
     // Find next unread position (simplified)
@@ -238,9 +220,7 @@ async function testComprehensiveFeatures() {
         currentStreak = 1;
         lastDate = checkinDate;
       } else {
-        const daysDiff = Math.floor(
-          (lastDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((lastDate - checkinDate) / (1000 * 60 * 60 * 24));
         if (daysDiff === 1) {
           currentStreak++;
           lastDate = checkinDate;
@@ -257,7 +237,7 @@ async function testComprehensiveFeatures() {
     console.log('\n📅 Testing calendar data...');
 
     const calendarData = {};
-    allCheckins?.forEach(checkin => {
+    allCheckins?.forEach((checkin) => {
       calendarData[checkin.date] = {
         count: 1,
         ayatCount: checkin.ayat_count,
@@ -277,18 +257,9 @@ async function testComprehensiveFeatures() {
       totalRawAyat,
       ')'
     );
-    console.log(
-      '2. Position tracking should suggest:',
-      nextSurah,
-      ':',
-      nextAyat
-    );
+    console.log('2. Position tracking should suggest:', nextSurah, ':', nextAyat);
     console.log('3. Streak should be:', currentStreak, 'days');
-    console.log(
-      '4. Calendar should show',
-      Object.keys(calendarData).length,
-      'days with readings'
-    );
+    console.log('4. Calendar should show', Object.keys(calendarData).length, 'days with readings');
     console.log('5. Reading list should be optimized with collapsible dates');
     console.log('6. Repeated ayat should not count toward khatam progress');
 

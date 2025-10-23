@@ -46,9 +46,7 @@ async function getWeeklyStats(weeks = 4) {
 
   if (error) {
     console.error('❌ getWeeklyStats error:', error);
-    throw new Error(
-      `getWeeklyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getWeeklyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -69,9 +67,7 @@ async function getMonthlyStats(months = 6) {
 
   if (error) {
     console.error('❌ getMonthlyStats error:', error);
-    throw new Error(
-      `getMonthlyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getMonthlyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -104,7 +100,7 @@ async function getReadingPattern() {
   }
 
   // Aggregate by hour
-  (data ?? []).forEach(session => {
+  (data ?? []).forEach((session) => {
     const timestamp = session.session_time ?? session.created_at;
     const hour = new Date(timestamp).getHours();
 
@@ -124,7 +120,7 @@ async function getReadingPattern() {
 
   console.log(
     '✅ Reading pattern fetched:',
-    result.filter(r => r.count > 0).length,
+    result.filter((r) => r.count > 0).length,
     'active hours'
   );
 
@@ -150,9 +146,7 @@ async function getYearHeatmap() {
   }
 
   // Create lookup map
-  const statsMap = new Map(
-    dailyStats.map(stat => [stat.date, stat.ayat_count])
-  );
+  const statsMap = new Map(dailyStats.map((stat) => [stat.date, stat.ayat_count]));
 
   // Generate all days in range
   const allDays = [];
@@ -162,11 +156,11 @@ async function getYearHeatmap() {
 
   // Calculate quartiles for intensity levels
   const counts = dailyStats
-    .map(s => s.ayat_count)
-    .filter(count => count > 0)
+    .map((s) => s.ayat_count)
+    .filter((count) => count > 0)
     .sort((a, b) => a - b);
 
-  const getQuartile = percentage => {
+  const getQuartile = (percentage) => {
     if (counts.length === 0) return 0;
     const index = Math.floor(counts.length * percentage);
     return counts[index] || 0;
@@ -177,7 +171,7 @@ async function getYearHeatmap() {
   const q3 = getQuartile(0.75) || 10;
 
   // Map to heatmap format with intensity levels
-  const result = allDays.map(date => {
+  const result = allDays.map((date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const count = statsMap.get(dateStr) ?? 0;
 
@@ -209,12 +203,9 @@ async function getComparativeStats() {
     .maybeSingle();
 
   // Get personal stats
-  const { data: personalData, error: personalError } = await supabase.rpc(
-    'get_user_total_stats',
-    {
-      p_user_id: userId,
-    }
-  );
+  const { data: personalData, error: personalError } = await supabase.rpc('get_user_total_stats', {
+    p_user_id: userId,
+  });
 
   if (personalError) {
     console.error('❌ Personal stats error:', personalError);
@@ -230,12 +221,9 @@ async function getComparativeStats() {
   }
 
   // Get family stats
-  const { data: familyData, error: familyError } = await supabase.rpc(
-    'get_family_stats',
-    {
-      p_family_id: familyMember.family_id,
-    }
-  );
+  const { data: familyData, error: familyError } = await supabase.rpc('get_family_stats', {
+    p_family_id: familyMember.family_id,
+  });
 
   if (familyError) {
     console.error('❌ Family stats error:', familyError);
@@ -254,11 +242,10 @@ async function testStatsScreen() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);
@@ -286,12 +273,8 @@ async function testStatsScreen() {
 
         // Calculate summary stats
         const totalAyat = weeklyData.reduce((sum, w) => sum + w.total_ayat, 0);
-        const daysActive = weeklyData.reduce(
-          (sum, w) => sum + w.days_active,
-          0
-        );
-        const avgPerDay =
-          daysActive > 0 ? Math.round(totalAyat / daysActive) : 0;
+        const daysActive = weeklyData.reduce((sum, w) => sum + w.days_active, 0);
+        const avgPerDay = daysActive > 0 ? Math.round(totalAyat / daysActive) : 0;
 
         console.log(
           `   📈 Total: ${totalAyat} ayat, Active: ${daysActive} days, Avg: ${avgPerDay}/day`
@@ -307,7 +290,7 @@ async function testStatsScreen() {
       const monthlyData = await getMonthlyStats(6);
       console.log('✅ Monthly stats:', monthlyData.length, 'months');
 
-      monthlyData.forEach(month => {
+      monthlyData.forEach((month) => {
         console.log(
           `   📅 ${month.month}: ${month.total_ayat} ayat, ${month.days_active} days active`
         );
@@ -320,14 +303,15 @@ async function testStatsScreen() {
     console.log('\n⏰ Testing reading pattern...');
     try {
       const patternData = await getReadingPattern();
-      const activeHours = patternData.filter(p => p.count > 0);
+      const activeHours = patternData.filter((p) => p.count > 0);
       console.log('✅ Reading pattern:', activeHours.length, 'active hours');
 
       // Find peak hour
-      const peakHour = patternData.reduce(
-        (max, p) => (p.count > max.count ? p : max),
-        { hour: 0, count: 0, avg_ayat: 0 }
-      );
+      const peakHour = patternData.reduce((max, p) => (p.count > max.count ? p : max), {
+        hour: 0,
+        count: 0,
+        avg_ayat: 0,
+      });
 
       if (peakHour.count > 0) {
         console.log(
@@ -346,7 +330,7 @@ async function testStatsScreen() {
 
       // Count by intensity level
       const levelCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
-      heatmapData.forEach(day => {
+      heatmapData.forEach((day) => {
         levelCounts[day.level]++;
       });
       console.log('   📊 Intensity distribution:', levelCounts);
@@ -366,11 +350,8 @@ async function testStatsScreen() {
 
         // Test encouragement logic
         const isAboveAverage =
-          comparativeData.personal.total_ayat >=
-          comparativeData.family.avg_ayat_per_member;
-        console.log(
-          `   💪 Above family average: ${isAboveAverage ? 'Yes' : 'No'}`
-        );
+          comparativeData.personal.total_ayat >= comparativeData.family.avg_ayat_per_member;
+        console.log(`   💪 Above family average: ${isAboveAverage ? 'Yes' : 'No'}`);
       } else {
         console.log('   ℹ️ User not in family');
       }
@@ -386,7 +367,7 @@ async function testStatsScreen() {
       const patternData = await getReadingPattern();
 
       // Transform for BarChart (weekly)
-      const weeklyChartData = weeklyData.map(w => ({
+      const weeklyChartData = weeklyData.map((w) => ({
         label: format(new Date(w.week_start), 'dd MMM'),
         value: w.total_ayat,
       }));
@@ -394,7 +375,7 @@ async function testStatsScreen() {
 
       // Transform for LineChart (monthly)
       const monthlyChartData = monthlyData
-        .map(m => ({
+        .map((m) => ({
           label: format(new Date(m.month + '-01'), 'MMM'),
           value: m.total_ayat,
         }))
@@ -403,8 +384,8 @@ async function testStatsScreen() {
 
       // Transform for Pattern Chart
       const patternChartData = patternData
-        .filter(p => p.count > 0)
-        .map(p => ({
+        .filter((p) => p.count > 0)
+        .map((p) => ({
           label: `${p.hour.toString().padStart(2, '0')}:00`,
           value: Math.round(p.avg_ayat),
         }));

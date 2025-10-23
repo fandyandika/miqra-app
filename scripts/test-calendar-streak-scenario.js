@@ -27,13 +27,7 @@ async function testCalendarStreakScenario() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create test scenario data
     console.log('\n📅 Creating test scenario data...');
@@ -79,7 +73,7 @@ async function testCalendarStreakScenario() {
       .order('date', { ascending: false });
 
     console.log('Checkins data:');
-    checkinsData?.forEach(checkin => {
+    checkinsData?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -104,8 +98,7 @@ async function testCalendarStreakScenario() {
 
         while (true) {
           const currentDateStr = currentDate.toISOString().split('T')[0];
-          const hasCheckinOnDate =
-            checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
+          const hasCheckinOnDate = checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
 
           if (hasCheckinOnDate) {
             dayStreak++;
@@ -127,15 +120,13 @@ async function testCalendarStreakScenario() {
           const nextDay = new Date(date);
           nextDay.setDate(nextDay.getDate() + 1);
           const nextDayStr = nextDay.toISOString().split('T')[0];
-          const hasNextDay =
-            checkinMap[nextDayStr] && checkinMap[nextDayStr] > 0;
+          const hasNextDay = checkinMap[nextDayStr] && checkinMap[nextDayStr] > 0;
 
           // Also check if there's a checkin the day before (17th)
           const prevDay = new Date(date);
           prevDay.setDate(prevDay.getDate() - 1);
           const prevDayStr = prevDay.toISOString().split('T')[0];
-          const hasPrevDay =
-            checkinMap[prevDayStr] && checkinMap[prevDayStr] > 0;
+          const hasPrevDay = checkinMap[prevDayStr] && checkinMap[prevDayStr] > 0;
 
           // Only show emoji if it's part of a consecutive sequence
           shouldShowEmoji = hasNextDay || hasPrevDay;
@@ -144,9 +135,7 @@ async function testCalendarStreakScenario() {
           shouldShowEmoji = true;
         }
 
-        console.log(
-          `  ${dateStr}: ${dayStreak} day streak ${shouldShowEmoji ? '🔥' : ''}`
-        );
+        console.log(`  ${dateStr}: ${dayStreak} day streak ${shouldShowEmoji ? '🔥' : ''}`);
       }
     }
 
@@ -157,9 +146,7 @@ async function testCalendarStreakScenario() {
     let lastDate = null;
 
     if (checkinsData && checkinsData.length > 0) {
-      const sortedCheckins = checkinsData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinsData.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -169,9 +156,7 @@ async function testCalendarStreakScenario() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           currentStreak++;

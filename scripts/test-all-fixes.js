@@ -27,13 +27,7 @@ async function testAllFixes() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Test user-specific checkin data
     console.log('\n📅 Testing user-specific checkin data:');
@@ -47,7 +41,7 @@ async function testAllFixes() {
       console.error('❌ Error fetching user checkins:', checkinError);
     } else {
       console.log('✅ User-specific checkins found:', checkinData.length);
-      checkinData?.slice(0, 5).forEach(checkin => {
+      checkinData?.slice(0, 5).forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
@@ -68,16 +62,8 @@ async function testAllFixes() {
     // 4. Test calendar data for current month
     console.log('\n📅 Testing calendar data for current month:');
     const currentMonth = new Date();
-    const start = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      1
-    );
-    const end = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      0
-    );
+    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
     const startStr = start.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
@@ -94,7 +80,7 @@ async function testAllFixes() {
       console.error('❌ Error fetching month checkins:', monthError);
     } else {
       console.log('✅ Month checkins found:', monthCheckins.length);
-      monthCheckins?.forEach(checkin => {
+      monthCheckins?.forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
@@ -112,7 +98,7 @@ async function testAllFixes() {
       console.error('❌ Error fetching sessions:', sessionsError);
     } else {
       console.log('✅ Reading sessions found:', sessions.length);
-      sessions?.forEach(session => {
+      sessions?.forEach((session) => {
         console.log(
           `  ${session.date}: Surah ${session.surah_number}, Ayat ${session.ayat_start}-${session.ayat_end}`
         );
@@ -126,9 +112,7 @@ async function testAllFixes() {
       let currentStreak = 0;
       let lastDate = null;
 
-      const sortedCheckins = checkinData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinData.sort((a, b) => b.date.localeCompare(a.date));
 
       let tempDate = new Date(sortedCheckins[0].date);
       currentStreak = 1;
@@ -136,9 +120,7 @@ async function testAllFixes() {
 
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           currentStreak++;

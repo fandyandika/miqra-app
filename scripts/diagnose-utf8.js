@@ -32,7 +32,7 @@ function checkFileEncoding(filePath) {
 console.log('1️⃣ CHECKING MAIN FILES:');
 let allValid = true;
 
-mainFiles.forEach(file => {
+mainFiles.forEach((file) => {
   if (fs.existsSync(file)) {
     if (!checkFileEncoding(file)) {
       allValid = false;
@@ -60,16 +60,14 @@ function checkForProblematicChars(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
     const found = [];
 
-    problematicChars.forEach(char => {
+    problematicChars.forEach((char) => {
       if (content.includes(char)) {
         found.push(char);
       }
     });
 
     if (found.length > 0) {
-      console.log(
-        `⚠️  ${filePath}: Contains problematic characters: ${found.join(', ')}`
-      );
+      console.log(`⚠️  ${filePath}: Contains problematic characters: ${found.join(', ')}`);
       return false;
     } else {
       console.log(`✅ ${filePath}: No problematic characters`);
@@ -81,7 +79,7 @@ function checkForProblematicChars(filePath) {
   }
 }
 
-mainFiles.forEach(file => {
+mainFiles.forEach((file) => {
   if (fs.existsSync(file)) {
     checkForProblematicChars(file);
   }
@@ -123,12 +121,8 @@ if (allValid) {
   console.log('✅ All main files have valid UTF-8 encoding');
   console.log('\n🔧 POTENTIAL SOLUTIONS:');
   console.log('1. Clear Metro bundler cache: npx expo start --clear');
-  console.log(
-    '2. Clear React Native cache: npx react-native start --reset-cache'
-  );
-  console.log(
-    '3. Delete node_modules and reinstall: rm -rf node_modules && npm install'
-  );
+  console.log('2. Clear React Native cache: npx react-native start --reset-cache');
+  console.log('3. Delete node_modules and reinstall: rm -rf node_modules && npm install');
   console.log('4. Check for hidden characters in files');
   console.log('5. Restart Metro bundler completely');
 } else {

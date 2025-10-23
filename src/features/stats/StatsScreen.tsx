@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { format, subDays } from 'date-fns';
 import { id as localeID } from 'date-fns/locale';
@@ -75,7 +68,7 @@ export default function StatsScreen() {
       // Debug family data
       console.log('🔍 Debugging family data...');
       await debugFamilyData();
-      
+
       return getComparativeStatsWithFamiliesDirect(selectedFamilyId || undefined);
     },
     staleTime: 5 * 60 * 1000,
@@ -94,22 +87,25 @@ export default function StatsScreen() {
   });
 
   const isLoading =
-    weeklyLoading || monthlyLoading || patternLoading || heatmapLoading || settingsLoading || streakLoading;
+    weeklyLoading ||
+    monthlyLoading ||
+    patternLoading ||
+    heatmapLoading ||
+    settingsLoading ||
+    streakLoading;
 
   // =========================================
   // CALCULATIONS
   // =========================================
 
   // Summary stats from weekly data with safe fallbacks
-  const totalAyat =
-    weeklyData?.reduce((sum, w) => sum + (w?.total_ayat || 0), 0) || 0;
-  const daysActive =
-    weeklyData?.reduce((sum, w) => sum + (w?.days_active || 0), 0) || 0;
+  const totalAyat = weeklyData?.reduce((sum, w) => sum + (w?.total_ayat || 0), 0) || 0;
+  const daysActive = weeklyData?.reduce((sum, w) => sum + (w?.days_active || 0), 0) || 0;
   const avgPerDay = daysActive > 0 ? Math.round(totalAyat / daysActive) : 0;
 
   // Transform data for charts with safe fallbacks
   const weeklyChartData =
-    weeklyData?.map(w => ({
+    weeklyData?.map((w) => ({
       label: format(new Date(w?.week_start || new Date()), 'dd MMM', {
         locale: localeID,
       }),
@@ -118,7 +114,7 @@ export default function StatsScreen() {
 
   const monthlyChartData =
     monthlyData
-      ?.map(m => ({
+      ?.map((m) => ({
         label: format(new Date((m?.month || '2024-01') + '-01'), 'MMM', {
           locale: localeID,
         }),
@@ -128,8 +124,8 @@ export default function StatsScreen() {
 
   const patternChartData =
     patternData
-      ?.filter(p => (p?.count || 0) > 0)
-      .map(p => ({
+      ?.filter((p) => (p?.count || 0) > 0)
+      .map((p) => ({
         label: `${(p?.hour || 0).toString().padStart(2, '0')}:00`,
         value: Math.round(p?.avg_ayat || 0),
       })) || [];
@@ -147,7 +143,7 @@ export default function StatsScreen() {
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Memuat statistik...</Text>
       </View>
     );
@@ -166,28 +162,18 @@ export default function StatsScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>📊 Statistik Bacaan</Text>
-        <Text style={styles.headerSubtitle}>
-          Analisis progres bacaan Al-Qur'an Anda
-        </Text>
+        <Text style={styles.headerSubtitle}>Analisis progres bacaan Al-Qur'an Anda</Text>
       </View>
 
       {/* Time Period Selector */}
       <View style={styles.periodSelector}>
-        {(Object.keys(PERIOD_CONFIG) as TimePeriod[]).map(p => (
+        {(Object.keys(PERIOD_CONFIG) as TimePeriod[]).map((p) => (
           <Pressable
             key={p}
-            style={[
-              styles.periodButton,
-              period === p && styles.periodButtonActive,
-            ]}
+            style={[styles.periodButton, period === p && styles.periodButtonActive]}
             onPress={() => setPeriod(p)}
           >
-            <Text
-              style={[
-                styles.periodButtonText,
-                period === p && styles.periodButtonTextActive,
-              ]}
-            >
+            <Text style={[styles.periodButtonText, period === p && styles.periodButtonTextActive]}>
               {PERIOD_CONFIG[p].label}
             </Text>
           </Pressable>
@@ -249,10 +235,7 @@ export default function StatsScreen() {
 
       {/* Year Heatmap */}
       {heatmapData && heatmapData.length > 0 && (
-        <Heatmap
-          data={heatmapData}
-          title='🔥 Konsistensi Bacaan (365 Hari Terakhir)'
-        />
+        <Heatmap data={heatmapData} title="🔥 Konsistensi Bacaan (365 Hari Terakhir)" />
       )}
 
       {/* Family Comparison */}
@@ -285,8 +268,8 @@ export default function StatsScreen() {
               <Text style={styles.insightIcon}>🌙</Text>
               <Text style={styles.insightText}>
                 Alhamdulillah! Rata-rata Anda{' '}
-                <Text style={styles.insightBold}>{avgPerDay} ayat/hari</Text>.
-                Istiqomah yang luar biasa!
+                <Text style={styles.insightBold}>{avgPerDay} ayat/hari</Text>. Istiqomah yang luar
+                biasa!
               </Text>
             </>
           ) : avgPerDay >= 5 ? (
@@ -294,16 +277,14 @@ export default function StatsScreen() {
               <Text style={styles.insightIcon}>📖</Text>
               <Text style={styles.insightText}>
                 Alhamdulillah! Anda konsisten dengan{' '}
-                <Text style={styles.insightBold}>{avgPerDay} ayat/hari</Text>.
-                Terus pertahankan!
+                <Text style={styles.insightBold}>{avgPerDay} ayat/hari</Text>. Terus pertahankan!
               </Text>
             </>
           ) : avgPerDay >= 1 ? (
             <>
               <Text style={styles.insightIcon}>🌱</Text>
               <Text style={styles.insightText}>
-                Barakallah! Anda sudah memulai kebiasaan baik. Coba tingkatkan
-                sedikit demi sedikit.
+                Barakallah! Anda sudah memulai kebiasaan baik. Coba tingkatkan sedikit demi sedikit.
               </Text>
             </>
           ) : (
@@ -336,10 +317,7 @@ export default function StatsScreen() {
             <Text style={styles.insightIcon}>🔥</Text>
             <Text style={styles.insightText}>
               Streak saat ini:{' '}
-              <Text style={styles.insightBold}>
-                {streakData?.current || 0} hari
-                berturut-turut
-              </Text>
+              <Text style={styles.insightBold}>{streakData?.current || 0} hari berturut-turut</Text>
               {streakData?.longest > 0 && (
                 <Text style={styles.insightText}>
                   {'\n'}Terpanjang: {streakData?.longest} hari
@@ -353,8 +331,8 @@ export default function StatsScreen() {
         <View style={styles.insightCard}>
           <Text style={styles.insightIcon}>📊</Text>
           <Text style={styles.insightText}>
-            Anda aktif <Text style={styles.insightBold}>{daysActive} hari</Text>{' '}
-            dalam {PERIOD_CONFIG[period].label.toLowerCase()} terakhir
+            Anda aktif <Text style={styles.insightBold}>{daysActive} hari</Text> dalam{' '}
+            {PERIOD_CONFIG[period].label.toLowerCase()} terakhir
           </Text>
         </View>
       </View>
@@ -362,8 +340,7 @@ export default function StatsScreen() {
       {/* Motivational Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerQuote}>
-          "Sebaik-baik kalian adalah yang mempelajari Al-Qur'an dan
-          mengajarkannya"
+          "Sebaik-baik kalian adalah yang mempelajari Al-Qur'an dan mengajarkannya"
         </Text>
         <Text style={styles.footerSource}>— HR. Bukhari</Text>
       </View>

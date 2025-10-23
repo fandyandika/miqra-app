@@ -11,10 +11,7 @@ import {
 } from 'date-fns';
 import { toZonedTime } from 'date-fns-tz';
 import { getAyatCount, getNextPosition } from '@/data/quran_meta';
-import {
-  calculateUniqueAyatProgress,
-  getNextUnreadPosition,
-} from '@/lib/uniqueAyatTracker';
+import { calculateUniqueAyatProgress, getNextUnreadPosition } from '@/lib/uniqueAyatTracker';
 
 export type ReadingSessionInput = {
   surah_number: number;
@@ -56,10 +53,7 @@ export async function getReadingProgress() {
   );
 }
 
-export function getNextPositionFrom(progress: {
-  current_surah: number;
-  current_ayat: number;
-}) {
+export function getNextPositionFrom(progress: { current_surah: number; current_ayat: number }) {
   return getNextPosition(progress.current_surah, progress.current_ayat);
 }
 
@@ -81,10 +75,7 @@ export async function getTodaySessions(timezone: string = 'Asia/Jakarta') {
     today = format(jakartaTime, 'yyyy-MM-dd');
     console.log('[getTodaySessions] Today date (Jakarta):', today);
   } catch (timezoneError) {
-    console.warn(
-      '[getTodaySessions] Timezone conversion failed, using local date:',
-      timezoneError
-    );
+    console.warn('[getTodaySessions] Timezone conversion failed, using local date:', timezoneError);
     // Fallback to local date if timezone conversion fails
     const localDate = new Date(now.getTime() + 7 * 60 * 60 * 1000); // Add 7 hours for Jakarta time
     today = format(localDate, 'yyyy-MM-dd');
@@ -108,9 +99,7 @@ export async function getSessionsInRange(startDate: string, endDate: string) {
   if (!user) throw new Error('No user');
   const { data, error } = await supabase
     .from('reading_sessions')
-    .select(
-      'id,date,surah_number,ayat_start,ayat_end,ayat_count,session_time,notes'
-    )
+    .select('id,date,surah_number,ayat_start,ayat_end,ayat_count,session_time,notes')
     .eq('user_id', user.id)
     .gte('date', startDate)
     .lte('date', endDate)
@@ -131,8 +120,7 @@ export async function createReadingSession(
 
   // Validate length
   const maxAyat = getAyatCount(input.surah_number);
-  if (input.ayat_end > maxAyat)
-    throw new Error('Ayat end exceeds surah length');
+  if (input.ayat_end > maxAyat) throw new Error('Ayat end exceeds surah length');
 
   // Use timezone-aware date handling with fallback
   const now = new Date();
@@ -168,9 +156,7 @@ export async function createReadingSession(
   console.log('[createReadingSession] Input date:', inputDate);
 
   if (inputDate > todayDate) {
-    throw new Error(
-      'Tidak bisa mencatat bacaan untuk tanggal yang akan datang'
-    );
+    throw new Error('Tidak bisa mencatat bacaan untuk tanggal yang akan datang');
   }
 
   const payload = {
@@ -191,8 +177,7 @@ export async function createReadingSession(
     .single();
   if (error) throw error;
 
-  const ayatCount =
-    (inserted.ayat_end as number) - (inserted.ayat_start as number) + 1;
+  const ayatCount = (inserted.ayat_end as number) - (inserted.ayat_start as number) + 1;
 
   // Fetch existing progress
   const progress = await getReadingProgress();
@@ -211,18 +196,13 @@ export async function createReadingSession(
   };
 
   if (isForward) {
-    const next = getNextPosition(
-      inserted.surah_number as number,
-      inserted.ayat_end as number
-    );
+    const next = getNextPosition(inserted.surah_number as number, inserted.ayat_end as number);
     patch.current_surah = next.surah;
     patch.current_ayat = next.ayat;
     patch.khatam_count = (progress.khatam_count ?? 0) + (next.khatam ? 1 : 0);
   }
 
-  const { error: upErr } = await supabase
-    .from('reading_progress')
-    .upsert(patch);
+  const { error: upErr } = await supabase.from('reading_progress').upsert(patch);
   if (upErr) throw upErr;
 
   // Cumulative check-in for today (using same date as above)
@@ -255,10 +235,7 @@ export async function createReadingSession(
 /**
  * Return all sessions for the month of the given date.
  */
-export async function getMonthSessions(
-  date: Date = new Date(),
-  timezone: string = 'Asia/Jakarta'
-) {
+export async function getMonthSessions(date: Date = new Date(), timezone: string = 'Asia/Jakarta') {
   const start = format(startOfMonth(date), 'yyyy-MM-dd');
   const end = format(endOfMonth(date), 'yyyy-MM-dd');
   return getSessionsInRange(start, end);
@@ -301,14 +278,11 @@ export async function getReadingStats(
   console.log('📚 [getReadingStats] Sessions found:', totalSessions);
 
   // Calculate total ayat from sessions (source of truth per user)
-  let totalAyat = (sessions || []).reduce(
-    (sum, s) => sum + (s.ayat_count || 0),
-    0
-  );
+  const totalAyat = (sessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
   console.log('📊 [getReadingStats] Total ayat from sessions:', totalAyat);
 
   // Calculate unique reading days from sessions
-  let daysRead = new Set((sessions || []).map(s => s.date)).size;
+  const daysRead = new Set((sessions || []).map((s) => s.date)).size;
   console.log('📅 [getReadingStats] Days read from sessions:', daysRead);
 
   const avgPerDay = daysRead > 0 ? Math.round(totalAyat / daysRead) : 0;
@@ -329,10 +303,7 @@ export async function getReadingStats(
 /**
  * Calendar data for a given month: map of dateStr -> summary
  */
-export async function getCalendarData(
-  date: Date = new Date(),
-  timezone: string = 'Asia/Jakarta'
-) {
+export async function getCalendarData(date: Date = new Date(), timezone: string = 'Asia/Jakarta') {
   // Prefer checkins to render calendar consistency with streak
   const { data: session } = await supabase.auth.getSession();
   const userId = session?.session?.user?.id;
@@ -340,10 +311,7 @@ export async function getCalendarData(
   const start = format(startOfMonth(date), 'yyyy-MM-dd');
   const end = format(endOfMonth(date), 'yyyy-MM-dd');
 
-  let dateMap: Record<
-    string,
-    { count: number; ayatCount: number; sessions: any[] }
-  > = {};
+  let dateMap: Record<string, { count: number; ayatCount: number; sessions: any[] }> = {};
 
   if (userId) {
     const { data: checkinData } = await supabase
@@ -353,8 +321,7 @@ export async function getCalendarData(
       .gte('date', start)
       .lte('date', end);
     (checkinData ?? []).forEach((c: any) => {
-      if (!dateMap[c.date])
-        dateMap[c.date] = { count: 0, ayatCount: 0, sessions: [] };
+      if (!dateMap[c.date]) dateMap[c.date] = { count: 0, ayatCount: 0, sessions: [] };
       dateMap[c.date].count += 1;
       dateMap[c.date].ayatCount += c.ayat_count || 0;
     });
@@ -364,13 +331,7 @@ export async function getCalendarData(
   if (Object.keys(dateMap).length === 0) {
     const sessions = await getMonthSessions(date, timezone);
     dateMap = (sessions || []).reduce(
-      (
-        acc: Record<
-          string,
-          { count: number; ayatCount: number; sessions: any[] }
-        >,
-        s: any
-      ) => {
+      (acc: Record<string, { count: number; ayatCount: number; sessions: any[] }>, s: any) => {
         const key = s.date as string;
         if (!acc[key]) acc[key] = { count: 0, ayatCount: 0, sessions: [] };
         acc[key].count += 1;
@@ -378,10 +339,7 @@ export async function getCalendarData(
         acc[key].sessions.push(s);
         return acc;
       },
-      {} as Record<
-        string,
-        { count: number; ayatCount: number; sessions: any[] }
-      >
+      {} as Record<string, { count: number; ayatCount: number; sessions: any[] }>
     );
   }
 
@@ -440,15 +398,16 @@ export async function getRecentReadingSessions(limit: number = 10) {
 
   // Group sessions by date and calculate session count per day
   const groupedSessions = groupSessionsByDate(sessions || []);
-  
+
   // Take only the requested limit
-  return groupedSessions.slice(0, limit).map(dayData => ({
+  return groupedSessions.slice(0, limit).map((dayData) => ({
     date: dayData.date,
     ayat_count: dayData.totalAyat,
     session_count: dayData.sessions.length,
     sessions: dayData.sessions,
-    surah_name: dayData.sessions[0]?.surah_number ? 
-      `Surah ${dayData.sessions[0].surah_number}` : 'Surah tidak diketahui',
+    surah_name: dayData.sessions[0]?.surah_number
+      ? `Surah ${dayData.sessions[0].surah_number}`
+      : 'Surah tidak diketahui',
     ayat_start: dayData.sessions[0]?.ayat_start || 1,
     ayat_end: dayData.sessions[0]?.ayat_end || dayData.totalAyat,
   }));
@@ -500,25 +459,12 @@ export async function getKhatamProgress() {
     const start = format(subDays(new Date(), 30), 'yyyy-MM-dd');
     const end = format(new Date(), 'yyyy-MM-dd');
     const recentSessions =
-      allSessions?.filter(
-        session => session.date >= start && session.date <= end
-      ) || [];
+      allSessions?.filter((session) => session.date >= start && session.date <= end) || [];
 
-    console.log(
-      '[getKhatamProgress] Unique ayat read:',
-      uniqueData.totalUniqueAyat
-    );
+    console.log('[getKhatamProgress] Unique ayat read:', uniqueData.totalUniqueAyat);
     console.log('[getKhatamProgress] Khatam count:', uniqueData.khatamCount);
-    console.log(
-      '[getKhatamProgress] Next position:',
-      nextPosition.surah,
-      ':',
-      nextPosition.ayat
-    );
-    console.log(
-      '[getKhatamProgress] Recent sessions (30d):',
-      recentSessions.length
-    );
+    console.log('[getKhatamProgress] Next position:', nextPosition.surah, ':', nextPosition.ayat);
+    console.log('[getKhatamProgress] Recent sessions (30d):', recentSessions.length);
 
     return {
       progress: updatedProgress,

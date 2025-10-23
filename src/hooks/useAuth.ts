@@ -10,22 +10,18 @@ export function useAuthSession() {
     console.log('[useAuth] Initializing auth session...');
 
     getSession()
-      .then(s => {
+      .then((s) => {
         console.log('[useAuth] Initial session:', s ? 'Found' : 'None');
         setSession(s);
         setLoading(false);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('[useAuth] Error getting session:', error);
         setLoading(false);
       });
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
-      console.log(
-        '[useAuth] Auth state change:',
-        event,
-        s ? 'Session exists' : 'No session'
-      );
+      console.log('[useAuth] Auth state change:', event, s ? 'Session exists' : 'No session');
       setSession(s);
     });
     return () => {
@@ -33,5 +29,15 @@ export function useAuthSession() {
     };
   }, []);
 
-  return { session, loading };
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error) {
+      console.error('[useAuth] Sign out error:', error);
+      throw error;
+    }
+  };
+
+  return { session, loading, signOut };
 }

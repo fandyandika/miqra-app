@@ -16,11 +16,7 @@ async function testStreak() {
 
   try {
     // Test the streak functions directly
-    const {
-      didBreakYesterday,
-      getTreeStage,
-      getTreeVisual,
-    } = require('../src/lib/streak');
+    const { didBreakYesterday, getTreeStage, getTreeVisual } = require('../src/lib/streak');
 
     console.log('📊 Testing streak functions:');
 
@@ -34,7 +30,7 @@ async function testStreak() {
       { name: 'Broke Yesterday', days: 5, lastDate: '2025-10-16' }, // 2 days ago
     ];
 
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario) => {
       console.log(`\n🌱 ${scenario.name}:`);
       console.log(`   Days: ${scenario.days}`);
       console.log(`   Last date: ${scenario.lastDate}`);

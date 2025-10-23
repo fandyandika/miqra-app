@@ -39,13 +39,15 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
   }
 
   const ratio = personalAyat / avgFamily;
-  
+
   if (ratio >= 3) {
     return (
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>🚀</Text>
         <Text style={styles.messageText}>
-          MasyaAllah, Tabarakallah! Anda membaca <Text style={styles.messageHighlight}>3x lipat</Text> lebih banyak dari rata-rata keluarga!
+          MasyaAllah, Tabarakallah! Anda membaca{' '}
+          <Text style={styles.messageHighlight}>3x lipat</Text> lebih banyak dari rata-rata
+          keluarga!
         </Text>
       </View>
     );
@@ -54,7 +56,9 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>⭐</Text>
         <Text style={styles.messageText}>
-          MasyaAllah, Tabarakallah! Anda membaca <Text style={styles.messageHighlight}>2x lipat</Text> lebih banyak dari rata-rata keluarga!
+          MasyaAllah, Tabarakallah! Anda membaca{' '}
+          <Text style={styles.messageHighlight}>2x lipat</Text> lebih banyak dari rata-rata
+          keluarga!
         </Text>
       </View>
     );
@@ -63,7 +67,8 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>🌟</Text>
         <Text style={styles.messageText}>
-          MasyaAllah! Anda membaca <Text style={styles.messageHighlight}>50% lebih banyak</Text> dari rata-rata keluarga!
+          MasyaAllah! Anda membaca <Text style={styles.messageHighlight}>50% lebih banyak</Text>{' '}
+          dari rata-rata keluarga!
         </Text>
       </View>
     );
@@ -72,7 +77,8 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>👍</Text>
         <Text style={styles.messageText}>
-          Alhamdulillah! Anda membaca <Text style={styles.messageHighlight}>sama atau lebih</Text> dari rata-rata keluarga!
+          Alhamdulillah! Anda membaca <Text style={styles.messageHighlight}>sama atau lebih</Text>{' '}
+          dari rata-rata keluarga!
         </Text>
       </View>
     );
@@ -81,7 +87,8 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>💪</Text>
         <Text style={styles.messageText}>
-          Barakallah! Anda sudah <Text style={styles.messageHighlight}>mendekati rata-rata</Text> keluarga. Tingkatkan sedikit lagi!
+          Barakallah! Anda sudah <Text style={styles.messageHighlight}>mendekati rata-rata</Text>{' '}
+          keluarga. Tingkatkan sedikit lagi!
         </Text>
       </View>
     );
@@ -90,7 +97,8 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>🌱</Text>
         <Text style={styles.messageText}>
-          Mari mulai kebiasaan baik! <Text style={styles.messageHighlight}>Satu ayat per hari</Text> sudah cukup untuk memulai!
+          Mari mulai kebiasaan baik! <Text style={styles.messageHighlight}>Satu ayat per hari</Text>{' '}
+          sudah cukup untuk memulai!
         </Text>
       </View>
     );
@@ -99,7 +107,8 @@ const getComparisonMessage = (personalAyat: number, avgFamily: number, percentag
       <View style={styles.messageContainer}>
         <Text style={styles.messageIcon}>🤲</Text>
         <Text style={styles.messageText}>
-          Bismillah! Mari mulai perjalanan bacaan Al-Qur'an. <Text style={styles.messageHighlight}>Setiap ayat adalah berkah</Text>!
+          Bismillah! Mari mulai perjalanan bacaan Al-Qur'an.{' '}
+          <Text style={styles.messageHighlight}>Setiap ayat adalah berkah</Text>!
         </Text>
       </View>
     );
@@ -118,8 +127,8 @@ export function FamilyComparisonCard({
 }: FamilyComparisonCardProps) {
   const [showFamilySelector, setShowFamilySelector] = useState(false);
 
-  const selectedFamily = families?.find(f => f.id === selectedFamilyId);
-  
+  const selectedFamily = families?.find((f) => f.id === selectedFamilyId);
+
   // Debug logging untuk perhitungan
   console.log('🔍 Family Comparison Debug:', {
     personalAyat,
@@ -128,17 +137,16 @@ export function FamilyComparisonCard({
     selectedFamily: selectedFamily?.name,
     families: families?.length || 0,
   });
-  
+
   // Safe calculation dengan null checks
   const safePersonalAyat = personalAyat || 0;
   const safeFamilyStats = familyStats || null;
   const safeAvgAyat = safeFamilyStats?.avg_ayat_per_member || 0;
-  
+
   const isAboveAverage = safeFamilyStats ? safePersonalAyat >= safeAvgAyat : false;
-  const percentage = safeFamilyStats && safeAvgAyat > 0 
-    ? Math.round((safePersonalAyat / safeAvgAyat) * 100) 
-    : 0;
-    
+  const percentage =
+    safeFamilyStats && safeAvgAyat > 0 ? Math.round((safePersonalAyat / safeAvgAyat) * 100) : 0;
+
   console.log('📊 Percentage calculation:', {
     personalAyat: safePersonalAyat,
     avgAyatPerMember: safeAvgAyat,
@@ -171,22 +179,18 @@ export function FamilyComparisonCard({
             {(['7D', '30D', '90D', '365D'] as const).map((p) => (
               <Pressable
                 key={p}
-                style={[
-                  styles.periodButton,
-                  period === p && styles.periodButtonActive,
-                ]}
+                style={[styles.periodButton, period === p && styles.periodButtonActive]}
                 onPress={() => onPeriodChange(p)}
               >
-                <Text style={[
-                  styles.periodButtonText,
-                  period === p && styles.periodButtonTextActive,
-                ]}>
+                <Text
+                  style={[styles.periodButtonText, period === p && styles.periodButtonTextActive]}
+                >
                   {p === '7D' ? '7H' : p === '30D' ? '30H' : p === '90D' ? '90H' : '1T'}
                 </Text>
               </Pressable>
             ))}
           </View>
-          
+
           {/* Family Selector */}
           {families && families.length > 1 && (
             <Pressable
@@ -199,9 +203,7 @@ export function FamilyComparisonCard({
               <Text style={styles.selectorButtonText}>
                 {selectedFamily?.name || 'Pilih Keluarga'} {showFamilySelector ? '▲' : '▼'}
               </Text>
-              <Text style={styles.selectorButtonSubtext}>
-                {families.length} keluarga
-              </Text>
+              <Text style={styles.selectorButtonSubtext}>{families.length} keluarga</Text>
             </Pressable>
           )}
         </View>
@@ -224,22 +226,24 @@ export function FamilyComparisonCard({
               }}
             >
               <View style={styles.selectorOptionContent}>
-                <Text style={[
-                  styles.selectorOptionText,
-                  selectedFamilyId === family.id && styles.selectorOptionTextActive,
-                ]}>
+                <Text
+                  style={[
+                    styles.selectorOptionText,
+                    selectedFamilyId === family.id && styles.selectorOptionTextActive,
+                  ]}
+                >
                   {family.name}
                 </Text>
-                <Text style={[
-                  styles.selectorOptionRole,
-                  selectedFamilyId === family.id && styles.selectorOptionRoleActive,
-                ]}>
+                <Text
+                  style={[
+                    styles.selectorOptionRole,
+                    selectedFamilyId === family.id && styles.selectorOptionRoleActive,
+                  ]}
+                >
                   {family.role === 'owner' ? '👑 Owner' : '👤 Member'}
                 </Text>
               </View>
-              {selectedFamilyId === family.id && (
-                <Text style={styles.selectorCheckmark}>✓</Text>
-              )}
+              {selectedFamilyId === family.id && <Text style={styles.selectorCheckmark}>✓</Text>}
             </Pressable>
           ))}
         </View>
@@ -259,39 +263,39 @@ export function FamilyComparisonCard({
                 {(personalAyat || 0).toLocaleString('id-ID')} ayat
               </Text>
             </View>
-            
+
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Rata-rata Keluarga</Text>
               <Text style={styles.statValue}>
                 {Math.round(familyStats?.avg_ayat_per_member || 0).toLocaleString('id-ID')} ayat
               </Text>
             </View>
-            
+
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Total Keluarga</Text>
               <Text style={[styles.statValue, styles.highlight]}>
                 {(familyStats?.total_family_ayat || 0).toLocaleString('id-ID')} ayat
               </Text>
             </View>
-            
+
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Anggota Keluarga</Text>
-              <Text style={styles.statValue}>
-                {familyStats?.member_count || 0} orang
-              </Text>
+              <Text style={styles.statValue}>{familyStats?.member_count || 0} orang</Text>
             </View>
           </View>
-          
+
           {/* Delighting Comparison Message */}
           <View style={styles.comparisonMessage}>
-            {getComparisonMessage(personalAyat || 0, familyStats?.avg_ayat_per_member || 0, percentage)}
+            {getComparisonMessage(
+              personalAyat || 0,
+              familyStats?.avg_ayat_per_member || 0,
+              percentage
+            )}
           </View>
         </>
       ) : (
         <View style={styles.errorState}>
-          <Text style={styles.errorText}>
-            ❌ Gagal memuat data keluarga
-          </Text>
+          <Text style={styles.errorText}>❌ Gagal memuat data keluarga</Text>
         </View>
       )}
     </View>

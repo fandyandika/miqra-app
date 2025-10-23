@@ -5,10 +5,7 @@ let PostHog: any = null;
 try {
   PostHog = require('posthog-react-native').default;
 } catch (error: any) {
-  console.warn(
-    '[PostHog] posthog-react-native not available:',
-    error?.message || 'Unknown error'
-  );
+  console.warn('[PostHog] posthog-react-native not available:', error?.message || 'Unknown error');
   // Provide fallback constructor
   PostHog = class MockPostHog {
     constructor() {}
@@ -30,8 +27,7 @@ export const posthog =
       };
 
 if (!apiKey) console.warn('[PostHog] API key missing - analytics disabled');
-if (!PostHog)
-  console.warn('[PostHog] PostHog library not available - analytics disabled');
+if (!PostHog) console.warn('[PostHog] PostHog library not available - analytics disabled');
 
 export const EVENTS = {
   APP_OPEN: 'app_open',

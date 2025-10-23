@@ -14,20 +14,13 @@ export default function TodaySessions() {
     queryKey: ['reading', 'today'],
     queryFn: () => getTodaySessions(),
   });
-  const total = data.reduce(
-    (s: number, i: any) => s + (i?.ayat_count || 0),
-    0
-  );
+  const total = data.reduce((s: number, i: any) => s + (i?.ayat_count || 0), 0);
   if (!data || data.length === 0)
-    return (
-      <Text style={{ color: '#6B7280' }}>Belum ada catatan hari ini.</Text>
-    );
+    return <Text style={{ color: '#6B7280' }}>Belum ada catatan hari ini.</Text>;
 
   return (
     <View>
-      <Text style={{ fontWeight: '600', marginBottom: 8 }}>
-        Hari ini: {total} ayat
-      </Text>
+      <Text style={{ fontWeight: '600', marginBottom: 8 }}>Hari ini: {total} ayat</Text>
       <FlatList
         data={data}
         keyExtractor={(i: any) => i?.id?.toString() || Math.random().toString()}
@@ -50,8 +43,8 @@ export default function TodaySessions() {
               }}
             >
               <Text>
-                {meta?.number || '?'}. {meta?.name || 'Unknown'}{' '}
-                {item?.ayat_start || 0}-{item?.ayat_end || 0}
+                {meta?.number || '?'}. {meta?.name || 'Unknown'} {item?.ayat_start || 0}-
+                {item?.ayat_end || 0}
               </Text>
               <Text>
                 {item?.ayat_count || 0} • {time}

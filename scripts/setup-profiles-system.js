@@ -157,10 +157,7 @@ async function createProfilesTables() {
     });
 
     if (signupTriggerError) {
-      console.log(
-        '⚠️  Signup trigger function creation:',
-        signupTriggerError.message
-      );
+      console.log('⚠️  Signup trigger function creation:', signupTriggerError.message);
     } else {
       console.log('✅ Signup trigger function created');
     }
@@ -251,20 +248,16 @@ async function createProfilesTables() {
       .limit(1);
 
     if (settingsTestError) {
-      console.log(
-        '❌ User_settings table test failed:',
-        settingsTestError.message
-      );
+      console.log('❌ User_settings table test failed:', settingsTestError.message);
     } else {
       console.log('✅ User_settings table accessible');
     }
 
-    const { data: bucketsTest, error: bucketsTestError } =
-      await supabase.storage.listBuckets();
+    const { data: bucketsTest, error: bucketsTestError } = await supabase.storage.listBuckets();
     if (bucketsTestError) {
       console.log('❌ Storage test failed:', bucketsTestError.message);
     } else {
-      const avatarsBucket = bucketsTest?.find(b => b.id === 'avatars');
+      const avatarsBucket = bucketsTest?.find((b) => b.id === 'avatars');
       if (avatarsBucket) {
         console.log('✅ Avatars bucket accessible');
       } else {

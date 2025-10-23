@@ -18,21 +18,14 @@ type AvatarPickerProps = {
   size?: number;
 };
 
-export function AvatarPicker({
-  currentUrl,
-  onUpload,
-  size = 100,
-}: AvatarPickerProps) {
+export function AvatarPicker({ currentUrl, onUpload, size = 100 }: AvatarPickerProps) {
   const [loading, setLoading] = useState(false);
   const [tempUrl, setTempUrl] = useState<string | null>(null);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Izin Diperlukan',
-        'Kami butuh akses ke galeri Anda untuk mengunggah foto.'
-      );
+      Alert.alert('Izin Diperlukan', 'Kami butuh akses ke galeri Anda untuk mengunggah foto.');
       return;
     }
 
@@ -64,8 +57,8 @@ export function AvatarPicker({
   return (
     <Pressable
       onPress={pickImage}
-      accessibilityRole='button'
-      accessibilityLabel='Ubah foto profil'
+      accessibilityRole="button"
+      accessibilityLabel="Ubah foto profil"
       style={[styles.container, { width: size, height: size }]}
     >
       {displayUrl ? (
@@ -78,7 +71,7 @@ export function AvatarPicker({
 
       {loading && (
         <View style={styles.overlay}>
-          <ActivityIndicator color='#fff' />
+          <ActivityIndicator color="#fff" />
         </View>
       )}
 

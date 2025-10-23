@@ -48,7 +48,7 @@ async function recalculateAllStreaks() {
 
       if (!checkins || checkins.length === 0) continue;
 
-      const checkinDates = checkins.map(c => c.date).sort();
+      const checkinDates = checkins.map((c) => c.date).sort();
       console.log(`📅 Checkin dates: ${checkinDates.join(', ')}`);
 
       // Calculate consecutive days - start from day 1
@@ -59,8 +59,7 @@ async function recalculateAllStreaks() {
       for (let i = 1; i < checkinDates.length; i++) {
         const currentDate = new Date(checkinDates[i]);
         const prevDate = new Date(checkinDates[i - 1]);
-        const daysDiff =
-          (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
         if (daysDiff === 1) {
           // Consecutive day
@@ -92,9 +91,7 @@ async function recalculateAllStreaks() {
         consecutiveDays = 0; // Streak broken
       }
 
-      console.log(
-        `📊 Calculated: ${consecutiveDays} current, ${maxStreak} longest`
-      );
+      console.log(`📊 Calculated: ${consecutiveDays} current, ${maxStreak} longest`);
 
       // Update or insert streak record
       const { error: upsertError } = await supabase.from('streaks').upsert(

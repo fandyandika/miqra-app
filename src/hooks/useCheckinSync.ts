@@ -13,10 +13,7 @@ export function useCheckinSync() {
       return;
     }
 
-    console.log(
-      '[CheckinSync] Setting up real-time sync for user:',
-      session.user.id
-    );
+    console.log('[CheckinSync] Setting up real-time sync for user:', session.user.id);
 
     // Subscribe to reading_sessions changes
     const sessionsChannel = supabase
@@ -29,7 +26,7 @@ export function useCheckinSync() {
           table: 'reading_sessions',
           filter: `user_id=eq.${session.user.id}`,
         },
-        async payload => {
+        async (payload) => {
           console.log(
             '[CheckinSync] 🔥 Reading session changed:',
             payload.eventType,
@@ -91,7 +88,7 @@ async function syncCheckinsWithSessions(userId: string) {
 
     // Group sessions by date and calculate daily totals
     const dailyTotals: Record<string, number> = {};
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       const date = session.date;
       if (!dailyTotals[date]) {
         dailyTotals[date] = 0;
@@ -116,19 +113,19 @@ async function syncCheckinsWithSessions(userId: string) {
 
     // Create a map of existing checkins
     const existingCheckins: Record<string, number> = {};
-    currentCheckins?.forEach(checkin => {
+    currentCheckins?.forEach((checkin) => {
       existingCheckins[checkin.date] = checkin.ayat_count;
     });
 
     // Find dates that need checkins or have different totals
-    const checkinsToUpsert: Array<{
+    const checkinsToUpsert: {
       user_id: string;
       date: string;
       ayat_count: number;
       created_at: string;
-    }> = [];
+    }[] = [];
 
-    Object.keys(dailyTotals).forEach(date => {
+    Object.keys(dailyTotals).forEach((date) => {
       const sessionTotal = dailyTotals[date];
       const checkinTotal = existingCheckins[date] || 0;
 
@@ -146,11 +143,9 @@ async function syncCheckinsWithSessions(userId: string) {
     if (checkinsToUpsert.length > 0) {
       console.log('[CheckinSync] Upserting checkins:', checkinsToUpsert);
 
-      const { error: upsertError } = await supabase
-        .from('checkins')
-        .upsert(checkinsToUpsert, {
-          onConflict: 'user_id,date',
-        });
+      const { error: upsertError } = await supabase.from('checkins').upsert(checkinsToUpsert, {
+        onConflict: 'user_id,date',
+      });
 
       if (upsertError) {
         console.error('[CheckinSync] Error upserting checkins:', upsertError);
@@ -181,10 +176,7 @@ async function updateStreakFromCheckins(userId: string) {
       .order('date', { ascending: false });
 
     if (checkinsError) {
-      console.error(
-        '[CheckinSync] Error fetching checkins for streak:',
-        checkinsError
-      );
+      console.error('[CheckinSync] Error fetching checkins for streak:', checkinsError);
       return;
     }
 
@@ -208,9 +200,7 @@ async function updateStreakFromCheckins(userId: string) {
     let currentStreak = 0;
     let lastDate = null;
 
-    const sortedCheckins = checkins.sort((a, b) =>
-      b.date.localeCompare(a.date)
-    );
+    const sortedCheckins = checkins.sort((a, b) => b.date.localeCompare(a.date));
 
     if (sortedCheckins.length === 0) {
       currentStreak = 0;
@@ -244,10 +234,7 @@ async function updateStreakFromCheckins(userId: string) {
       .eq('user_id', userId)
       .single();
 
-    const longestStreak = Math.max(
-      currentStreakData?.longest || 0,
-      currentStreak
-    );
+    const longestStreak = Math.max(currentStreakData?.longest || 0, currentStreak);
 
     // Update streaks table
     const { error: streakError } = await supabase.from('streaks').upsert(

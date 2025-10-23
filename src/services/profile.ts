@@ -91,12 +91,10 @@ export async function uploadAvatar(file: File | Blob): Promise<string> {
   const fileName = `${user.id}-${Date.now()}.${fileExt}`;
   const filePath = `avatars/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(filePath, file, {
-      contentType: 'image/jpeg',
-      upsert: true,
-    });
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+    contentType: 'image/jpeg',
+    upsert: true,
+  });
 
   if (uploadError) throw uploadError;
 

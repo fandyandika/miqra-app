@@ -27,13 +27,7 @@ async function forceRefreshStreak() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Get current checkins
     const { data: checkins, error: checkinsError } = await supabase
@@ -48,7 +42,7 @@ async function forceRefreshStreak() {
     }
 
     console.log('📅 Current checkins:');
-    checkins?.forEach(checkin => {
+    checkins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -57,9 +51,7 @@ async function forceRefreshStreak() {
     let lastDate = null;
 
     if (checkins && checkins.length > 0) {
-      const sortedCheckins = checkins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkins.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -71,22 +63,16 @@ async function forceRefreshStreak() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-        console.log(
-          `  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-        );
+        console.log(`  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
         if (daysDiff === 1) {
           currentStreak++;
           tempDate = checkinDate;
           console.log(`    ✅ Consecutive! Streak now: ${currentStreak}`);
         } else {
-          console.log(
-            `    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`
-          );
+          console.log(`    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`);
           break;
         }
       }
@@ -138,12 +124,9 @@ async function forceRefreshStreak() {
     console.log('\n🧪 Testing RPC function...');
 
     const today = new Date().toISOString().split('T')[0];
-    const { data: rpcResult, error: rpcError } = await supabase.rpc(
-      'update_streak_after_checkin',
-      {
-        checkin_date: today,
-      }
-    );
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('update_streak_after_checkin', {
+      checkin_date: today,
+    });
 
     if (rpcError) {
       console.error('❌ RPC error:', rpcError);

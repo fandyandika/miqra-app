@@ -12,11 +12,10 @@ async function testLoginFlow() {
   try {
     // Test 1: Basic sign in
     console.log('1️⃣ Testing basic sign in...');
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (signInError) {
       console.log('❌ Sign in error:', signInError.message);
@@ -30,8 +29,7 @@ async function testLoginFlow() {
 
     // Test 2: Get current session
     console.log('\n2️⃣ Testing get current session...');
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError) {
       console.log('❌ Get session error:', sessionError.message);
@@ -86,18 +84,12 @@ async function testLoginFlow() {
 
     // Test 6: Test auth state change listener
     console.log('\n6️⃣ Testing auth state change...');
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log(
-          'Auth state change:',
-          event,
-          session ? 'Session exists' : 'No session'
-        );
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session ? 'Session exists' : 'No session');
+    });
 
     // Wait a moment for listener
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Cleanup
     authListener.subscription.unsubscribe();

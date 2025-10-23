@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, addMonths, subMonths } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -39,8 +32,7 @@ export default function ReadingHistoryScreen() {
 
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['reading', 'history', monthKey],
-    queryFn: () =>
-      getMonthSessions(currentMonth, userTimezone || 'Asia/Jakarta'),
+    queryFn: () => getMonthSessions(currentMonth, userTimezone || 'Asia/Jakarta'),
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,
     enabled: !!userTimezone,
@@ -107,27 +99,15 @@ export default function ReadingHistoryScreen() {
   useEffect(() => {
     const channel = supabase
       .channel('reading-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reading_sessions' },
-        () => {
-          console.log(
-            '[ReadingHistoryScreen] Reading sessions updated, invalidating queries'
-          );
-          queryClient.invalidateQueries({ queryKey: ['reading'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'checkins' },
-        () => {
-          console.log(
-            '[ReadingHistoryScreen] Checkins updated, invalidating queries'
-          );
-          queryClient.invalidateQueries({ queryKey: ['reading'] });
-          queryClient.invalidateQueries({ queryKey: ['streak'] });
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
+        console.log('[ReadingHistoryScreen] Reading sessions updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkins' }, () => {
+        console.log('[ReadingHistoryScreen] Checkins updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+      })
       .subscribe();
 
     return () => {
@@ -151,19 +131,17 @@ export default function ReadingHistoryScreen() {
         <Pressable
           onPress={() => setCurrentMonth(subMonths(currentMonth, 1))}
           style={styles.monthBtn}
-          accessibilityRole='button'
-          accessibilityLabel='Bulan sebelumnya'
+          accessibilityRole="button"
+          accessibilityLabel="Bulan sebelumnya"
         >
           <Text style={styles.monthBtnText}>←</Text>
         </Pressable>
-        <Text style={styles.monthText}>
-          {format(currentMonth, 'MMMM yyyy', { locale: id })}
-        </Text>
+        <Text style={styles.monthText}>{format(currentMonth, 'MMMM yyyy', { locale: id })}</Text>
         <Pressable
           onPress={() => setCurrentMonth(addMonths(currentMonth, 1))}
           style={styles.monthBtn}
-          accessibilityRole='button'
-          accessibilityLabel='Bulan berikutnya'
+          accessibilityRole="button"
+          accessibilityLabel="Bulan berikutnya"
         >
           <Text style={styles.monthBtnText}>→</Text>
         </Pressable>
@@ -189,11 +167,7 @@ export default function ReadingHistoryScreen() {
 
       <View>
         <Text style={styles.sectionTitle}>Daftar Bacaan</Text>
-        <OptimizedReadingList
-          groupedSessions={grouped}
-          hasMore={false}
-          isLoading={isLoading}
-        />
+        <OptimizedReadingList groupedSessions={grouped} hasMore={false} isLoading={isLoading} />
       </View>
     </ScrollView>
   );

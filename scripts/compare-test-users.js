@@ -17,8 +17,8 @@ async function compareTestUsers() {
   try {
     // Get both users
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test1User || !test2User) {
       console.log('❌ One or both test users not found');
@@ -46,12 +46,12 @@ async function compareTestUsers() {
     console.log(`📊 Test1 checkins: ${test1Checkins.length} records`);
     console.log(
       '📅 Test1 dates:',
-      test1Checkins.map(c => c.date)
+      test1Checkins.map((c) => c.date)
     );
     console.log(`📊 Test2 checkins: ${test2Checkins.length} records`);
     console.log(
       '📅 Test2 dates:',
-      test2Checkins.map(c => c.date)
+      test2Checkins.map((c) => c.date)
     );
 
     // Compare reading sessions
@@ -70,13 +70,9 @@ async function compareTestUsers() {
       .order('date', { ascending: true });
 
     console.log(`📊 Test1 sessions: ${test1Sessions.length} records`);
-    console.log('📅 Test1 session dates:', [
-      ...new Set(test1Sessions.map(s => s.date)),
-    ]);
+    console.log('📅 Test1 session dates:', [...new Set(test1Sessions.map((s) => s.date))]);
     console.log(`📊 Test2 sessions: ${test2Sessions.length} records`);
-    console.log('📅 Test2 session dates:', [
-      ...new Set(test2Sessions.map(s => s.date)),
-    ]);
+    console.log('📅 Test2 session dates:', [...new Set(test2Sessions.map((s) => s.date))]);
 
     // Compare streaks
     console.log('\n3️⃣ COMPARING STREAKS...');
@@ -99,17 +95,13 @@ async function compareTestUsers() {
     // Calculate reading days for both users
     console.log('\n4️⃣ CALCULATING READING DAYS...');
 
-    const test1CheckinDates = [...new Set(test1Checkins.map(c => c.date))];
-    const test1SessionDates = [...new Set(test1Sessions.map(s => s.date))];
-    const test1AllDates = [
-      ...new Set([...test1CheckinDates, ...test1SessionDates]),
-    ];
+    const test1CheckinDates = [...new Set(test1Checkins.map((c) => c.date))];
+    const test1SessionDates = [...new Set(test1Sessions.map((s) => s.date))];
+    const test1AllDates = [...new Set([...test1CheckinDates, ...test1SessionDates])];
 
-    const test2CheckinDates = [...new Set(test2Checkins.map(c => c.date))];
-    const test2SessionDates = [...new Set(test2Sessions.map(s => s.date))];
-    const test2AllDates = [
-      ...new Set([...test2CheckinDates, ...test2SessionDates]),
-    ];
+    const test2CheckinDates = [...new Set(test2Checkins.map((c) => c.date))];
+    const test2SessionDates = [...new Set(test2Sessions.map((s) => s.date))];
+    const test2AllDates = [...new Set([...test2CheckinDates, ...test2SessionDates])];
 
     console.log(
       `📊 Test1 reading days: ${test1AllDates.length} (checkins: ${test1CheckinDates.length}, sessions: ${test1SessionDates.length})`
@@ -121,7 +113,7 @@ async function compareTestUsers() {
     // Calculate streaks manually
     console.log('\n5️⃣ CALCULATING STREAKS MANUALLY...');
 
-    const calculateStreak = checkinDates => {
+    const calculateStreak = (checkinDates) => {
       if (checkinDates.length === 0) return { current: 0, longest: 0 };
 
       const sortedDates = checkinDates.sort();
@@ -135,9 +127,7 @@ async function compareTestUsers() {
         const prevDate = i > 0 ? new Date(sortedDates[i - 1]) : null;
 
         if (prevDate) {
-          const daysDiff =
-            (currentDate.getTime() - prevDate.getTime()) /
-            (1000 * 60 * 60 * 24);
+          const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
           if (daysDiff === 1) {
             currentStreak++;
@@ -191,9 +181,7 @@ async function compareTestUsers() {
     console.log(
       `  Calculated: ${test1Calculated.current} current, ${test1Calculated.longest} longest`
     );
-    console.log(
-      `  Match: ${test1Streak?.current === test1Calculated.current ? '✅' : '❌'}`
-    );
+    console.log(`  Match: ${test1Streak?.current === test1Calculated.current ? '✅' : '❌'}`);
 
     console.log('Test2 - Database vs Calculated:');
     console.log(
@@ -202,9 +190,7 @@ async function compareTestUsers() {
     console.log(
       `  Calculated: ${test2Calculated.current} current, ${test2Calculated.longest} longest`
     );
-    console.log(
-      `  Match: ${test2Streak?.current === test2Calculated.current ? '✅' : '❌'}`
-    );
+    console.log(`  Match: ${test2Streak?.current === test2Calculated.current ? '✅' : '❌'}`);
 
     // Check current month data
     console.log('\n7️⃣ CHECKING CURRENT MONTH DATA...');
@@ -218,29 +204,21 @@ async function compareTestUsers() {
 
     console.log(`📅 Current month range: ${startStr} to ${endStr}`);
 
-    const test1MonthCheckins = test1Checkins.filter(
-      c => c.date >= startStr && c.date <= endStr
-    );
-    const test1MonthSessions = test1Sessions.filter(
-      s => s.date >= startStr && s.date <= endStr
-    );
+    const test1MonthCheckins = test1Checkins.filter((c) => c.date >= startStr && c.date <= endStr);
+    const test1MonthSessions = test1Sessions.filter((s) => s.date >= startStr && s.date <= endStr);
     const test1MonthAllDates = [
       ...new Set([
-        ...test1MonthCheckins.map(c => c.date),
-        ...test1MonthSessions.map(s => s.date),
+        ...test1MonthCheckins.map((c) => c.date),
+        ...test1MonthSessions.map((s) => s.date),
       ]),
     ];
 
-    const test2MonthCheckins = test2Checkins.filter(
-      c => c.date >= startStr && c.date <= endStr
-    );
-    const test2MonthSessions = test2Sessions.filter(
-      s => s.date >= startStr && s.date <= endStr
-    );
+    const test2MonthCheckins = test2Checkins.filter((c) => c.date >= startStr && c.date <= endStr);
+    const test2MonthSessions = test2Sessions.filter((s) => s.date >= startStr && s.date <= endStr);
     const test2MonthAllDates = [
       ...new Set([
-        ...test2MonthCheckins.map(c => c.date),
-        ...test2MonthSessions.map(s => s.date),
+        ...test2MonthCheckins.map((c) => c.date),
+        ...test2MonthSessions.map((s) => s.date),
       ]),
     ];
 

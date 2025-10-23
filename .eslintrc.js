@@ -1,33 +1,23 @@
 module.exports = {
-  root: true,
-  extends: ['@react-native', 'prettier'],
-  plugins: ['prettier', '@typescript-eslint'],
-  rules: {
-    'prettier/prettier': 'error',
-    'react-native/no-inline-styles': 'off',
-    'react-hooks/exhaustive-deps': 'warn',
-    '@typescript-eslint/no-unused-vars': 'warn',
-    'no-console': 'warn',
-    'react-native/no-color-literals': 'off',
-    'react-native/split-platform-components': 'off',
-    'no-unused-vars': 'off', // Use TypeScript version instead
-  },
-  settings: {
-    'import/resolver': {
-      'babel-module': {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        alias: {
-          '@': './src',
-        },
-      },
-    },
-  },
+  env: { es2021: true, node: true },
+  extends: [
+    'expo',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
+    'plugin:prettier/recommended',
+  ],
   parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2021,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
-    },
+  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  rules: {
+    'prettier/prettier': [
+      'error',
+      { endOfLine: 'lf', singleQuote: true, semi: true, trailingComma: 'es5' },
+    ],
+    '@typescript-eslint/no-require-imports': 'off',
+    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'react/no-unescaped-entities': 'warn',
+    'react-hooks/exhaustive-deps': 'warn',
   },
+  ignorePatterns: ['scripts/**/*', 'src/types/supabase.ts'],
 };

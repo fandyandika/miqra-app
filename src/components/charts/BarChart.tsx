@@ -18,12 +18,7 @@ type BarChartProps = {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 64; // Account for padding
 
-export function BarChart({
-  data,
-  title,
-  color = colors.primary,
-  height = 220,
-}: BarChartProps) {
+export function BarChart({ data, title, color = colors.primary, height = 220 }: BarChartProps) {
   if (data.length === 0) {
     return (
       <View style={[styles.container, { height }]}>
@@ -43,7 +38,7 @@ export function BarChart({
     index,
   }));
 
-  const maxValue = Math.max(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
   const yAxisMax = Math.ceil(maxValue * 1.1); // 10% padding
 
   return (

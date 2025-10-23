@@ -6,10 +6,7 @@ export interface CheckinPayload {
   ayat_count: number;
 }
 
-export async function upsertCheckin(
-  payload: CheckinPayload,
-  timezone: string = 'Asia/Jakarta'
-) {
+export async function upsertCheckin(payload: CheckinPayload, timezone: string = 'Asia/Jakarta') {
   const { data: session } = await supabase.auth.getSession();
   const userId = session?.session?.user?.id;
   if (!userId) throw new Error('Not authenticated');
@@ -17,9 +14,7 @@ export async function upsertCheckin(
   // Validate date - prevent future dates
   const today = getTodayDate(timezone);
   if (payload.date > today) {
-    throw new Error(
-      'Tidak bisa mencatat bacaan untuk tanggal yang akan datang'
-    );
+    throw new Error('Tidak bisa mencatat bacaan untuk tanggal yang akan datang');
   }
 
   const { data, error } = await supabase
@@ -36,12 +31,9 @@ export async function upsertCheckin(
     throw error;
   }
 
-  const { error: rpcError } = await supabase.rpc(
-    'update_streak_after_checkin',
-    {
-      checkin_date: payload.date,
-    }
-  );
+  const { error: rpcError } = await supabase.rpc('update_streak_after_checkin', {
+    checkin_date: payload.date,
+  });
   if (rpcError) console.warn('[Checkin] RPC streak update error:', rpcError);
 
   return data;
@@ -70,8 +62,7 @@ export async function getTodayCheckin(timezone: string = 'Asia/Jakarta') {
 export async function getCurrentStreak() {
   const { data: session } = await supabase.auth.getSession();
   const userId = session?.session?.user?.id;
-  if (!userId)
-    return { current: 0, longest: 0, last_date: null as string | null };
+  if (!userId) return { current: 0, longest: 0, last_date: null as string | null };
 
   const { data, error } = await supabase
     .from('streaks')

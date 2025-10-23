@@ -104,17 +104,16 @@ async function testProfileSettingsIntegration() {
       });
 
       // Test settings update
-      const { data: updatedSettings, error: settingsUpdateError } =
-        await supabase
-          .from('user_settings')
-          .update({
-            daily_goal_ayat: 10,
-            theme: 'dark',
-            updated_at: new Date().toISOString(),
-          })
-          .eq('user_id', testProfile.id)
-          .select()
-          .single();
+      const { data: updatedSettings, error: settingsUpdateError } = await supabase
+        .from('user_settings')
+        .update({
+          daily_goal_ayat: 10,
+          theme: 'dark',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', testProfile.id)
+        .select()
+        .single();
 
       if (settingsUpdateError) {
         console.log('❌ Settings update failed:', settingsUpdateError.message);
@@ -151,12 +150,11 @@ async function testProfileSettingsIntegration() {
     // Test 5: Test storage bucket
     console.log('\n5️⃣ Testing storage bucket...');
 
-    const { data: buckets, error: bucketsError } =
-      await supabase.storage.listBuckets();
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     if (bucketsError) {
       console.log('❌ Storage test failed:', bucketsError.message);
     } else {
-      const avatarsBucket = buckets?.find(b => b.id === 'avatars');
+      const avatarsBucket = buckets?.find((b) => b.id === 'avatars');
       if (avatarsBucket) {
         console.log('✅ Avatars storage bucket exists');
         console.log('📦 Bucket info:', {
@@ -184,9 +182,7 @@ async function testProfileSettingsIntegration() {
     console.log('3. Go to Settings → Toggle privacy settings → Verify changes');
     console.log('4. Toggle reminder time → Verify 06:00 ↔ 20:00 switch');
     console.log('5. Test logout → Verify sign out works');
-    console.log(
-      '6. Test delete account → Verify info message (no actual deletion)'
-    );
+    console.log('6. Test delete account → Verify info message (no actual deletion)');
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

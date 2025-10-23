@@ -17,7 +17,7 @@ async function testProgressScreenData() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -47,10 +47,7 @@ async function testProgressScreenData() {
 
     console.log(`📚 Reading sessions: ${sessions?.length || 0}`);
     if (sessions && sessions.length > 0) {
-      console.log(
-        '📅 Session dates:',
-        [...new Set(sessions.map(s => s.date))].sort()
-      );
+      console.log('📅 Session dates:', [...new Set(sessions.map((s) => s.date))].sort());
     }
 
     // Get checkins for current month
@@ -64,10 +61,7 @@ async function testProgressScreenData() {
 
     console.log(`📊 Checkins: ${checkins?.length || 0}`);
     if (checkins && checkins.length > 0) {
-      console.log(
-        '📅 Checkin dates:',
-        [...new Set(checkins.map(c => c.date))].sort()
-      );
+      console.log('📅 Checkin dates:', [...new Set(checkins.map((c) => c.date))].sort());
     }
 
     // Calculate reading days (same logic as getReadingStats)
@@ -77,26 +71,21 @@ async function testProgressScreenData() {
     }, {});
 
     // Add checkin dates to ensure we count all reading days
-    (checkins || []).forEach(c => {
+    (checkins || []).forEach((c) => {
       if (!dateGroups[c.date]) {
         dateGroups[c.date] = 1; // Count as 1 reading day even if no sessions
       }
     });
 
     const daysRead = Object.keys(dateGroups).length;
-    const totalAyat = (sessions || []).reduce(
-      (sum, s) => sum + (s.ayat_count || 0),
-      0
-    );
+    const totalAyat = (sessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
     const avgPerDay = daysRead > 0 ? Math.round(totalAyat / daysRead) : 0;
 
     console.log('\n📊 CALCULATED STATS:');
     console.log(`  Total Ayat: ${totalAyat}`);
     console.log(`  Days Read: ${daysRead}`);
     console.log(`  Average/Day: ${avgPerDay}`);
-    console.log(
-      `  Reading dates: ${Object.keys(dateGroups).sort().join(', ')}`
-    );
+    console.log(`  Reading dates: ${Object.keys(dateGroups).sort().join(', ')}`);
 
     // Test with different timezones
     console.log('\n🌍 TESTING WITH DIFFERENT TIMEZONES:');
@@ -114,8 +103,8 @@ async function testProgressScreenData() {
       console.log(`  ${tz}: Today = ${todayStr}`);
 
       // Check if user has data for today in this timezone
-      const todaySessions = sessions?.filter(s => s.date === todayStr) || [];
-      const todayCheckins = checkins?.filter(c => c.date === todayStr) || [];
+      const todaySessions = sessions?.filter((s) => s.date === todayStr) || [];
+      const todayCheckins = checkins?.filter((c) => c.date === todayStr) || [];
 
       console.log(`    Sessions today: ${todaySessions.length}`);
       console.log(`    Checkins today: ${todayCheckins.length}`);

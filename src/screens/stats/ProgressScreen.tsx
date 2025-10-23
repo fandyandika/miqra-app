@@ -1,22 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from 'react-native';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-  subMonths,
-} from 'date-fns';
+import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { id } from 'date-fns/locale';
 
 import { colors } from '@/theme/colors';
@@ -24,14 +11,69 @@ import { useAuthSession } from '@/hooks/useAuth';
 import { getReadingStats, getCalendarData, getRecentReadingSessions } from '@/services/reading';
 import { StreakCalendar } from '@/features/reading/StreakCalendar';
 import { StatsCard } from '@/features/reading/StatsCard';
+import { supabase } from '@/lib/supabase';
 
 export default function ProgressScreen() {
   const navigation = useNavigation();
   const { session } = useAuthSession();
+  const queryClient = useQueryClient();
   const user = session?.user;
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+
+  // REAL-TIME SYNC for Progress Screen
+  useEffect(() => {
+    if (!user) return;
+
+    console.log('[ProgressScreen] Setting up real-time sync for user:', user.id);
+
+    // Subscribe to checkins changes for stats updates
+    const checkinsChannel = supabase
+      .channel('progress-checkins')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'checkins',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[ProgressScreen] 🔥 Checkins changed, updating stats:', payload.eventType);
+          queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+          queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+        }
+      )
+      .subscribe();
+
+    // Subscribe to reading sessions for progress updates
+    const sessionsChannel = supabase
+      .channel('progress-sessions')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reading_sessions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('[ProgressScreen] 📚 Reading sessions changed:', payload.eventType);
+          queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+          queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('[ProgressScreen] Cleaning up real-time subscriptions');
+      checkinsChannel.unsubscribe();
+      sessionsChannel.unsubscribe();
+    };
+  }, [user, queryClient]);
 
   // Fetch reading stats for current month
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -59,11 +101,11 @@ export default function ProgressScreen() {
   });
 
   const goToPreviousMonth = () => {
-    setCurrentMonth(prev => subMonths(prev, 1));
+    setCurrentMonth((prev) => subMonths(prev, 1));
   };
 
   const goToNextMonth = () => {
-    setCurrentMonth(prev => addMonths(prev, 1));
+    setCurrentMonth((prev) => addMonths(prev, 1));
   };
 
   const goToCurrentMonth = () => {
@@ -81,7 +123,7 @@ export default function ProgressScreen() {
 
   // Handle reading list item expand/collapse
   const toggleExpanded = (index: number) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
         newSet.delete(index);
@@ -116,15 +158,16 @@ export default function ProgressScreen() {
 
   // Get last reading info from reading sessions
   const lastReading = useMemo(() => {
-    if (!readingSessions || !Array.isArray(readingSessions) || readingSessions.length === 0) return null;
-    
+    if (!readingSessions || !Array.isArray(readingSessions) || readingSessions.length === 0)
+      return null;
+
     // Get the most recent reading session
     const lastSession = readingSessions[0];
     if (!lastSession.sessions || lastSession.sessions.length === 0) return null;
-    
+
     // Get the last session of the most recent day
     const lastSessionDetail = lastSession.sessions[lastSession.sessions.length - 1];
-    
+
     return {
       date: lastSession.date,
       ayat_count: lastSession.ayat_count,
@@ -138,9 +181,9 @@ export default function ProgressScreen() {
   // Get reading list for current month
   const readingList = useMemo(() => {
     if (!checkinData || !Array.isArray(checkinData)) return [];
-    
+
     return checkinData
-      .filter(item => item.ayat_count > 0)
+      .filter((item) => item.ayat_count > 0)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 10); // Show last 10 readings
   }, [checkinData]);
@@ -154,7 +197,7 @@ export default function ProgressScreen() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Memuat data...</Text>
       </View>
     );
@@ -165,9 +208,7 @@ export default function ProgressScreen() {
       {/* Hero Section */}
       <View style={styles.heroSection}>
         <Text style={styles.heroTitle}>Progress Bacaan</Text>
-        <Text style={styles.heroSubtitle}>
-          Pantau kemajuan dan konsistensi bacaan Al-Quran
-        </Text>
+        <Text style={styles.heroSubtitle}>Pantau kemajuan dan konsistensi bacaan Al-Quran</Text>
       </View>
 
       {/* Monthly Stats - Moved to top */}
@@ -175,35 +216,55 @@ export default function ProgressScreen() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Statistik</Text>
           <View style={styles.periodSelector}>
-            <Pressable 
+            <Pressable
               style={[styles.periodButton, selectedPeriod === 'day' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('day')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'day' && styles.periodButtonTextActive]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === 'day' && styles.periodButtonTextActive,
+                ]}
+              >
                 Hari
               </Text>
             </Pressable>
-            <Pressable 
+            <Pressable
               style={[styles.periodButton, selectedPeriod === 'week' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('week')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'week' && styles.periodButtonTextActive]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === 'week' && styles.periodButtonTextActive,
+                ]}
+              >
                 Minggu
               </Text>
             </Pressable>
-            <Pressable 
+            <Pressable
               style={[styles.periodButton, selectedPeriod === 'month' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('month')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'month' && styles.periodButtonTextActive]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === 'month' && styles.periodButtonTextActive,
+                ]}
+              >
                 Bulan
               </Text>
             </Pressable>
-            <Pressable 
+            <Pressable
               style={[styles.periodButton, selectedPeriod === 'year' && styles.periodButtonActive]}
               onPress={() => setSelectedPeriod('year')}
             >
-              <Text style={[styles.periodButtonText, selectedPeriod === 'year' && styles.periodButtonTextActive]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === 'year' && styles.periodButtonTextActive,
+                ]}
+              >
                 Tahun
               </Text>
             </Pressable>
@@ -226,9 +287,7 @@ export default function ProgressScreen() {
             </View>
             <View style={styles.actionCardContent}>
               <Text style={styles.actionCardTitle}>Lihat Statistik Detail</Text>
-              <Text style={styles.actionCardSubtitle}>
-                Lihat trend, pola bacaan, dan insight
-              </Text>
+              <Text style={styles.actionCardSubtitle}>Lihat trend, pola bacaan, dan insight</Text>
             </View>
             <Text style={styles.actionCardArrow}>&rarr;</Text>
           </Pressable>
@@ -239,9 +298,7 @@ export default function ProgressScreen() {
             </View>
             <View style={styles.actionCardContent}>
               <Text style={styles.actionCardTitle}>Track Record Khatam</Text>
-              <Text style={styles.actionCardSubtitle}>
-                Pantau progress khatam Al-Quran
-              </Text>
+              <Text style={styles.actionCardSubtitle}>Pantau progress khatam Al-Quran</Text>
             </View>
             <Text style={styles.actionCardArrow}>&rarr;</Text>
           </Pressable>
@@ -253,18 +310,13 @@ export default function ProgressScreen() {
             <View style={styles.actionCardContent}>
               <Text style={styles.actionCardTitle}>Terakhir Baca</Text>
               <Text style={styles.actionCardSubtitle}>
-                {lastReading ? 
-                  `QS [${lastReading.surah_number}] ${lastReading.surah_name} : ${lastReading.ayat_end}` :
-                  'Belum ada data bacaan'
-                }
+                {lastReading
+                  ? `QS [${lastReading.surah_number}] ${lastReading.surah_name} : ${lastReading.ayat_end}`
+                  : 'Belum ada data bacaan'}
               </Text>
             </View>
             <View style={styles.continueReadingIndicator}>
-              <MaterialCommunityIcons 
-                name="play-circle" 
-                size={24} 
-                color={colors.primary} 
-              />
+              <MaterialCommunityIcons name="play-circle" size={24} color={colors.primary} />
               <Text style={styles.continueReadingText}>Lanjut</Text>
             </View>
           </Pressable>
@@ -278,18 +330,19 @@ export default function ProgressScreen() {
           <View style={styles.lastReadingCard}>
             <View style={styles.lastReadingInfo}>
               <Text style={styles.lastReadingDate}>
-                {format(new Date(lastReading.date), 'dd MMMM yyyy', { locale: id })}
+                {format(new Date(lastReading.date), 'dd MMMM yyyy', {
+                  locale: id,
+                })}
               </Text>
               <Text style={styles.lastReadingSurah}>
                 {lastReading.surah_name || 'Surah tidak diketahui'}
               </Text>
             </View>
             <View style={styles.lastReadingStats}>
-              <Text style={styles.lastReadingAyat}>
-                {lastReading.ayat_count} ayat
-              </Text>
+              <Text style={styles.lastReadingAyat}>{lastReading.ayat_count} ayat</Text>
               <Text style={styles.lastReadingRange}>
-                Ayat {lastReading.ayat_start || 1} - {lastReading.ayat_end || lastReading.ayat_count}
+                Ayat {lastReading.ayat_start || 1} -{' '}
+                {lastReading.ayat_end || lastReading.ayat_count}
               </Text>
             </View>
           </View>
@@ -322,7 +375,6 @@ export default function ProgressScreen() {
         />
       </View>
 
-
       {/* Reading List Section - Below Calendar */}
       <View style={styles.readingListSection}>
         <Text style={styles.sectionTitle}>Daftar Bacaan</Text>
@@ -337,47 +389,42 @@ export default function ProgressScreen() {
               const isExpanded = expandedItems.has(index);
               return (
                 <View key={index} style={styles.readingItemContainer}>
-                  <Pressable 
-                    style={styles.readingItem}
-                    onPress={() => toggleExpanded(index)}
-                  >
+                  <Pressable style={styles.readingItem} onPress={() => toggleExpanded(index)}>
                     <View style={styles.readingItemLeft}>
                       <Text style={styles.readingItemDate}>
-                        {format(new Date(session.date), 'dd MMM', { locale: id })}
+                        {format(new Date(session.date), 'dd MMM', {
+                          locale: id,
+                        })}
                       </Text>
                       <Text style={styles.readingItemDay}>
                         {format(new Date(session.date), 'EEEE', { locale: id })}
                       </Text>
                     </View>
                     <View style={styles.readingItemRight}>
-                      <Text style={styles.readingItemAyat}>
-                        {session.ayat_count} ayat
-                      </Text>
-                      <Text style={styles.readingItemSessions}>
-                        {session.session_count} sesi
-                      </Text>
+                      <Text style={styles.readingItemAyat}>{session.ayat_count} ayat</Text>
+                      <Text style={styles.readingItemSessions}>{session.session_count} sesi</Text>
                     </View>
                     <View style={styles.readingItemArrow}>
-                      <MaterialCommunityIcons 
-                        name={isExpanded ? "chevron-up" : "chevron-down"} 
-                        size={20} 
-                        color={colors.text.secondary} 
+                      <MaterialCommunityIcons
+                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={colors.text.secondary}
                       />
                     </View>
                   </Pressable>
-                  
+
                   {/* Dropdown Content */}
                   {isExpanded && (
                     <View style={styles.dropdownContent}>
                       {session.sessions.map((sessionDetail: any, sessionIndex: number) => (
                         <View key={sessionDetail.id} style={styles.sessionDetail}>
                           <Text style={styles.sessionDetailText}>
-                            Sesi {sessionIndex + 1}: QS. {getSurahName(sessionDetail.surah_number)} {sessionDetail.ayat_start}-{sessionDetail.ayat_end} ({formatSessionTime(sessionDetail.session_time)} WIB)
+                            Sesi {sessionIndex + 1}: QS. {getSurahName(sessionDetail.surah_number)}{' '}
+                            {sessionDetail.ayat_start}-{sessionDetail.ayat_end} (
+                            {formatSessionTime(sessionDetail.session_time)} WIB)
                           </Text>
                           {sessionDetail.notes && (
-                            <Text style={styles.sessionNotes}>
-                              Catatan: {sessionDetail.notes}
-                            </Text>
+                            <Text style={styles.sessionNotes}>Catatan: {sessionDetail.notes}</Text>
                           )}
                         </View>
                       ))}
@@ -388,15 +435,11 @@ export default function ProgressScreen() {
             })
           ) : (
             <View style={styles.emptyReadingList}>
-              <Text style={styles.emptyReadingListText}>
-                Belum ada data bacaan
-              </Text>
+              <Text style={styles.emptyReadingListText}>Belum ada data bacaan</Text>
             </View>
           )}
         </View>
       </View>
-
-
     </ScrollView>
   );
 }

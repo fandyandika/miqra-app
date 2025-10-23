@@ -61,46 +61,43 @@ function AppContent() {
       >
         {session ? (
           <>
-            <Stack.Screen name='BottomTabs' component={BottomTabs} />
-            <Stack.Screen name='CatatBacaan' component={CatatBacaanScreen} />
-            <Stack.Screen name='CreateFamily' component={CreateFamilyScreen} />
-            <Stack.Screen name='JoinFamily' component={JoinFamilyScreen} />
+            <Stack.Screen name="BottomTabs" component={BottomTabs} />
+            <Stack.Screen name="CatatBacaan" component={CatatBacaanScreen} />
+            <Stack.Screen name="CreateFamily" component={CreateFamilyScreen} />
+            <Stack.Screen name="JoinFamily" component={JoinFamilyScreen} />
+            <Stack.Screen name="FamilyDashboard" component={FamilyDashboardScreen} />
             <Stack.Screen
-              name='FamilyDashboard'
-              component={FamilyDashboardScreen}
-            />
-            <Stack.Screen
-              name='LogReading'
+              name="LogReading"
               component={LogReadingScreen}
               options={{ title: 'Catat Bacaan' }}
             />
             <Stack.Screen
-              name='ReadingHistory'
+              name="ReadingHistory"
               component={ReadingHistoryScreen}
               options={{ title: 'Riwayat Bacaan', headerShown: true }}
             />
             <Stack.Screen
-              name='KhatamProgress'
+              name="KhatamProgress"
               component={KhatamProgressScreen}
               options={{ title: 'Progres Khatam', headerShown: true }}
             />
             <Stack.Screen
-              name='TreeFullScreen'
+              name="TreeFullScreen"
               component={TreeFullScreen}
               options={{ presentation: 'modal', headerShown: false }}
             />
             <Stack.Screen
-              name='Profile'
+              name="Profile"
               component={ProfileScreen}
               options={{ title: 'Profil', headerShown: true }}
             />
             <Stack.Screen
-              name='Settings'
+              name="Settings"
               component={SettingsScreen}
               options={{ title: 'Pengaturan', headerShown: true }}
             />
             <Stack.Screen
-              name='Stats'
+              name="Stats"
               component={StatsScreen}
               options={{
                 title: 'Statistik Bacaan',
@@ -116,7 +113,7 @@ function AppContent() {
             />
           </>
         ) : (
-          <Stack.Screen name='Login' component={LoginScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
         )}
       </Stack.Navigator>
     </NavigationContainer>

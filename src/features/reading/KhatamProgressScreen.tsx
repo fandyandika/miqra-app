@@ -11,11 +11,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { getKhatamProgress } from '@/services/reading';
-import {
-  calculateProgress,
-  estimateCompletion,
-  getMilestones,
-} from '@/lib/quranProgress';
+import { calculateProgress, estimateCompletion, getMilestones } from '@/lib/quranProgress';
 import { ProgressBar } from './ProgressBar';
 import { CurrentPositionCard } from './CurrentPositionCard';
 import { MilestoneGrid } from './MilestoneGrid';
@@ -58,9 +54,7 @@ export default function KhatamProgressScreen() {
         )
       : null;
 
-  const milestones = progress
-    ? getMilestones(progress.total_ayat_read || 0)
-    : [];
+  const milestones = progress ? getMilestones(progress.total_ayat_read || 0) : [];
 
   // useEffect must be called before any early returns
   React.useEffect(() => {
@@ -142,20 +136,13 @@ export default function KhatamProgressScreen() {
           <Text style={st.cardTitle}>Estimasi Khatam</Text>
           {est.avgPerDay > 0 ? (
             <>
-              <Row
-                label='Rata-rata baca'
-                value={`${est.avgPerDay} ayat/hari`}
-              />
-              <Row label='Sisa hari' value={`~${est.daysRemaining} hari`} />
-              <Row label='Perkiraan selesai' value={est.estimatedDateText} />
-              <Text style={st.hint}>
-                💡 Jika istiqomah dengan kecepatan saat ini
-              </Text>
+              <Row label="Rata-rata baca" value={`${est.avgPerDay} ayat/hari`} />
+              <Row label="Sisa hari" value={`~${est.daysRemaining} hari`} />
+              <Row label="Perkiraan selesai" value={est.estimatedDateText} />
+              <Text style={st.hint}>💡 Jika istiqomah dengan kecepatan saat ini</Text>
             </>
           ) : (
-            <Text style={st.muted}>
-              Belum cukup data untuk estimasi. Terus membaca! 📖
-            </Text>
+            <Text style={st.muted}>Belum cukup data untuk estimasi. Terus membaca! 📖</Text>
           )}
         </View>
 
@@ -165,8 +152,7 @@ export default function KhatamProgressScreen() {
 
         <View style={st.remain}>
           <Text style={st.remainText}>
-            Sisa {prog.remaining.toLocaleString('id-ID')} ayat lagi untuk
-            khatam! 🎯
+            Sisa {prog.remaining.toLocaleString('id-ID')} ayat lagi untuk khatam! 🎯
           </Text>
         </View>
       </ScrollView>
@@ -202,20 +188,15 @@ function Celebration({
   onContinue: () => void;
 }) {
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType='fade'
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={st.overlay}>
         <View style={st.modal}>
           <Text style={{ fontSize: 48, marginBottom: 16 }}>🎉✨🎊</Text>
           <Text style={st.modalTitle}>MasyaAllah, Tabarakallah!</Text>
           <Text style={st.modalSub}>Khatam ke-{khatamCount}</Text>
           <Text style={st.modalMsg}>
-            Alhamdulillah! Semoga Allah memberkahi perjalanan membacamu dan
-            menjadikannya syafaat di hari akhir. 🤲
+            Alhamdulillah! Semoga Allah memberkahi perjalanan membacamu dan menjadikannya syafaat di
+            hari akhir. 🤲
           </Text>
           <Pressable
             style={st.primary}

@@ -19,7 +19,7 @@ async function debugTest1User() {
     console.log('1️⃣ Finding test1 user...');
 
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -76,14 +76,14 @@ async function debugTest1User() {
 
     // Calculate days read from checkins
     console.log('\n5️⃣ Calculating days read from checkins...');
-    const checkinDates = [...new Set(checkins.map(c => c.date))];
+    const checkinDates = [...new Set(checkins.map((c) => c.date))];
     const checkinDaysRead = checkinDates.length;
     console.log(`📅 Days with checkins: ${checkinDaysRead}`);
     console.log('📅 Checkin dates:', checkinDates);
 
     // Calculate days read from sessions
     console.log('\n6️⃣ Calculating days read from sessions...');
-    const sessionDates = [...new Set(sessions.map(s => s.date))];
+    const sessionDates = [...new Set(sessions.map((s) => s.date))];
     const sessionDaysRead = sessionDates.length;
     console.log(`📅 Days with sessions: ${sessionDaysRead}`);
     console.log('📅 Session dates:', sessionDates);
@@ -112,12 +112,8 @@ async function debugTest1User() {
         const prevDate = i > 0 ? new Date(sortedDates[i - 1]) : null;
 
         if (prevDate) {
-          const daysDiff =
-            (currentDate.getTime() - prevDate.getTime()) /
-            (1000 * 60 * 60 * 24);
-          console.log(
-            `📅 ${sortedDates[i]} vs ${sortedDates[i - 1]}: ${daysDiff} days diff`
-          );
+          const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+          console.log(`📅 ${sortedDates[i]} vs ${sortedDates[i - 1]}: ${daysDiff} days diff`);
 
           if (daysDiff === 1) {
             currentStreak++;
@@ -176,21 +172,15 @@ async function debugTest1User() {
 
     console.log(`📅 Current month range: ${startStr} to ${endStr}`);
 
-    const monthCheckins = checkins.filter(
-      c => c.date >= startStr && c.date <= endStr
-    );
-    const monthSessions = sessions.filter(
-      s => s.date >= startStr && s.date <= endStr
-    );
+    const monthCheckins = checkins.filter((c) => c.date >= startStr && c.date <= endStr);
+    const monthSessions = sessions.filter((s) => s.date >= startStr && s.date <= endStr);
 
     console.log(`📊 Checkins this month: ${monthCheckins.length}`);
     console.log(`📊 Sessions this month: ${monthSessions.length}`);
 
-    const monthCheckinDates = [...new Set(monthCheckins.map(c => c.date))];
-    const monthSessionDates = [...new Set(monthSessions.map(s => s.date))];
-    const monthAllDates = [
-      ...new Set([...monthCheckinDates, ...monthSessionDates]),
-    ];
+    const monthCheckinDates = [...new Set(monthCheckins.map((c) => c.date))];
+    const monthSessionDates = [...new Set(monthSessions.map((s) => s.date))];
+    const monthAllDates = [...new Set([...monthCheckinDates, ...monthSessionDates])];
 
     console.log(`📅 Checkin dates this month: ${monthCheckinDates.sort()}`);
     console.log(`📅 Session dates this month: ${monthSessionDates.sort()}`);
@@ -199,17 +189,11 @@ async function debugTest1User() {
 
     console.log('\n🎯 SUMMARY:');
     console.log('===========');
-    console.log(
-      `Total checkins: ${checkins.length} records, ${checkinDaysRead} unique days`
-    );
-    console.log(
-      `Total sessions: ${sessions.length} records, ${sessionDaysRead} unique days`
-    );
+    console.log(`Total checkins: ${checkins.length} records, ${checkinDaysRead} unique days`);
+    console.log(`Total sessions: ${sessions.length} records, ${sessionDaysRead} unique days`);
     console.log(`Combined reading days: ${combinedDaysRead}`);
     console.log(`Current month reading days: ${monthAllDates.length}`);
-    console.log(
-      `Streak: ${streak?.current || 0} current, ${streak?.longest || 0} longest`
-    );
+    console.log(`Streak: ${streak?.current || 0} current, ${streak?.longest || 0} longest`);
   } catch (error) {
     console.error('❌ Debug failed:', error);
   }

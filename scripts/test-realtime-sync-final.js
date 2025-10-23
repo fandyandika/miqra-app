@@ -27,13 +27,7 @@ async function testRealtimeSyncFinal() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check current state
     console.log('\n📊 Current state:');
@@ -45,7 +39,7 @@ async function testRealtimeSyncFinal() {
       .order('date', { ascending: false });
 
     console.log('Current checkins:', currentCheckins?.length || 0);
-    currentCheckins?.forEach(checkin => {
+    currentCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -82,7 +76,7 @@ async function testRealtimeSyncFinal() {
 
     // 4. Wait a moment for real-time sync to process
     console.log('\n⏳ Waiting for real-time sync to process...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // 5. Check if checkins were automatically created/updated
     console.log('\n🔍 Checking if checkins were synced...');
@@ -94,7 +88,7 @@ async function testRealtimeSyncFinal() {
       .order('date', { ascending: false });
 
     console.log('Updated checkins:', updatedCheckins?.length || 0);
-    updatedCheckins?.forEach(checkin => {
+    updatedCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -115,9 +109,7 @@ async function testRealtimeSyncFinal() {
     let lastDate = null;
 
     if (updatedCheckins && updatedCheckins.length > 0) {
-      const sortedCheckins = updatedCheckins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = updatedCheckins.sort((a, b) => b.date.localeCompare(a.date));
 
       let tempDate = new Date(sortedCheckins[0].date);
       expectedStreak = 1;
@@ -125,9 +117,7 @@ async function testRealtimeSyncFinal() {
 
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           expectedStreak++;
@@ -139,10 +129,7 @@ async function testRealtimeSyncFinal() {
     }
 
     console.log('Expected streak:', expectedStreak, 'days');
-    console.log(
-      'Last checkin date:',
-      lastDate?.toISOString().split('T')[0] || 'None'
-    );
+    console.log('Last checkin date:', lastDate?.toISOString().split('T')[0] || 'None');
 
     // 8. Compare with database
     if (updatedStreaks && updatedStreaks.length > 0) {

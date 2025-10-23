@@ -12,7 +12,13 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
-import { getProfile, updateProfile, uploadAvatar, getSettings, updateSettings } from '@/services/profile';
+import {
+  getProfile,
+  updateProfile,
+  uploadAvatar,
+  getSettings,
+  updateSettings,
+} from '@/services/profile';
 import { getCurrentStreak } from '@/services/checkins';
 import { getReadingStats } from '@/services/reading';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
@@ -72,38 +78,61 @@ export default function ProfileScreen() {
 
   // Real-time updates for streak and reading data
   useEffect(() => {
-    const channel = supabase
-      .channel('profile-updates')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'checkins' },
-        () => {
-          console.log('[ProfileScreen] Checkins updated, invalidating queries');
-          qc.invalidateQueries({ queryKey: ['checkin'] });
-          qc.invalidateQueries({ queryKey: ['streak'] });
-          qc.invalidateQueries({ queryKey: ['reading'] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'reading_sessions' },
-        () => {
-          console.log(
-            '[ProfileScreen] Reading sessions updated, invalidating queries'
-          );
-          qc.invalidateQueries({ queryKey: ['reading'] });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    // Get current user for filtering
+    const getCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      return user;
     };
+
+    getCurrentUser().then((user) => {
+      if (!user) return;
+
+      console.log('[ProfileScreen] Setting up real-time sync for user:', user.id);
+
+      const channel = supabase
+        .channel('profile-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'checkins',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('[ProfileScreen] Checkins updated, invalidating queries');
+            qc.invalidateQueries({ queryKey: ['checkin'] });
+            qc.invalidateQueries({ queryKey: ['streak'] });
+            qc.invalidateQueries({ queryKey: ['reading'] });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reading_sessions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            console.log('[ProfileScreen] Reading sessions updated, invalidating queries');
+            qc.invalidateQueries({ queryKey: ['reading'] });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        console.log('[ProfileScreen] Cleaning up real-time subscriptions');
+        supabase.removeChannel(channel);
+      };
+    });
   }, [qc]);
 
   const updateMutation = useMutation({
     mutationFn: updateProfile,
-    onSuccess: data => {
+    onSuccess: (data) => {
       console.log('[ProfileScreen] Name updated successfully:', data);
       qc.invalidateQueries({ queryKey: ['profile'] });
       setEditingName(false);
@@ -117,10 +146,7 @@ export default function ProfileScreen() {
         hint: error?.hint || 'No hint available',
         details: error?.details || 'No details available',
       });
-      Alert.alert(
-        'Gagal',
-        `Tidak bisa menyimpan nama: ${error?.message || 'Unknown error'}`
-      );
+      Alert.alert('Gagal', `Tidak bisa menyimpan nama: ${error?.message || 'Unknown error'}`);
     },
   });
 
@@ -176,7 +202,7 @@ export default function ProfileScreen() {
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -185,11 +211,7 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Avatar */}
       <View style={styles.avatarSection}>
-        <InitialAvatar
-          name={profile?.display_name || null}
-          onPress={handleAvatarPress}
-          size={80}
-        />
+        <InitialAvatar name={profile?.display_name || null} onPress={handleAvatarPress} size={80} />
       </View>
 
       {/* Name */}
@@ -199,15 +221,12 @@ export default function ProfileScreen() {
             <TextInput
               value={tempName}
               onChangeText={setTempName}
-              placeholder='Nama Anda'
+              placeholder="Nama Anda"
               style={styles.nameInput}
               autoFocus
             />
             <View style={styles.nameButtons}>
-              <Pressable
-                onPress={() => setEditingName(false)}
-                style={styles.cancelButton}
-              >
+              <Pressable onPress={() => setEditingName(false)} style={styles.cancelButton}>
                 <Text style={styles.cancelText}>Batal</Text>
               </Pressable>
               <Pressable onPress={handleSaveName} style={styles.saveButton}>
@@ -217,9 +236,7 @@ export default function ProfileScreen() {
           </View>
         ) : (
           <Pressable onPress={handleEditName} style={styles.nameDisplay}>
-            <Text style={styles.nameText}>
-              {profile?.display_name || 'Nama Belum Diisi'}
-            </Text>
+            <Text style={styles.nameText}>{profile?.display_name || 'Nama Belum Diisi'}</Text>
             <Text style={styles.editHint}>✏️ Ketuk untuk edit</Text>
           </Pressable>
         )}
@@ -227,7 +244,13 @@ export default function ProfileScreen() {
 
       {/* Quick Stats - Connected to real data */}
       <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Ringkasan Aktivitas</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Ringkasan Aktivitas</Text>
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>Live</Text>
+          </View>
+        </View>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <Text style={styles.statValue}>{streakData?.current || 0}</Text>
@@ -238,9 +261,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Total Ayat (bulan ini)</Text>
           </View>
         </View>
-        <Text style={styles.statsHint}>
-          💡 Statistik lengkap ada di tab Progress
-        </Text>
+        <Text style={styles.statsHint}>💡 Statistik lengkap ada di tab Progress</Text>
       </View>
 
       {/* Daily Goal Setting */}
@@ -266,10 +287,7 @@ export default function ProfileScreen() {
       </Pressable>
 
       {/* Settings button */}
-      <Pressable
-        style={styles.settingsButton}
-        onPress={() => navigation.navigate('Settings')}
-      >
+      <Pressable style={styles.settingsButton} onPress={() => navigation.navigate('Settings')}>
         <Text style={styles.settingsButtonText}>⚙️ Pengaturan</Text>
       </Pressable>
 
@@ -323,11 +341,32 @@ const styles = StyleSheet.create({
   },
   saveText: { color: '#fff', fontWeight: '700' },
   statsSection: { marginBottom: 24 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: '#111827',
-    marginBottom: 12,
+  },
+  liveIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  liveDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: '#10B981',
+    borderRadius: 4,
+    marginRight: 4,
+  },
+  liveText: {
+    fontSize: 10,
+    color: '#10B981',
+    fontWeight: '600',
   },
   statsGrid: { flexDirection: 'row', gap: 12 },
   statCard: {

@@ -7,8 +7,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 async function run() {
   const url = process.env.SUPABASE_URL || process.env.EXPO_PUBLIC_SUPABASE_URL;
-  const serviceRole =
-    process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRole = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRole) {
     console.error('Missing env: SUPABASE_URL or SUPABASE_SERVICE_ROLE');
@@ -59,13 +58,13 @@ async function run() {
     console.error('List users error:', listErr);
     process.exit(1);
   }
-  const printed = list.users.filter(u => users.some(x => x.email === u.email));
+  const printed = list.users.filter((u) => users.some((x) => x.email === u.email));
   for (const u of printed) {
     console.log(`User: ${u.email} id=${u.id}`);
   }
 }
 
-run().catch(e => {
+run().catch((e) => {
   console.error(e);
   process.exit(1);
 });

@@ -39,18 +39,18 @@ export default function AnalyticsScreen() {
   // Transform data for charts
   const barChartData =
     dailyStats
-      ?.filter(stat => stat.ayat_count > 0)
+      ?.filter((stat) => stat.ayat_count > 0)
       .slice(-7)
-      .map(stat => ({
+      .map((stat) => ({
         label: format(new Date(stat.date), 'EEE'),
         value: stat.ayat_count,
       })) ?? [];
 
   const lineChartData =
     monthlyStats
-      ?.filter(stat => stat.ayat_count > 0)
+      ?.filter((stat) => stat.ayat_count > 0)
       .slice(-14)
-      .map(stat => ({
+      .map((stat) => ({
         label: format(new Date(stat.date), 'MMM dd'),
         value: stat.ayat_count,
       })) ?? [];
@@ -63,45 +63,41 @@ export default function AnalyticsScreen() {
       <View style={styles.statsRow}>
         <StatCard
           value={userStats?.total_ayat ?? 0}
-          label='Total Ayat'
-          icon='📖'
+          label="Total Ayat"
+          icon="📖"
           color={colors.primary}
         />
         <StatCard
           value={userStats?.current_streak ?? 0}
-          label='Current Streak'
-          icon='🔥'
-          color='#FF8A65'
+          label="Current Streak"
+          icon="🔥"
+          color="#FF8A65"
         />
       </View>
 
       <View style={styles.statsRow}>
         <StatCard
           value={userStats?.total_sessions ?? 0}
-          label='Sessions'
-          icon='📚'
-          color='#FFB627'
+          label="Sessions"
+          icon="📚"
+          color="#FFB627"
         />
         <StatCard
           value={userStats?.longest_streak ?? 0}
-          label='Longest Streak'
-          icon='⭐'
+          label="Longest Streak"
+          icon="⭐"
           color={colors.primary}
         />
       </View>
 
       {/* Weekly Bar Chart */}
-      <BarChart data={barChartData} title='Minggu Ini' color={colors.primary} />
+      <BarChart data={barChartData} title="Minggu Ini" color={colors.primary} />
 
       {/* Monthly Line Chart */}
-      <LineChart
-        data={lineChartData}
-        title='30 Hari Terakhir'
-        color='#FF8A65'
-      />
+      <LineChart data={lineChartData} title="30 Hari Terakhir" color="#FF8A65" />
 
       {/* Year Heatmap */}
-      <Heatmap data={heatmapData ?? []} title='Aktivitas Tahun Ini' />
+      <Heatmap data={heatmapData ?? []} title="Aktivitas Tahun Ini" />
     </ScrollView>
   );
 }

@@ -32,8 +32,8 @@ async function debugDateAndStreakIssues() {
 
     // Get both users
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test1User || !test2User) {
       console.log('❌ One or both test users not found');
@@ -60,14 +60,10 @@ async function debugDateAndStreakIssues() {
     });
 
     // Check for future dates
-    const futureCheckins = test1Checkins.filter(c => c.date > todayStr);
+    const futureCheckins = test1Checkins.filter((c) => c.date > todayStr);
     if (futureCheckins.length > 0) {
-      console.log(
-        `❌ PROBLEM: Test1 has ${futureCheckins.length} future checkins!`
-      );
-      console.log(
-        '💡 This should not be allowed - users cannot input future dates'
-      );
+      console.log(`❌ PROBLEM: Test1 has ${futureCheckins.length} future checkins!`);
+      console.log('💡 This should not be allowed - users cannot input future dates');
     } else {
       console.log('✅ Test1 has no future checkins');
     }
@@ -94,7 +90,7 @@ async function debugDateAndStreakIssues() {
     // Calculate streak manually for test2
     console.log('\n3️⃣ CALCULATING TEST2 STREAK MANUALLY...');
 
-    const test2Dates = test2Checkins.map(c => c.date).sort();
+    const test2Dates = test2Checkins.map((c) => c.date).sort();
     console.log('📅 Test2 checkin dates:', test2Dates);
 
     // Find consecutive days from the end
@@ -108,19 +104,14 @@ async function debugDateAndStreakIssues() {
       const prevDate = i > 0 ? new Date(test2Dates[i - 1]) : null;
 
       if (prevDate) {
-        const daysDiff =
-          (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
-        console.log(
-          `📅 ${test2Dates[i]} vs ${test2Dates[i - 1]}: ${daysDiff} days diff`
-        );
+        const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        console.log(`📅 ${test2Dates[i]} vs ${test2Dates[i - 1]}: ${daysDiff} days diff`);
 
         if (daysDiff === 1) {
           currentStreak++;
           console.log(`  → Consecutive! Current streak: ${currentStreak}`);
         } else {
-          console.log(
-            `  → Gap found! Streak broken. Max streak was: ${currentStreak}`
-          );
+          console.log(`  → Gap found! Streak broken. Max streak was: ${currentStreak}`);
           if (currentStreak > maxStreak) {
             maxStreak = currentStreak;
           }
@@ -141,14 +132,10 @@ async function debugDateAndStreakIssues() {
 
     if (lastCheckinDate === todayStr) {
       consecutiveDays = currentStreak;
-      console.log(
-        `✅ Last checkin was today - streak is active: ${consecutiveDays}`
-      );
+      console.log(`✅ Last checkin was today - streak is active: ${consecutiveDays}`);
     } else if (lastCheckinDate === yesterdayStr) {
       consecutiveDays = currentStreak;
-      console.log(
-        `✅ Last checkin was yesterday - streak is active: ${consecutiveDays}`
-      );
+      console.log(`✅ Last checkin was yesterday - streak is active: ${consecutiveDays}`);
     } else {
       consecutiveDays = 0;
       console.log(
@@ -156,9 +143,7 @@ async function debugDateAndStreakIssues() {
       );
     }
 
-    console.log(
-      `📊 Calculated streak: ${consecutiveDays} current, ${maxStreak} longest`
-    );
+    console.log(`📊 Calculated streak: ${consecutiveDays} current, ${maxStreak} longest`);
 
     // Get current database streak
     const { data: test2Streak } = await supabase
@@ -198,26 +183,18 @@ async function debugDateAndStreakIssues() {
     }
 
     // Check for future dates in test2
-    const test2FutureCheckins = test2Checkins.filter(c => c.date > todayStr);
+    const test2FutureCheckins = test2Checkins.filter((c) => c.date > todayStr);
     if (test2FutureCheckins.length > 0) {
-      console.log(
-        `❌ PROBLEM: Test2 has ${test2FutureCheckins.length} future checkins!`
-      );
+      console.log(`❌ PROBLEM: Test2 has ${test2FutureCheckins.length} future checkins!`);
     } else {
       console.log('✅ Test2 has no future checkins');
     }
 
     console.log('\n4️⃣ SUMMARY:');
     console.log('============');
-    console.log(
-      `Test1 future checkins: ${futureCheckins.length} (should be 0)`
-    );
-    console.log(
-      `Test2 future checkins: ${test2FutureCheckins.length} (should be 0)`
-    );
-    console.log(
-      `Test2 streak: ${consecutiveDays} (should be 3 if last 3 days consecutive)`
-    );
+    console.log(`Test1 future checkins: ${futureCheckins.length} (should be 0)`);
+    console.log(`Test2 future checkins: ${test2FutureCheckins.length} (should be 0)`);
+    console.log(`Test2 streak: ${consecutiveDays} (should be 3 if last 3 days consecutive)`);
   } catch (error) {
     console.error('❌ Debug failed:', error);
   }

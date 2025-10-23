@@ -27,13 +27,7 @@ async function testCalendarFixes() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Get current checkin data
     const { data: checkins } = await supabase
@@ -43,7 +37,7 @@ async function testCalendarFixes() {
       .order('date', { ascending: false });
 
     console.log('📊 Current checkin data:');
-    checkins?.forEach(checkin => {
+    checkins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -56,8 +50,7 @@ async function testCalendarFixes() {
     const todayStr = today.toISOString().split('T')[0];
 
     // Sort checkins by date descending
-    const sortedCheckins =
-      checkins?.sort((a, b) => b.date.localeCompare(a.date)) || [];
+    const sortedCheckins = checkins?.sort((a, b) => b.date.localeCompare(a.date)) || [];
 
     for (const checkin of sortedCheckins) {
       const checkinDate = new Date(checkin.date);
@@ -67,9 +60,7 @@ async function testCalendarFixes() {
         currentStreak = 1;
         lastDate = checkinDate;
       } else {
-        const daysDiff = Math.floor(
-          (lastDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((lastDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           // Consecutive day
@@ -87,19 +78,11 @@ async function testCalendarFixes() {
 
     // 4. Test calendar data for current month
     const currentMonth = new Date();
-    const monthStart = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      1
-    );
-    const monthEnd = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      0
-    );
+    const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
     const monthCheckins =
-      checkins?.filter(checkin => {
+      checkins?.filter((checkin) => {
         const checkinDate = new Date(checkin.date);
         return checkinDate >= monthStart && checkinDate <= monthEnd;
       }) || [];
@@ -114,7 +97,7 @@ async function testCalendarFixes() {
     );
     console.log('Days with readings:', monthCheckins.length);
 
-    monthCheckins.forEach(checkin => {
+    monthCheckins.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -128,11 +111,7 @@ async function testCalendarFixes() {
 
     // Test streak for each day in the month
     for (let day = 1; day <= monthEnd.getDate(); day++) {
-      const testDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
+      const testDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const dateStr = testDate.toISOString().split('T')[0];
       const hasCheckin = checkinMap[dateStr] && checkinMap[dateStr] > 0;
 
@@ -143,8 +122,7 @@ async function testCalendarFixes() {
 
         while (true) {
           const currentDateStr = currentDate.toISOString().split('T')[0];
-          const hasCheckinOnDate =
-            checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
+          const hasCheckinOnDate = checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
 
           if (hasCheckinOnDate) {
             dayStreak++;

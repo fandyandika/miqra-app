@@ -65,7 +65,7 @@ async function runMigration() {
 
     console.log(
       '✅ Tables found:',
-      tables.map(t => t.table_name)
+      tables.map((t) => t.table_name)
     );
 
     // Test user_settings table

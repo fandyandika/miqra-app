@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  TextInput,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Alert } from 'react-native';
 import { colors } from '@/theme/colors';
 
 type DailyGoalSettingProps = {
@@ -33,10 +26,7 @@ export function DailyGoalSetting({
   const handleCustomSubmit = () => {
     const goal = parseInt(customGoal);
     if (isNaN(goal) || goal < 1 || goal > 100) {
-      Alert.alert(
-        'Target Tidak Valid',
-        'Target harian harus antara 1-100 ayat'
-      );
+      Alert.alert('Target Tidak Valid', 'Target harian harus antara 1-100 ayat');
       return;
     }
     onGoalChange(goal);
@@ -51,10 +41,11 @@ export function DailyGoalSetting({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>🎯 Target Harian</Text>
-      
+
       <View style={styles.hadithContainer}>
         <Text style={styles.hadithText}>
-          "Amalan yang paling dicintai oleh Allah adalah yang paling kontinu (dilakukan terus-menerus), meskipun sedikit."
+          "Amalan yang paling dicintai oleh Allah adalah yang paling kontinu (dilakukan
+          terus-menerus), meskipun sedikit."
         </Text>
         <Text style={styles.hadithSource}>— HR. Bukhari & Muslim</Text>
       </View>
@@ -70,10 +61,7 @@ export function DailyGoalSetting({
             {PRESET_GOALS.map((goal) => (
               <Pressable
                 key={goal}
-                style={[
-                  styles.presetButton,
-                  currentGoal === goal && styles.presetButtonActive,
-                ]}
+                style={[styles.presetButton, currentGoal === goal && styles.presetButtonActive]}
                 onPress={() => handlePresetSelect(goal)}
                 disabled={isLoading}
               >
@@ -88,7 +76,7 @@ export function DailyGoalSetting({
               </Pressable>
             ))}
           </View>
-          
+
           <Pressable
             style={styles.customButton}
             onPress={() => setIsCustomMode(true)}

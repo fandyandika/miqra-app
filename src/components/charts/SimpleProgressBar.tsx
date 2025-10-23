@@ -30,7 +30,7 @@ export function SimpleProgressBar({
           {current.toLocaleString('id-ID')} / {target.toLocaleString('id-ID')} {unit}
         </Text>
       </View>
-      
+
       <View style={styles.progressContainer}>
         <View style={styles.progressTrack}>
           <View
@@ -43,16 +43,10 @@ export function SimpleProgressBar({
             ]}
           />
         </View>
-        {showPercentage && (
-          <Text style={styles.percentage}>
-            {Math.round(percentage)}%
-          </Text>
-        )}
+        {showPercentage && <Text style={styles.percentage}>{Math.round(percentage)}%</Text>}
       </View>
-      
-      {isComplete && (
-        <Text style={styles.completeText}>🎉 Target tercapai!</Text>
-      )}
+
+      {isComplete && <Text style={styles.completeText}>🎉 Target tercapai!</Text>}
     </View>
   );
 }

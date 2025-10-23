@@ -27,13 +27,7 @@ async function debugStreakSync() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check streaks table data
     console.log('\n📊 Checking streaks table data:');
@@ -60,7 +54,7 @@ async function debugStreakSync() {
       console.error('❌ Error fetching checkins:', checkinsError);
     } else {
       console.log('Checkins table data:');
-      checkinsData?.forEach(checkin => {
+      checkinsData?.forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
@@ -73,9 +67,7 @@ async function debugStreakSync() {
       let lastDate = null;
 
       // Sort by date descending
-      const sortedCheckins = checkinsData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinsData.sort((a, b) => b.date.localeCompare(a.date));
 
       for (const checkin of sortedCheckins) {
         const checkinDate = new Date(checkin.date);
@@ -85,9 +77,7 @@ async function debugStreakSync() {
           manualStreak = 1;
           lastDate = checkinDate;
         } else {
-          const daysDiff = Math.floor(
-            (lastDate - checkinDate) / (1000 * 60 * 60 * 24)
-          );
+          const daysDiff = Math.floor((lastDate - checkinDate) / (1000 * 60 * 60 * 24));
 
           if (daysDiff === 1) {
             // Consecutive day
@@ -119,12 +109,9 @@ async function debugStreakSync() {
     console.log('\n🧪 Testing RPC function:');
 
     const today = new Date().toISOString().split('T')[0];
-    const { data: rpcResult, error: rpcError } = await supabase.rpc(
-      'update_streak_after_checkin',
-      {
-        checkin_date: today,
-      }
-    );
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('update_streak_after_checkin', {
+      checkin_date: today,
+    });
 
     if (rpcError) {
       console.error('❌ RPC error:', rpcError);

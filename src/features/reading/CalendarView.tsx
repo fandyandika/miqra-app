@@ -40,7 +40,7 @@ export function CalendarView({
     <View style={styles.container}>
       {/* Headers */}
       <View style={styles.weekRow}>
-        {weekDays.map(w => (
+        {weekDays.map((w) => (
           <View key={w} style={styles.dayCellHeader}>
             <Text style={styles.weekDayText}>{w}</Text>
           </View>
@@ -49,7 +49,7 @@ export function CalendarView({
 
       {/* Days */}
       <View style={styles.daysGrid}>
-        {days.map(d => {
+        {days.map((d) => {
           const ds = format(d, 'yyyy-MM-dd');
           const item = calendarData[ds];
           const inMonth = isSameMonth(d, date);
@@ -60,13 +60,9 @@ export function CalendarView({
               key={ds}
               onPress={() => onDayPress?.(ds)}
               accessible
-              accessibilityRole='button'
+              accessibilityRole="button"
               accessibilityLabel={`${format(d, 'd MMMM', { locale: id })}${active ? `, ${item?.ayatCount || 0} ayat dibaca` : ''}`}
-              style={[
-                styles.dayCell,
-                !inMonth && styles.otherMonthDay,
-                active && styles.activeDay,
-              ]}
+              style={[styles.dayCell, !inMonth && styles.otherMonthDay, active && styles.activeDay]}
             >
               <Text
                 style={[

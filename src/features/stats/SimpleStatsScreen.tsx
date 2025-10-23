@@ -6,9 +6,7 @@ export default function SimpleStatsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>📊 Statistik Bacaan</Text>
-      <Text style={styles.subtitle}>
-        Analisis progres bacaan Al-Qur'an Anda
-      </Text>
+      <Text style={styles.subtitle}>Analisis progres bacaan Al-Qur'an Anda</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Total Ayat</Text>

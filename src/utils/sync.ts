@@ -1,11 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { useSyncStore } from '@/store/syncStore';
-import {
-  countPending,
-  popPending,
-  deletePending,
-  cacheCheckin,
-} from '@/lib/sqlite';
+import { countPending, popPending, deletePending, cacheCheckin } from '@/lib/sqlite';
 import { upsertCheckin, CheckinPayload } from '@/services/checkins';
 import { setKV, getKV } from '@/lib/storage';
 

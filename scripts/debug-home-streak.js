@@ -27,13 +27,7 @@ async function debugHomeStreak() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check current streaks table data
     console.log('\n📊 Current streaks table data:');
@@ -60,7 +54,7 @@ async function debugHomeStreak() {
       console.error('❌ Error fetching checkins:', checkinsError);
     } else {
       console.log('Checkins data:');
-      checkinsData?.forEach(checkin => {
+      checkinsData?.forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
@@ -73,9 +67,7 @@ async function debugHomeStreak() {
       let lastDate = null;
 
       // Sort by date descending (most recent first)
-      const sortedCheckins = checkinsData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinsData.sort((a, b) => b.date.localeCompare(a.date));
 
       // Calculate current streak (consecutive days from most recent)
       let tempDate = new Date(sortedCheckins[0].date);
@@ -84,9 +76,7 @@ async function debugHomeStreak() {
 
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           // Consecutive day
@@ -107,10 +97,7 @@ async function debugHomeStreak() {
         console.log('\n📊 Comparison:');
         console.log('  Database streak:', dbStreak.current, 'days');
         console.log('  Calculated streak:', currentStreak, 'days');
-        console.log(
-          '  Match:',
-          dbStreak.current === currentStreak ? '✅' : '❌'
-        );
+        console.log('  Match:', dbStreak.current === currentStreak ? '✅' : '❌');
 
         if (dbStreak.current !== currentStreak) {
           console.log('\n🔧 Updating streaks table...');

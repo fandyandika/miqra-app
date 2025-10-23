@@ -17,11 +17,10 @@ async function testCreateReadingSession() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);
@@ -51,8 +50,7 @@ async function testCreateReadingSession() {
 
     // Validate length
     const maxAyat = 7; // Al-Fatihah has 7 ayat
-    if (testSession.ayat_end > maxAyat)
-      throw new Error('Ayat end exceeds surah length');
+    if (testSession.ayat_end > maxAyat) throw new Error('Ayat end exceeds surah length');
 
     // Validate date - prevent future dates
     const now = new Date();
@@ -112,9 +110,7 @@ async function testCreateReadingSession() {
       updated_at: new Date().toISOString(),
     };
 
-    const { error: updateError } = await supabase
-      .from('reading_progress')
-      .upsert(patch);
+    const { error: updateError } = await supabase.from('reading_progress').upsert(patch);
 
     if (updateError) {
       console.error('❌ Progress update error:', updateError);
@@ -132,8 +128,7 @@ async function testCreateReadingSession() {
       .eq('user_id', user.id)
       .eq('date', todayDate);
 
-    const todayTotal =
-      todaySessions.data?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
+    const todayTotal = todaySessions.data?.reduce((sum, s) => sum + (s.ayat_count || 0), 0) || 0;
     console.log('Today total ayat:', todayTotal);
 
     const { error: checkinError } = await supabase.from('checkins').upsert(

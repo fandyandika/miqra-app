@@ -34,13 +34,8 @@ export function useCreateFamily() {
 
 export function useCreateInvite() {
   return useMutation({
-    mutationFn: ({
-      familyId,
-      ttlMinutes,
-    }: {
-      familyId: string;
-      ttlMinutes?: number;
-    }) => createInvite(familyId, ttlMinutes),
+    mutationFn: ({ familyId, ttlMinutes }: { familyId: string; ttlMinutes?: number }) =>
+      createInvite(familyId, ttlMinutes),
   });
 }
 

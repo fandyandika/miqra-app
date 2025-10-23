@@ -25,8 +25,8 @@ async function applyMigration() {
     // Split into individual statements
     const statements = migrationSQL
       .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'));
 
     console.log(`📝 Found ${statements.length} SQL statements to execute`);
 
@@ -34,12 +34,8 @@ async function applyMigration() {
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
       if (statement.trim()) {
-        console.log(
-          `\n🔧 Executing statement ${i + 1}/${statements.length}...`
-        );
-        console.log(
-          `SQL: ${statement.substring(0, 100)}${statement.length > 100 ? '...' : ''}`
-        );
+        console.log(`\n🔧 Executing statement ${i + 1}/${statements.length}...`);
+        console.log(`SQL: ${statement.substring(0, 100)}${statement.length > 100 ? '...' : ''}`);
 
         try {
           const { error } = await supabase.rpc('exec_sql', { sql: statement });
@@ -75,21 +71,17 @@ async function applyMigration() {
       .limit(1);
 
     if (settingsError) {
-      console.log(
-        '❌ User_settings table check failed:',
-        settingsError.message
-      );
+      console.log('❌ User_settings table check failed:', settingsError.message);
     } else {
       console.log('✅ User_settings table exists and accessible');
     }
 
     // Check storage bucket
-    const { data: buckets, error: bucketsError } =
-      await supabase.storage.listBuckets();
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     if (bucketsError) {
       console.log('❌ Storage buckets check failed:', bucketsError.message);
     } else {
-      const avatarsBucket = buckets?.find(b => b.id === 'avatars');
+      const avatarsBucket = buckets?.find((b) => b.id === 'avatars');
       if (avatarsBucket) {
         console.log('✅ Avatars storage bucket exists');
       } else {

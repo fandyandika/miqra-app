@@ -49,19 +49,17 @@ async function checkDatabaseSchema() {
     console.log('\n🧪 TESTING INSERT WITHOUT AYAT_COUNT:');
 
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (test1User) {
-      const { error: insertError } = await supabase
-        .from('reading_sessions')
-        .insert({
-          user_id: test1User.id,
-          surah_number: 1,
-          ayat_start: 1,
-          ayat_end: 5,
-          date: new Date().toISOString().split('T')[0],
-          session_time: new Date().toISOString(),
-        });
+      const { error: insertError } = await supabase.from('reading_sessions').insert({
+        user_id: test1User.id,
+        surah_number: 1,
+        ayat_start: 1,
+        ayat_end: 5,
+        date: new Date().toISOString().split('T')[0],
+        session_time: new Date().toISOString(),
+      });
 
       if (insertError) {
         console.log('❌ Insert error:', insertError.message);

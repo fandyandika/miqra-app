@@ -8,14 +8,8 @@ console.log('🔍 DEBUGGING REACT NATIVE LOGIN ISSUES...\n');
 
 // Test 1: Check if environment variables are accessible
 console.log('1️⃣ CHECKING ENVIRONMENT VARIABLES:');
-console.log(
-  'EXPO_PUBLIC_SUPABASE_URL:',
-  supabaseUrl ? '✅ Available' : '❌ Missing'
-);
-console.log(
-  'EXPO_PUBLIC_SUPABASE_ANON_KEY:',
-  supabaseAnonKey ? '✅ Available' : '❌ Missing'
-);
+console.log('EXPO_PUBLIC_SUPABASE_URL:', supabaseUrl ? '✅ Available' : '❌ Missing');
+console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Available' : '❌ Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.log('\n❌ MISSING ENVIRONMENT VARIABLES!');
@@ -58,11 +52,10 @@ async function testAuthFlow() {
   try {
     // Test sign in
     console.log('   Testing sign in...');
-    const { data: signInData, error: signInError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (signInError) {
       console.log('   ❌ Sign in failed:', signInError.message);
@@ -75,8 +68,7 @@ async function testAuthFlow() {
 
     // Test session persistence
     console.log('   Testing session persistence...');
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError) {
       console.log('   ❌ Get session failed:', sessionError.message);
@@ -90,19 +82,13 @@ async function testAuthFlow() {
     console.log('   Testing auth state change listener...');
     let authStateChanged = false;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log(
-          '   Auth state change:',
-          event,
-          session ? 'Session exists' : 'No session'
-        );
-        authStateChanged = true;
-      }
-    );
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('   Auth state change:', event, session ? 'Session exists' : 'No session');
+      authStateChanged = true;
+    });
 
     // Wait for auth state change
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (authStateChanged) {
       console.log('   ✅ Auth state change listener works');
@@ -130,16 +116,14 @@ async function testAuthFlow() {
   }
 }
 
-testAuthFlow().then(success => {
+testAuthFlow().then((success) => {
   console.log('\n4️⃣ TESTING REACT NATIVE SPECIFIC ISSUES:');
 
   if (success) {
     console.log('✅ Backend authentication works perfectly');
     console.log('\n🔍 POTENTIAL REACT NATIVE ISSUES:');
     console.log('1. Metro bundler cache - try: npx expo start --clear');
-    console.log(
-      '2. React Native environment - check if running on device/simulator'
-    );
+    console.log('2. React Native environment - check if running on device/simulator');
     console.log('3. Network connectivity - check if device can reach Supabase');
     console.log('4. Console logs - check Metro bundler console for errors');
     console.log('5. App state - check if app is stuck in loading state');

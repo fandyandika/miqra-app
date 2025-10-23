@@ -27,13 +27,7 @@ async function debugProgressTabData() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check all checkins for October 2025
     console.log('\n📅 All checkins for October 2025:');
@@ -49,27 +43,22 @@ async function debugProgressTabData() {
       console.error('❌ Error fetching October checkins:', octoberError);
     } else {
       console.log('October checkins:', octoberCheckins?.length || 0);
-      octoberCheckins?.forEach(checkin => {
+      octoberCheckins?.forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
 
     // 3. Check if there are any duplicate checkins
     console.log('\n🔍 Checking for duplicate checkins:');
-    const checkinDates = octoberCheckins?.map(c => c.date) || [];
+    const checkinDates = octoberCheckins?.map((c) => c.date) || [];
     const uniqueDates = [...new Set(checkinDates)];
 
     console.log('Total checkins:', checkinDates.length);
     console.log('Unique dates:', uniqueDates.length);
-    console.log(
-      'Duplicates found:',
-      checkinDates.length !== uniqueDates.length ? '❌' : '✅'
-    );
+    console.log('Duplicates found:', checkinDates.length !== uniqueDates.length ? '❌' : '✅');
 
     if (checkinDates.length !== uniqueDates.length) {
-      const duplicates = checkinDates.filter(
-        (date, index) => checkinDates.indexOf(date) !== index
-      );
+      const duplicates = checkinDates.filter((date, index) => checkinDates.indexOf(date) !== index);
       console.log('Duplicate dates:', duplicates);
     }
 
@@ -87,7 +76,7 @@ async function debugProgressTabData() {
       console.error('❌ Error fetching October sessions:', sessionsError);
     } else {
       console.log('October sessions:', octoberSessions?.length || 0);
-      octoberSessions?.forEach(session => {
+      octoberSessions?.forEach((session) => {
         console.log(
           `  ${session.date}: Surah ${session.surah_number}, Ayat ${session.ayat_start}-${session.ayat_end} (${session.ayat_count} ayat)`
         );
@@ -106,7 +95,7 @@ async function debugProgressTabData() {
       console.error('❌ Error fetching all checkins:', allError);
     } else {
       console.log('All checkins:', allCheckins?.length || 0);
-      allCheckins?.forEach(checkin => {
+      allCheckins?.forEach((checkin) => {
         console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
     }
@@ -119,9 +108,7 @@ async function debugProgressTabData() {
       let lastDate = null;
 
       // Sort by date descending (most recent first)
-      const sortedCheckins = allCheckins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = allCheckins.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -133,13 +120,9 @@ async function debugProgressTabData() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-        console.log(
-          `  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-        );
+        console.log(`  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
         if (daysDiff === 1) {
           // Consecutive day
@@ -148,19 +131,14 @@ async function debugProgressTabData() {
           console.log(`    ✅ Consecutive! Streak now: ${currentStreak}`);
         } else {
           // Gap found, streak breaks
-          console.log(
-            `    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`
-          );
+          console.log(`    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`);
           break;
         }
       }
 
       console.log('\n📊 Final calculation:');
       console.log('Calculated streak:', currentStreak, 'days');
-      console.log(
-        'Last checkin date:',
-        lastDate?.toISOString().split('T')[0] || 'None'
-      );
+      console.log('Last checkin date:', lastDate?.toISOString().split('T')[0] || 'None');
     }
 
     // 7. Check if there are any checkins for dates 17-23 October
@@ -176,7 +154,7 @@ async function debugProgressTabData() {
     ];
 
     for (const date of specificDates) {
-      const checkin = allCheckins?.find(c => c.date === date);
+      const checkin = allCheckins?.find((c) => c.date === date);
       if (checkin) {
         console.log(`  ${date}: ${checkin.ayat_count} ayat ✅`);
       } else {
@@ -188,9 +166,7 @@ async function debugProgressTabData() {
     console.log('\n📱 Analysis:');
     console.log('1. Database shows 2-day streak (20-21 October)');
     console.log('2. Progress tab might be showing cached or incorrect data');
-    console.log(
-      '3. Need to check if there are any old checkins or data inconsistencies'
-    );
+    console.log('3. Need to check if there are any old checkins or data inconsistencies');
   } catch (error) {
     console.error('❌ Debug failed:', error);
   }

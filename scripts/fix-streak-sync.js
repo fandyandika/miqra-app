@@ -27,13 +27,7 @@ async function fixStreakSync() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Get all checkins for this user
     const { data: checkinsData, error: checkinsError } = await supabase
@@ -57,9 +51,7 @@ async function fixStreakSync() {
 
     if (checkinsData && checkinsData.length > 0) {
       // Sort by date descending
-      const sortedCheckins = checkinsData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinsData.sort((a, b) => b.date.localeCompare(a.date));
 
       for (let i = 0; i < sortedCheckins.length; i++) {
         const checkin = sortedCheckins[i];
@@ -73,9 +65,7 @@ async function fixStreakSync() {
         } else {
           const prevCheckin = sortedCheckins[i - 1];
           const prevDate = new Date(prevCheckin.date);
-          const daysDiff = Math.floor(
-            (prevDate - checkinDate) / (1000 * 60 * 60 * 24)
-          );
+          const daysDiff = Math.floor((prevDate - checkinDate) / (1000 * 60 * 60 * 24));
 
           if (daysDiff === 1) {
             // Consecutive day

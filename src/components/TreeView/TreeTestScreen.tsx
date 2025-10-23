@@ -23,9 +23,7 @@ export default function TreeTestScreen() {
   ];
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}
-    >
+    <ScrollView style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
       <Text
         style={{
           fontSize: 24,

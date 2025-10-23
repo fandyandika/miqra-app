@@ -9,12 +9,7 @@ type Props = {
   animated?: boolean;
 };
 
-export function ProgressBar({
-  percentage,
-  totalRead,
-  totalQuran,
-  animated = true,
-}: Props) {
+export function ProgressBar({ percentage, totalRead, totalQuran, animated = true }: Props) {
   const anim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -42,8 +37,7 @@ export function ProgressBar({
       <View style={s.row}>
         <Text style={s.perc}>{percentage.toFixed(1)}%</Text>
         <Text style={s.count}>
-          {totalRead.toLocaleString('id-ID')} /{' '}
-          {totalQuran.toLocaleString('id-ID')} ayat
+          {totalRead.toLocaleString('id-ID')} / {totalQuran.toLocaleString('id-ID')} ayat
         </Text>
       </View>
     </View>

@@ -1,23 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  eachDayOfInterval,
-  isSameDay,
-  isToday,
-} from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { colors } from '@/theme/colors';
 
 type StreakCalendarProps = {
   currentMonth: Date;
   onMonthChange: (date: Date) => void;
-  checkinData: Array<{
+  checkinData: {
     date: string;
     ayat_count: number;
-  }>;
+  }[];
   streakData: {
     current: number;
     last_date: string | null;
@@ -52,14 +45,13 @@ export function StreakCalendar({
 
     // Calculate streak backwards from this date - start from day 1
     let streak = 1; // First day always counts as streak 1
-    let currentDate = new Date(date);
+    const currentDate = new Date(date);
     currentDate.setDate(currentDate.getDate() - 1); // Start checking from previous day
 
     // Check consecutive days backwards
     while (true) {
       const currentDateStr = format(currentDate, 'yyyy-MM-dd');
-      const hasCheckin =
-        checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
+      const hasCheckin = checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
 
       if (hasCheckin) {
         streak++;
@@ -149,11 +141,9 @@ export function StreakCalendar({
 
       <View style={styles.calendar}>
         {/* Add empty cells for days before month start (Monday = 0) */}
-        {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map(
-          (_, index) => (
-            <View key={`empty-${index}`} style={styles.dayContainer} />
-          )
-        )}
+        {Array.from({ length: (monthStart.getDay() + 6) % 7 }).map((_, index) => (
+          <View key={`empty-${index}`} style={styles.dayContainer} />
+        ))}
 
         {days.map((day, index) => {
           const dayOfWeek = day.getDay();
@@ -173,16 +163,12 @@ export function StreakCalendar({
                 style={getDayStyle(day)}
                 accessibilityLabel={`${format(day, 'd MMMM yyyy', { locale: id })} - ${checkinMap[format(day, 'yyyy-MM-dd')] || 0} ayat dibaca`}
               >
-                <Text
-                  style={[styles.dayNumber, isToday(day) && styles.todayText]}
-                >
+                <Text style={[styles.dayNumber, isToday(day) && styles.todayText]}>
                   {format(day, 'd')}
                 </Text>
 
                 {checkinMap[format(day, 'yyyy-MM-dd')] && (
-                  <Text style={styles.ayatCount}>
-                    {checkinMap[format(day, 'yyyy-MM-dd')]}
-                  </Text>
+                  <Text style={styles.ayatCount}>{checkinMap[format(day, 'yyyy-MM-dd')]}</Text>
                 )}
 
                 <Text style={styles.emoji}>{getDayEmoji(day)}</Text>

@@ -17,8 +17,8 @@ async function testReadingStatsForBothUsers() {
   try {
     // Get both users
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test1User || !test2User) {
       console.log('❌ One or both test users not found');
@@ -31,12 +31,8 @@ async function testReadingStatsForBothUsers() {
 
     // Simulate getReadingStats for current month
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
     console.log(`📅 Date range: ${start} to ${end}`);
 
@@ -60,10 +56,7 @@ async function testReadingStatsForBothUsers() {
     console.log(`📊 Checkins: ${test1Checkins?.length || 0}`);
 
     // Simulate the fixed getReadingStats logic
-    const totalAyat1 = (test1Sessions || []).reduce(
-      (sum, s) => sum + (s.ayat_count || 0),
-      0
-    );
+    const totalAyat1 = (test1Sessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
     const totalSessions1 = (test1Sessions || []).length;
 
     // Group by date to count unique reading days from BOTH sessions and checkins
@@ -73,7 +66,7 @@ async function testReadingStatsForBothUsers() {
     }, {});
 
     // Add checkin dates to ensure we count all reading days
-    (test1Checkins || []).forEach(c => {
+    (test1Checkins || []).forEach((c) => {
       if (!dateGroups1[c.date]) {
         dateGroups1[c.date] = 1; // Count as 1 reading day even if no sessions
       }
@@ -85,9 +78,7 @@ async function testReadingStatsForBothUsers() {
     console.log(
       `📊 Test1 Results: ${totalAyat1} ayat, ${daysRead1} days read, ${avgPerDay1} avg/day`
     );
-    console.log(
-      `📅 Test1 reading dates: ${Object.keys(dateGroups1).sort().join(', ')}`
-    );
+    console.log(`📅 Test1 reading dates: ${Object.keys(dateGroups1).sort().join(', ')}`);
 
     // Test getReadingStats for test2
     console.log('\n2️⃣ TESTING TEST2 USER...');
@@ -113,10 +104,7 @@ async function testReadingStatsForBothUsers() {
     console.log(`📊 Checkins: ${test2Checkins?.length || 0}`);
 
     // Simulate the fixed getReadingStats logic
-    const totalAyat2 = (test2Sessions || []).reduce(
-      (sum, s) => sum + (s.ayat_count || 0),
-      0
-    );
+    const totalAyat2 = (test2Sessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
     const totalSessions2 = (test2Sessions || []).length;
 
     // Group by date to count unique reading days from BOTH sessions and checkins
@@ -126,7 +114,7 @@ async function testReadingStatsForBothUsers() {
     }, {});
 
     // Add checkin dates to ensure we count all reading days
-    (test2Checkins || []).forEach(c => {
+    (test2Checkins || []).forEach((c) => {
       if (!dateGroups2[c.date]) {
         dateGroups2[c.date] = 1; // Count as 1 reading day even if no sessions
       }
@@ -138,9 +126,7 @@ async function testReadingStatsForBothUsers() {
     console.log(
       `📊 Test2 Results: ${totalAyat2} ayat, ${daysRead2} days read, ${avgPerDay2} avg/day`
     );
-    console.log(
-      `📅 Test2 reading dates: ${Object.keys(dateGroups2).sort().join(', ')}`
-    );
+    console.log(`📅 Test2 reading dates: ${Object.keys(dateGroups2).sort().join(', ')}`);
 
     // Get current streaks
     console.log('\n3️⃣ CURRENT STREAKS...');
@@ -166,28 +152,16 @@ async function testReadingStatsForBothUsers() {
 
     console.log('\n🎯 SUMMARY:');
     console.log('===========');
-    console.log(
-      `Test1: ${daysRead1} reading days, ${test1Streak?.current || 0} streak`
-    );
-    console.log(
-      `Test2: ${daysRead2} reading days, ${test2Streak?.current || 0} streak`
-    );
+    console.log(`Test1: ${daysRead1} reading days, ${test1Streak?.current || 0} streak`);
+    console.log(`Test2: ${daysRead2} reading days, ${test2Streak?.current || 0} streak`);
 
     // Check what the user is seeing
     console.log('\n📱 WHAT USER SEES IN APP:');
     console.log('========================');
-    console.log(
-      `Test1 Progress page: "Hari Membaca" = ${daysRead1} (should be 6)`
-    );
-    console.log(
-      `Test1 Home/Profile: "Streak" = ${test1Streak?.current || 0} (should be 0)`
-    );
-    console.log(
-      `Test2 Progress page: "Hari Membaca" = ${daysRead2} (should be 4)`
-    );
-    console.log(
-      `Test2 Home/Profile: "Streak" = ${test2Streak?.current || 0} (should be 1)`
-    );
+    console.log(`Test1 Progress page: "Hari Membaca" = ${daysRead1} (should be 6)`);
+    console.log(`Test1 Home/Profile: "Streak" = ${test1Streak?.current || 0} (should be 0)`);
+    console.log(`Test2 Progress page: "Hari Membaca" = ${daysRead2} (should be 4)`);
+    console.log(`Test2 Home/Profile: "Streak" = ${test2Streak?.current || 0} (should be 1)`);
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

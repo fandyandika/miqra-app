@@ -32,15 +32,14 @@ export default function SettingsScreen() {
   });
 
   const handleToggle =
-    (key: keyof NonNullable<Awaited<ReturnType<typeof getSettings>>>) =>
-    (value: boolean) => {
+    (key: keyof NonNullable<Awaited<ReturnType<typeof getSettings>>>) => (value: boolean) => {
       updateMutation.mutate({ [key]: value } as any);
     };
 
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size='large' color={colors.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.dim}>Memuat pengaturan…</Text>
       </View>
     );
@@ -75,64 +74,63 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Privasi pahala */}
-      <SettingSection title='Privasi Pahala'>
+      <SettingSection title="Privasi Pahala">
         <SettingToggle
-          label='Tampilkan Estimasi Pahala'
-          description='Tunjukkan perkiraan hasanat di dashboard'
+          label="Tampilkan Estimasi Pahala"
+          description="Tunjukkan perkiraan hasanat di dashboard"
           value={s.hasanat_visible}
           onChange={handleToggle('hasanat_visible')}
         />
         <SettingToggle
-          label='Bagikan ke Keluarga'
-          description='Anggota keluarga dapat melihat pahala Anda'
+          label="Bagikan ke Keluarga"
+          description="Anggota keluarga dapat melihat pahala Anda"
           value={s.share_with_family}
           onChange={handleToggle('share_with_family')}
           disabled={!s.hasanat_visible}
         />
         <SettingToggle
-          label='Ikut Leaderboard Global'
-          description='Muncul di peringkat mingguan (anonim)'
+          label="Ikut Leaderboard Global"
+          description="Muncul di peringkat mingguan (anonim)"
           value={s.join_leaderboard}
           onChange={handleToggle('join_leaderboard')}
         />
         <View style={styles.tipBox}>
           <Text style={styles.tipText}>
-            💡 Wallahu a'lam. Angka hasanat hanyalah perkiraan berdasarkan
-            hadits shahih.
+            💡 Wallahu a'lam. Angka hasanat hanyalah perkiraan berdasarkan hadits shahih.
           </Text>
         </View>
       </SettingSection>
 
       {/* Notifikasi */}
-      <SettingSection title='Notifikasi'>
+      <SettingSection title="Notifikasi">
         <SettingToggle
-          label='Pengingat Harian'
+          label="Pengingat Harian"
           description={`Waktu saat ini: ${s.reminder_time?.slice(0, 5)}`}
           value={s.daily_reminder_enabled}
           onChange={handleToggle('daily_reminder_enabled')}
         />
         <SettingToggle
-          label='Peringatan Streak'
-          description='Ingatkan jika belum membaca hari ini'
+          label="Peringatan Streak"
+          description="Ingatkan jika belum membaca hari ini"
           value={s.streak_warning_enabled}
           onChange={handleToggle('streak_warning_enabled')}
         />
         <SettingToggle
-          label='Aktivitas Keluarga'
-          description='Kabar saat anggota keluarga membaca'
+          label="Aktivitas Keluarga"
+          description="Kabar saat anggota keluarga membaca"
           value={s.family_nudge_enabled}
           onChange={handleToggle('family_nudge_enabled')}
         />
         <SettingToggle
-          label='Perayaan Milestone'
-          description='Notifikasi untuk pencapaian khusus'
+          label="Perayaan Milestone"
+          description="Notifikasi untuk pencapaian khusus"
           value={s.milestone_celebration_enabled}
           onChange={handleToggle('milestone_celebration_enabled')}
         />
       </SettingSection>
 
       {/* Preferensi */}
-      <SettingSection title='Preferensi Bacaan'>
+      <SettingSection title="Preferensi Bacaan">
         <View style={styles.card}>
           <Text style={styles.label}>Target Harian</Text>
           <Text style={styles.value}>{s.daily_goal_ayat} ayat</Text>
@@ -142,26 +140,20 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <Text style={styles.label}>Tema</Text>
           <Text style={styles.value}>
-            {s.theme === 'light'
-              ? '☀️ Terang'
-              : s.theme === 'dark'
-                ? '🌙 Gelap'
-                : '🔄 Auto'}
+            {s.theme === 'light' ? '☀️ Terang' : s.theme === 'dark' ? '🌙 Gelap' : '🔄 Auto'}
           </Text>
           <Text style={styles.dim}>Mode gelap segera hadir</Text>
         </View>
       </SettingSection>
 
       {/* Akun */}
-      <SettingSection title='Akun'>
+      <SettingSection title="Akun">
         <Pressable
           style={styles.deleteBtn}
           onPress={() =>
-            Alert.alert(
-              'Hapus Akun',
-              'Penghapusan akun dinonaktifkan di build ini.',
-              [{ text: 'OK' }]
-            )
+            Alert.alert('Hapus Akun', 'Penghapusan akun dinonaktifkan di build ini.', [
+              { text: 'OK' },
+            ])
           }
         >
           <Text style={styles.deleteTxt}>🗑️ Hapus Akun</Text>

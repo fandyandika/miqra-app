@@ -1,11 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import LottieView from 'lottie-react-native';
-import {
-  calcHouseLight,
-  getHouseA11yLabel,
-  HouseLight,
-} from '@/lib/familyLight';
+import { calcHouseLight, getHouseA11yLabel, HouseLight } from '@/lib/familyLight';
 import { colors } from '@/theme/colors';
 
 type Props = {
@@ -24,13 +20,7 @@ const EMOJI_MAP: Record<HouseLight, string> = {
 };
 
 export default function HouseView(props: Props) {
-  const {
-    membersReadToday,
-    totalMembers,
-    familyStreakDays,
-    size = 200,
-    variant = 'plain',
-  } = props;
+  const { membersReadToday, totalMembers, familyStreakDays, size = 200, variant = 'plain' } = props;
 
   const state = useMemo(
     () =>
@@ -51,12 +41,7 @@ export default function HouseView(props: Props) {
   const emoji = EMOJI_MAP[state];
 
   const content = lottie ? (
-    <LottieView
-      source={lottie}
-      autoPlay
-      loop
-      style={{ width: size, height: size }}
-    />
+    <LottieView source={lottie} autoPlay loop style={{ width: size, height: size }} />
   ) : (
     <View
       style={{
@@ -66,9 +51,7 @@ export default function HouseView(props: Props) {
         alignItems: 'center',
       }}
     >
-      <Text style={{ fontSize: size * 0.45, textAlign: 'center' }}>
-        {emoji}
-      </Text>
+      <Text style={{ fontSize: size * 0.45, textAlign: 'center' }}>{emoji}</Text>
     </View>
   );
 
@@ -86,7 +69,7 @@ export default function HouseView(props: Props) {
   return (
     <View
       accessible
-      accessibilityRole='image'
+      accessibilityRole="image"
       accessibilityLabel={a11yLabel}
       style={containerStyle}
     >

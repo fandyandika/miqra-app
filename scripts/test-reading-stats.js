@@ -19,8 +19,7 @@ async function testGetReadingStats() {
     const test1UserId = 'f5d3868a-07a8-4f64-8543-3d4b90d910c9';
 
     // Set auth context (simulate user login)
-    const { data: session } =
-      await supabase.auth.admin.getUserById(test1UserId);
+    const { data: session } = await supabase.auth.admin.getUserById(test1UserId);
     if (!session.user) {
       console.log('❌ User not found');
       return;
@@ -30,12 +29,8 @@ async function testGetReadingStats() {
 
     // Get current month range
     const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
     console.log(`📅 Date range: ${start} to ${end}`);
 
@@ -60,10 +55,7 @@ async function testGetReadingStats() {
     console.log(`📊 Checkins found: ${checkins?.length || 0}`);
 
     // Simulate the fixed getReadingStats logic
-    const totalAyat = (sessions || []).reduce(
-      (sum, s) => sum + (s.ayat_count || 0),
-      0
-    );
+    const totalAyat = (sessions || []).reduce((sum, s) => sum + (s.ayat_count || 0), 0);
     const totalSessions = (sessions || []).length;
 
     // Group by date to count unique reading days from BOTH sessions and checkins
@@ -73,7 +65,7 @@ async function testGetReadingStats() {
     }, {});
 
     // Add checkin dates to ensure we count all reading days
-    (checkins || []).forEach(c => {
+    (checkins || []).forEach((c) => {
       if (!dateGroups[c.date]) {
         dateGroups[c.date] = 1; // Count as 1 reading day even if no sessions
       }
@@ -88,9 +80,7 @@ async function testGetReadingStats() {
       acc[key] = (acc[key] || 0) + (s.ayat_count || 0);
       return acc;
     }, {});
-    const mostReadSurah = Object.entries(surahCounts).sort(
-      ([, a], [, b]) => b - a
-    )[0]?.[0];
+    const mostReadSurah = Object.entries(surahCounts).sort(([, a], [, b]) => b - a)[0]?.[0];
 
     console.log('\n📊 RESULTS:');
     console.log('===========');
@@ -106,9 +96,7 @@ async function testGetReadingStats() {
     if (daysRead === expectedDays) {
       console.log('✅ Days read calculation is correct!');
     } else {
-      console.log(
-        `❌ Days read should be ${expectedDays}, but got ${daysRead}`
-      );
+      console.log(`❌ Days read should be ${expectedDays}, but got ${daysRead}`);
     }
   } catch (error) {
     console.error('❌ Test failed:', error);

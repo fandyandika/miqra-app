@@ -23,12 +23,7 @@ type LineChartProps = {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 64;
 
-export function LineChart({
-  data,
-  title,
-  color = colors.accent,
-  height = 220,
-}: LineChartProps) {
+export function LineChart({ data, title, color = colors.accent, height = 220 }: LineChartProps) {
   if (data.length === 0) {
     return (
       <View style={[styles.container, { height }]}>
@@ -48,7 +43,7 @@ export function LineChart({
     index,
   }));
 
-  const maxValue = Math.max(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
   const yAxisMax = Math.ceil(maxValue * 1.1);
 
   return (

@@ -2,11 +2,7 @@ import React from 'react';
 import { View, Text, TextInput, Pressable, Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
-import {
-  getReadingProgress,
-  createReadingSession,
-  ReadingSessionInput,
-} from '@/services/reading';
+import { getReadingProgress, createReadingSession, ReadingSessionInput } from '@/services/reading';
 import { getAyatCount, getNextPosition } from '@/data/quran_meta';
 import { SurahPicker } from '@/features/reading/SurahPicker';
 import { AyatRangeInput } from '@/features/reading/AyatRangeInput';
@@ -29,14 +25,12 @@ export default function CatatBacaanScreen() {
 
   const m = useMutation({
     mutationFn: (input: ReadingSessionInput) => createReadingSession(input),
-    onMutate: variables => {
+    onMutate: (variables) => {
       console.log('[CatatBacaan] Mutation started with:', variables);
     },
-    onSuccess: data => {
+    onSuccess: (data) => {
       console.log('[CatatBacaan] Session created successfully:', data);
-      console.log(
-        '[CatatBacaan] Session created, triggering real-time updates...'
-      );
+      console.log('[CatatBacaan] Session created, triggering real-time updates...');
 
       // Invalidate all reading-related queries for real-time sync
       qc.invalidateQueries({ queryKey: ['reading'] });
@@ -63,10 +57,9 @@ export default function CatatBacaanScreen() {
       setRange({ start: next.ayat, end: next.ayat });
       setNotes('');
     },
-    onError: error => {
+    onError: (error) => {
       console.error('[CatatBacaan] Save error:', error);
-      const errorMessage =
-        error?.message || error?.toString() || 'Gagal menyimpan catatan bacaan';
+      const errorMessage = error?.message || error?.toString() || 'Gagal menyimpan catatan bacaan';
       Alert.alert('Gagal Simpan', errorMessage);
     },
   });
@@ -96,10 +89,7 @@ export default function CatatBacaanScreen() {
 
     if (range.end < range.start) {
       console.log('[CatatBacaan] Validation failed: end < start');
-      return Alert.alert(
-        'Cek lagi',
-        'Ayat akhir tidak boleh lebih kecil dari awal.'
-      );
+      return Alert.alert('Cek lagi', 'Ayat akhir tidak boleh lebih kecil dari awal.');
     }
 
     const max = getAyatCount(surah);
@@ -128,9 +118,7 @@ export default function CatatBacaanScreen() {
         </Pressable>
       </View>
 
-      <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>
-        Catat Bacaan
-      </Text>
+      <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>Catat Bacaan</Text>
 
       <Pressable
         onPress={prefillFromCurrent}
@@ -149,10 +137,10 @@ export default function CatatBacaanScreen() {
 
       <SurahPicker
         value={surah}
-        onChange={n => {
+        onChange={(n) => {
           setSurah(n);
           const max = getAyatCount(n);
-          setRange(r => ({
+          setRange((r) => ({
             start: Math.min(r.start, max),
             end: Math.min(r.end, max),
           }));
@@ -170,7 +158,7 @@ export default function CatatBacaanScreen() {
         <TextInput
           value={notes}
           onChangeText={setNotes}
-          placeholder='Refleksi singkat...'
+          placeholder="Refleksi singkat..."
           multiline
           style={{
             minHeight: 80,

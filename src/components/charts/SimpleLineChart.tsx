@@ -17,12 +17,7 @@ type LineChartProps = {
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const CHART_WIDTH = SCREEN_WIDTH - 64;
 
-export function LineChart({
-  data,
-  title,
-  color = colors.accent,
-  height = 220,
-}: LineChartProps) {
+export function LineChart({ data, title, color = colors.accent, height = 220 }: LineChartProps) {
   if (data.length === 0) {
     return (
       <View style={[styles.container, { height }]}>
@@ -35,17 +30,15 @@ export function LineChart({
     );
   }
 
-  const maxValue = Math.max(...data.map(d => d.value));
-  const minValue = Math.min(...data.map(d => d.value));
+  const maxValue = Math.max(...data.map((d) => d.value));
+  const minValue = Math.min(...data.map((d) => d.value));
   const valueRange = maxValue - minValue;
 
   // Create SVG path for line
   const points = data.map((item, index) => {
     const x = (index / (data.length - 1)) * (CHART_WIDTH - 80);
     const y =
-      valueRange > 0
-        ? ((maxValue - item.value) / valueRange) * (height - 100)
-        : (height - 100) / 2;
+      valueRange > 0 ? ((maxValue - item.value) / valueRange) * (height - 100) : (height - 100) / 2;
     return { x, y, value: item.value, label: item.label };
   });
 
@@ -53,16 +46,12 @@ export function LineChart({
     <View style={styles.container}>
       {title && <Text style={styles.title}>{title}</Text>}
 
-      <View
-        style={[styles.chartContainer, { height: height - (title ? 40 : 0) }]}
-      >
+      <View style={[styles.chartContainer, { height: height - (title ? 40 : 0) }]}>
         {/* Y-axis labels */}
         <View style={styles.yAxis}>
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => (
             <Text key={index} style={styles.yAxisLabel}>
-              {Math.round(minValue + valueRange * ratio).toLocaleString(
-                'id-ID'
-              )}
+              {Math.round(minValue + valueRange * ratio).toLocaleString('id-ID')}
             </Text>
           ))}
         </View>
@@ -71,10 +60,7 @@ export function LineChart({
         <View style={styles.chartArea}>
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => (
-            <View
-              key={index}
-              style={[styles.gridLine, { top: (height - 100) * ratio + 20 }]}
-            />
+            <View key={index} style={[styles.gridLine, { top: (height - 100) * ratio + 20 }]} />
           ))}
 
           {/* Line and dots */}

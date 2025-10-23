@@ -44,10 +44,7 @@ async function testSupabaseConnection() {
     console.log('\n🧪 TESTING SUPABASE CONNECTION...');
 
     // Test basic connection
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('count')
-      .limit(1);
+    const { data, error } = await supabase.from('profiles').select('count').limit(1);
 
     if (error) {
       console.log('❌ Supabase connection error:', error.message);
@@ -59,11 +56,10 @@ async function testSupabaseConnection() {
     // Test authentication
     console.log('\n🔐 TESTING AUTHENTICATION...');
 
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.log('❌ Authentication error:', authError.message);
@@ -84,7 +80,7 @@ async function testSupabaseConnection() {
   }
 }
 
-testSupabaseConnection().then(success => {
+testSupabaseConnection().then((success) => {
   if (success) {
     console.log('\n🎉 ALL TESTS PASSED!');
     console.log('Login should work properly.');

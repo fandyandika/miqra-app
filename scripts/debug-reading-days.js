@@ -17,8 +17,7 @@ async function debugReadingDaysConsistency() {
   try {
     // Get all users
     console.log('1️⃣ Getting all users...');
-    const { data: users, error: usersError } =
-      await supabase.auth.admin.listUsers();
+    const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
 
     if (usersError) {
       console.log('❌ Users error:', usersError.message);
@@ -88,14 +87,14 @@ async function debugReadingDaysConsistency() {
 
     // Calculate days read from checkins
     console.log('\n5️⃣ Calculating days read from checkins...');
-    const checkinDates = [...new Set(checkins.map(c => c.date))];
+    const checkinDates = [...new Set(checkins.map((c) => c.date))];
     const checkinDaysRead = checkinDates.length;
     console.log(`📅 Days with checkins: ${checkinDaysRead}`);
     console.log('📅 Checkin dates:', checkinDates.slice(0, 10));
 
     // Calculate days read from sessions
     console.log('\n6️⃣ Calculating days read from sessions...');
-    const sessionDates = [...new Set(sessions.map(s => s.date))];
+    const sessionDates = [...new Set(sessions.map((s) => s.date))];
     const sessionDaysRead = sessionDates.length;
     console.log(`📅 Days with sessions: ${sessionDaysRead}`);
     console.log('📅 Session dates:', sessionDates.slice(0, 10));
@@ -109,25 +108,17 @@ async function debugReadingDaysConsistency() {
       console.log(`   Sessions days: ${sessionDaysRead}`);
 
       // Find dates that are in one but not the other
-      const checkinOnly = checkinDates.filter(d => !sessionDates.includes(d));
-      const sessionOnly = sessionDates.filter(d => !checkinDates.includes(d));
+      const checkinOnly = checkinDates.filter((d) => !sessionDates.includes(d));
+      const sessionOnly = sessionDates.filter((d) => !checkinDates.includes(d));
 
       if (checkinOnly.length > 0) {
-        console.log(
-          '   Dates in checkins but not sessions:',
-          checkinOnly.slice(0, 5)
-        );
+        console.log('   Dates in checkins but not sessions:', checkinOnly.slice(0, 5));
       }
       if (sessionOnly.length > 0) {
-        console.log(
-          '   Dates in sessions but not checkins:',
-          sessionOnly.slice(0, 5)
-        );
+        console.log('   Dates in sessions but not checkins:', sessionOnly.slice(0, 5));
       }
     } else {
-      console.log(
-        '✅ Days read count is consistent between checkins and sessions'
-      );
+      console.log('✅ Days read count is consistent between checkins and sessions');
     }
 
     // Check streak consistency
@@ -144,10 +135,7 @@ async function debugReadingDaysConsistency() {
         const currentDate = new Date(sortedDates[i]);
         const prevDate = i > 0 ? new Date(sortedDates[i - 1]) : null;
 
-        if (
-          !prevDate ||
-          currentDate.getTime() - prevDate.getTime() === 24 * 60 * 60 * 1000
-        ) {
+        if (!prevDate || currentDate.getTime() - prevDate.getTime() === 24 * 60 * 60 * 1000) {
           currentStreak++;
         } else {
           currentStreak = 1;
@@ -162,10 +150,8 @@ async function debugReadingDaysConsistency() {
           yesterday.setDate(yesterday.getDate() - 1);
 
           const lastCheckinDate = new Date(sortedDates[i]);
-          const isToday =
-            lastCheckinDate.toDateString() === today.toDateString();
-          const isYesterday =
-            lastCheckinDate.toDateString() === yesterday.toDateString();
+          const isToday = lastCheckinDate.toDateString() === today.toDateString();
+          const isYesterday = lastCheckinDate.toDateString() === yesterday.toDateString();
 
           if (isToday || isYesterday) {
             consecutiveDays = currentStreak;
@@ -191,15 +177,9 @@ async function debugReadingDaysConsistency() {
 
     console.log('\n🎯 SUMMARY:');
     console.log('===========');
-    console.log(
-      `Checkins: ${checkins.length} records, ${checkinDaysRead} unique days`
-    );
-    console.log(
-      `Sessions: ${sessions.length} records, ${sessionDaysRead} unique days`
-    );
-    console.log(
-      `Streak: ${streak?.current || 0} current, ${streak?.longest || 0} longest`
-    );
+    console.log(`Checkins: ${checkins.length} records, ${checkinDaysRead} unique days`);
+    console.log(`Sessions: ${sessions.length} records, ${sessionDaysRead} unique days`);
+    console.log(`Streak: ${streak?.current || 0} current, ${streak?.longest || 0} longest`);
 
     if (checkinDaysRead === sessionDaysRead) {
       console.log('✅ Days read calculation is consistent');

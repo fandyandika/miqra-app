@@ -2,12 +2,7 @@ import React, { useMemo, useRef, useEffect } from 'react';
 import { View, Text, Image, Pressable, Animated } from 'react-native';
 import LottieView from 'lottie-react-native';
 import { colors } from '@/theme/colors';
-import {
-  getTreeVisual,
-  getTreeA11yLabel,
-  TreeStage,
-  TreeVariant,
-} from '@/lib/streak';
+import { getTreeVisual, getTreeA11yLabel, TreeStage, TreeVariant } from '@/lib/streak';
 import { getTreeGrowthLevel } from '@/utils/crossDayConsistency';
 
 type Props = {
@@ -35,9 +30,7 @@ const IMG_MAP: Partial<Record<TreeStage, any>> = {
   // e.g. young: require('@/assets/img/tree_young.png'),
 };
 
-const LOTTIE_MAP: Partial<
-  Record<TreeStage, Partial<Record<TreeVariant, any>>>
-> = {
+const LOTTIE_MAP: Partial<Record<TreeStage, Partial<Record<TreeVariant, any>>>> = {
   // Week-1: may be empty; keep structure for Week-2 drop-in
   // mature: { healthy: require('@/assets/lottie/tree_mature_healthy.json') }
 };
@@ -109,21 +102,11 @@ export default function TreeView(props: Props) {
       );
     }
     if (imageSrc) {
-      return (
-        <Image
-          source={imageSrc}
-          resizeMode='contain'
-          style={{ width: size, height: size }}
-        />
-      );
+      return <Image source={imageSrc} resizeMode="contain" style={{ width: size, height: size }} />;
     }
     if (emoji) {
       return (
-        <Text
-          style={{ fontSize: Math.max(80, size * 0.45), textAlign: 'center' }}
-        >
-          {emoji}
-        </Text>
+        <Text style={{ fontSize: Math.max(80, size * 0.45), textAlign: 'center' }}>{emoji}</Text>
       );
     }
     // Last resort circle
@@ -142,7 +125,7 @@ export default function TreeView(props: Props) {
 
   const body = (
     <Animated.View
-      accessibilityRole='image'
+      accessibilityRole="image"
       accessible
       accessibilityLabel={a11yLabel}
       style={{
@@ -187,10 +170,7 @@ export default function TreeView(props: Props) {
       {body}
     </Pressable>
   ) : (
-    <View
-      testID={testID}
-      style={{ alignItems: 'center', justifyContent: 'center' }}
-    >
+    <View testID={testID} style={{ alignItems: 'center', justifyContent: 'center' }}>
       {body}
     </View>
   );

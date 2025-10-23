@@ -27,28 +27,14 @@ async function testProgressScroll() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check current reading sessions for this month
     const currentMonth = new Date();
-    const startDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      1
-    )
+    const startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
       .toISOString()
       .split('T')[0];
-    const endDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      0
-    )
+    const endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0)
       .toISOString()
       .split('T')[0];
 
@@ -70,9 +56,7 @@ async function testProgressScroll() {
       return;
     }
 
-    console.log(
-      `\n📊 Found ${sessions?.length || 0} reading sessions this month`
-    );
+    console.log(`\n📊 Found ${sessions?.length || 0} reading sessions this month`);
 
     if (sessions && sessions.length > 0) {
       // Group sessions by date
@@ -86,15 +70,10 @@ async function testProgressScroll() {
       }, {});
 
       console.log('\n📋 Sessions grouped by date:');
-      Object.keys(groupedByDate).forEach(date => {
+      Object.keys(groupedByDate).forEach((date) => {
         const daySessions = groupedByDate[date];
-        const totalAyat = daySessions.reduce(
-          (sum, s) => sum + (s.ayat_count || 0),
-          0
-        );
-        console.log(
-          `  ${date}: ${daySessions.length} sessions, ${totalAyat} ayat`
-        );
+        const totalAyat = daySessions.reduce((sum, s) => sum + (s.ayat_count || 0), 0);
+        console.log(`  ${date}: ${daySessions.length} sessions, ${totalAyat} ayat`);
       });
 
       console.log('\n✅ Progress page should now be scrollable!');
@@ -127,34 +106,26 @@ async function testProgressScroll() {
           surah_number: 3,
           ayat_start: 1,
           ayat_end: 3,
-          date: new Date(Date.now() - 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split('T')[0],
+          date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         },
       ];
 
       for (const session of testSessions) {
-        const { error: insertError } = await supabase
-          .from('reading_sessions')
-          .insert({
-            user_id: testUser.user_id,
-            ...session,
-            session_time: new Date().toISOString(),
-            notes: 'Test session for scroll testing',
-          });
+        const { error: insertError } = await supabase.from('reading_sessions').insert({
+          user_id: testUser.user_id,
+          ...session,
+          session_time: new Date().toISOString(),
+          notes: 'Test session for scroll testing',
+        });
 
         if (insertError) {
           console.error('❌ Error creating test session:', insertError);
         } else {
-          console.log(
-            `✅ Created test session: Surah ${session.surah_number}, ${session.date}`
-          );
+          console.log(`✅ Created test session: Surah ${session.surah_number}, ${session.date}`);
         }
       }
 
-      console.log(
-        '\n✅ Test sessions created! Progress page should now have scrollable content.'
-      );
+      console.log('\n✅ Test sessions created! Progress page should now have scrollable content.');
     }
   } catch (error) {
     console.error('❌ Test failed:', error);

@@ -66,11 +66,7 @@ export function getTreeVisual(params: {
 }
 
 /** Indonesian accessibility label for screen readers */
-export function getTreeA11yLabel(
-  stage: TreeStage,
-  variant: TreeVariant,
-  days: number
-): string {
+export function getTreeA11yLabel(stage: TreeStage, variant: TreeVariant, days: number): string {
   const stageLabel =
     stage === 'sprout'
       ? 'Tunas kecil'

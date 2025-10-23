@@ -16,10 +16,7 @@ async function testStreakValues() {
 
   try {
     // Get test user
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .limit(1);
+    const { data: profiles } = await supabase.from('profiles').select('user_id').limit(1);
 
     if (!profiles || profiles.length === 0) {
       console.error('❌ No users found. Run seed script first.');
@@ -55,9 +52,7 @@ async function testStreakValues() {
         continue;
       }
 
-      console.log(
-        `✅ Streak updated: ${testCase.current} days, last: ${testCase.last_date}`
-      );
+      console.log(`✅ Streak updated: ${testCase.current} days, last: ${testCase.last_date}`);
 
       // Test didBreakYesterday function
       const { didBreakYesterday } = require('../src/lib/streak');

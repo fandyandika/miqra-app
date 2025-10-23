@@ -80,9 +80,7 @@ async function fixProfilesSchema() {
       }
     }
 
-    console.log(
-      '\n🎯 SOLUTION: Update the service to use user_id instead of id'
-    );
+    console.log('\n🎯 SOLUTION: Update the service to use user_id instead of id');
     console.log('The profiles table uses user_id as primary key, not id');
   } catch (error) {
     console.error('❌ Schema fix failed:', error);

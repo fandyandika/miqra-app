@@ -26,7 +26,7 @@ async function debugStreakDatabase() {
       return;
     }
 
-    allUsers?.forEach(user => {
+    allUsers?.forEach((user) => {
       console.log(`  ${user.display_name} (ID: ${user.user_id})`);
     });
 
@@ -42,15 +42,12 @@ async function debugStreakDatabase() {
         .order('date', { ascending: false });
 
       if (checkinsError) {
-        console.error(
-          `❌ Error fetching checkins for ${user.display_name}:`,
-          checkinsError
-        );
+        console.error(`❌ Error fetching checkins for ${user.display_name}:`, checkinsError);
         continue;
       }
 
       console.log(`  Checkins: ${checkins?.length || 0}`);
-      checkins?.forEach(checkin => {
+      checkins?.forEach((checkin) => {
         console.log(`    ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
 
@@ -59,9 +56,7 @@ async function debugStreakDatabase() {
         let currentStreak = 0;
         let lastDate = null;
 
-        const sortedCheckins = checkins.sort((a, b) =>
-          b.date.localeCompare(a.date)
-        );
+        const sortedCheckins = checkins.sort((a, b) => b.date.localeCompare(a.date));
 
         // Start from most recent checkin
         let tempDate = new Date(sortedCheckins[0].date);
@@ -73,13 +68,9 @@ async function debugStreakDatabase() {
         // Check consecutive days backwards
         for (let i = 1; i < sortedCheckins.length; i++) {
           const checkinDate = new Date(sortedCheckins[i].date);
-          const daysDiff = Math.floor(
-            (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-          );
+          const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-          console.log(
-            `    Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-          );
+          console.log(`    Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
           if (daysDiff === 1) {
             // Consecutive day
@@ -88,17 +79,13 @@ async function debugStreakDatabase() {
             console.log(`      ✅ Consecutive! Streak now: ${currentStreak}`);
           } else {
             // Gap found, streak breaks
-            console.log(
-              `      ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`
-            );
+            console.log(`      ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`);
             break;
           }
         }
 
         console.log(`  📊 Calculated streak: ${currentStreak} days`);
-        console.log(
-          `  📅 Last checkin: ${lastDate?.toISOString().split('T')[0]}`
-        );
+        console.log(`  📅 Last checkin: ${lastDate?.toISOString().split('T')[0]}`);
 
         // Update streaks table for this user
         console.log(`  🔧 Updating streaks table...`);
@@ -160,10 +147,8 @@ async function debugStreakDatabase() {
     if (finalError) {
       console.error('❌ Error fetching final streaks:', finalError);
     } else {
-      finalStreaks?.forEach(streak => {
-        console.log(
-          `  ${streak.user_id}: ${streak.current} days (last: ${streak.last_date})`
-        );
+      finalStreaks?.forEach((streak) => {
+        console.log(`  ${streak.user_id}: ${streak.current} days (last: ${streak.last_date})`);
       });
     }
 

@@ -15,7 +15,7 @@ export default function Badge({
   };
   return (
     <View className={`px-3 py-1 rounded-full ${map[tone] || map.accent}`}>
-      <Text className='text-xs font-medium'>{text}</Text>
+      <Text className="text-xs font-medium">{text}</Text>
     </View>
   );
 }

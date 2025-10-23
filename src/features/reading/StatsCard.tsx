@@ -21,19 +21,25 @@ export function StatsCard({ totalAyat, daysRead, avgPerDay, period }: StatsCardP
         <View style={styles.item}>
           <Text style={styles.value}>{daysRead}</Text>
           <Text style={styles.label}>
-            {period === 'day' ? 'Hari Ini' : 
-             period === 'week' ? 'Hari Aktif' : 
-             period === 'month' ? 'Hari Aktif' : 
-             'Hari Aktif'}
+            {period === 'day'
+              ? 'Hari Ini'
+              : period === 'week'
+                ? 'Hari Aktif'
+                : period === 'month'
+                  ? 'Hari Aktif'
+                  : 'Hari Aktif'}
           </Text>
         </View>
         <View style={styles.item}>
           <Text style={styles.value}>{Math.round(avgPerDay)}</Text>
           <Text style={styles.label}>
-            {period === 'day' ? 'Ayat/Hari' : 
-             period === 'week' ? 'Rata-rata/Hari' : 
-             period === 'month' ? 'Rata-rata/Hari' : 
-             'Rata-rata/Hari'}
+            {period === 'day'
+              ? 'Ayat/Hari'
+              : period === 'week'
+                ? 'Rata-rata/Hari'
+                : period === 'month'
+                  ? 'Rata-rata/Hari'
+                  : 'Rata-rata/Hari'}
           </Text>
         </View>
       </View>

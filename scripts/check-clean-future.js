@@ -38,7 +38,7 @@ async function checkAndCleanFutureData() {
     }
 
     // Find future checkins
-    const futureCheckins = allCheckins?.filter(c => c.date > today) || [];
+    const futureCheckins = allCheckins?.filter((c) => c.date > today) || [];
     console.log(`\n🗑️ Future checkins found: ${futureCheckins.length}`);
 
     if (futureCheckins.length > 0) {
@@ -65,8 +65,7 @@ async function checkAndCleanFutureData() {
       .select('user_id, date, ayat_count')
       .order('date', { ascending: true });
 
-    const finalFutureCheckins =
-      finalCheckins?.filter(c => c.date > today) || [];
+    const finalFutureCheckins = finalCheckins?.filter((c) => c.date > today) || [];
     console.log(`\n📊 Final future checkins: ${finalFutureCheckins.length}`);
 
     if (finalFutureCheckins.length === 0) {

@@ -52,9 +52,7 @@ export default function TreeFullScreen() {
       <TreeView currentStreakDays={current} brokeYesterday={broke} size={340} />
 
       <View style={{ alignItems: 'center', marginTop: 16 }}>
-        <Text style={{ fontSize: 16, fontWeight: '600' }}>
-          Streak: {current} hari
-        </Text>
+        <Text style={{ fontSize: 16, fontWeight: '600' }}>Streak: {current} hari</Text>
         {stage === 'ancient' && (
           <Text
             style={{
@@ -68,9 +66,7 @@ export default function TreeFullScreen() {
             👑 LEGENDARY ACHIEVEMENT! 👑
           </Text>
         )}
-        <Text style={{ color: colors.mutedText, marginTop: 6 }}>
-          {encouragement}
-        </Text>
+        <Text style={{ color: colors.mutedText, marginTop: 6 }}>{encouragement}</Text>
 
         <Pressable
           onPress={() => {
@@ -78,19 +74,12 @@ export default function TreeFullScreen() {
           }}
           style={{ paddingVertical: 12 }}
         >
-          <Text style={{ textDecorationLine: 'underline' }}>
-            Apa arti tahap pohon?
-          </Text>
+          <Text style={{ textDecorationLine: 'underline' }}>Apa arti tahap pohon?</Text>
         </Pressable>
-        <Text
-          style={{ color: colors.mutedText, fontSize: 12, textAlign: 'center' }}
-        >
+        <Text style={{ color: colors.mutedText, fontSize: 12, textAlign: 'center' }}>
           Tahapan: sprout (1–2), sapling (3–9), young (10–29), mature (30–99),
           {stage === 'ancient' ? (
-            <Text style={{ color: '#FFD700', fontWeight: 'bold' }}>
-              {' '}
-              ancient (100+) 👑
-            </Text>
+            <Text style={{ color: '#FFD700', fontWeight: 'bold' }}> ancient (100+) 👑</Text>
           ) : (
             ' ancient (100+)'
           )}

@@ -1,9 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  upsertCheckin,
-  getTodayCheckin,
-  getCurrentStreak,
-} from '@/services/checkins';
+import { upsertCheckin, getTodayCheckin, getCurrentStreak } from '@/services/checkins';
 import { queueCheckin, cacheCheckin } from '@/lib/sqlite';
 import { getTodayDate } from '@/utils/time';
 import { isOnline, syncPendingCheckins } from '@/utils/sync';
@@ -45,20 +41,14 @@ export function useCheckin() {
 
       if (online) {
         const res = await upsertCheckin(payload, timezone);
-        cacheCheckin(
-          (res as any).user_id,
-          (res as any).date,
-          (res as any).ayat_count
-        );
+        cacheCheckin((res as any).user_id, (res as any).date, (res as any).ayat_count);
         posthog?.capture(EVENTS.CHECKIN_SUBMITTED, {
           ...payload,
           online: true,
         });
 
         // Trigger real-time updates
-        console.log(
-          '[useCheckin] Checkin submitted, triggering real-time updates...'
-        );
+        console.log('[useCheckin] Checkin submitted, triggering real-time updates...');
         qc.invalidateQueries({ queryKey: ['checkin'] });
         qc.invalidateQueries({ queryKey: ['streak'] });
         qc.invalidateQueries({ queryKey: ['families'] });

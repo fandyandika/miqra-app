@@ -1,25 +1,12 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  Modal,
-  TextInput,
-  FlatList,
-} from 'react-native';
+import { View, Text, Pressable, Modal, TextInput, FlatList } from 'react-native';
 import { SURAH_META } from '@/data/quran_meta';
 
-export function SurahPicker({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (n: number) => void;
-}) {
+export function SurahPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   const [open, setOpen] = React.useState(false);
   const [q, setQ] = React.useState('');
-  const selected = SURAH_META.find(s => s.number === value);
-  const filtered = SURAH_META.filter(s => {
+  const selected = SURAH_META.find((s) => s.number === value);
+  const filtered = SURAH_META.filter((s) => {
     const hay = `${s.number}. ${s.name}`.toLowerCase();
     return hay.includes(q.toLowerCase());
   });
@@ -33,13 +20,13 @@ export function SurahPicker({
         </Text>
       </Pressable>
 
-      <Modal visible={open} animationType='slide'>
+      <Modal visible={open} animationType="slide">
         <View style={{ flex: 1, padding: 16 }}>
           <Pressable onPress={() => setOpen(false)}>
             <Text>← Kembali</Text>
           </Pressable>
           <TextInput
-            placeholder='Cari surah...'
+            placeholder="Cari surah..."
             value={q}
             onChangeText={setQ}
             style={{
@@ -52,7 +39,7 @@ export function SurahPicker({
           />
           <FlatList
             data={filtered}
-            keyExtractor={s => String(s.number)}
+            keyExtractor={(s) => String(s.number)}
             renderItem={({ item }) => (
               <Pressable
                 onPress={() => {

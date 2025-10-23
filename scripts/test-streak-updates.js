@@ -17,7 +17,7 @@ async function testStreakUpdates() {
   try {
     // Get test1 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
 
     if (!test1User) {
       console.log('❌ test1@miqra.com not found');
@@ -97,7 +97,7 @@ async function testStreakUpdates() {
 
     // Wait a moment for the streak to update
     console.log('\n4️⃣ Waiting for streak update...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Check updated streak
     const { data: updatedStreak } = await supabase
@@ -124,9 +124,7 @@ async function testStreakUpdates() {
     }
 
     console.log('\n🎉 STREAK UPDATE TEST COMPLETED!');
-    console.log(
-      '💡 Check the app to see if Home and Profile screens show updated streak'
-    );
+    console.log('💡 Check the app to see if Home and Profile screens show updated streak');
   } catch (error) {
     console.error('❌ Test failed:', error);
   }

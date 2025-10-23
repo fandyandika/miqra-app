@@ -22,8 +22,8 @@ export function AyatRangeInput({
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <TextInput
           value={String(start)}
-          onChangeText={t => onChange(clamp(parseInt(t || '1')), end)}
-          keyboardType='number-pad'
+          onChangeText={(t) => onChange(clamp(parseInt(t || '1')), end)}
+          keyboardType="number-pad"
           style={{
             borderWidth: 1,
             borderColor: '#E5E7EB',
@@ -36,10 +36,8 @@ export function AyatRangeInput({
         <Text>—</Text>
         <TextInput
           value={String(end)}
-          onChangeText={t =>
-            onChange(start, clamp(parseInt(t || String(start))))
-          }
-          keyboardType='number-pad'
+          onChangeText={(t) => onChange(start, clamp(parseInt(t || String(start))))}
+          keyboardType="number-pad"
           style={{
             borderWidth: 1,
             borderColor: '#E5E7EB',

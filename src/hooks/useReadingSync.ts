@@ -13,10 +13,7 @@ export function useReadingSync() {
       return;
     }
 
-    console.log(
-      '[ReadingSync] Setting up real-time subscriptions for user:',
-      session.user.id
-    );
+    console.log('[ReadingSync] Setting up real-time subscriptions for user:', session.user.id);
 
     // Subscribe to reading_sessions changes
     const readingSessionsChannel = supabase
@@ -29,7 +26,7 @@ export function useReadingSync() {
           table: 'reading_sessions',
           filter: `user_id=eq.${session.user.id}`,
         },
-        payload => {
+        (payload) => {
           console.log(
             '[ReadingSync] 🔥 Reading sessions changed:',
             payload.eventType,
@@ -67,7 +64,7 @@ export function useReadingSync() {
           table: 'reading_progress',
           filter: `user_id=eq.${session.user.id}`,
         },
-        payload => {
+        (payload) => {
           console.log(
             '[ReadingSync] 📊 Reading progress changed:',
             payload.eventType,
@@ -92,7 +89,7 @@ export function useReadingSync() {
           table: 'checkins',
           filter: `user_id=eq.${session.user.id}`,
         },
-        payload => {
+        (payload) => {
           console.log(
             '[ReadingSync] 🔥 Checkins changed:',
             payload.eventType,

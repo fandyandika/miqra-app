@@ -27,13 +27,7 @@ async function testFinalFixes() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check current data
     console.log('\n📊 Current data:');
@@ -45,7 +39,7 @@ async function testFinalFixes() {
       .order('date', { ascending: false });
 
     console.log('Checkins:', checkins?.length || 0);
-    checkins?.forEach(checkin => {
+    checkins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -59,16 +53,8 @@ async function testFinalFixes() {
     // 3. Test calendar data for current month
     console.log('\n📅 Calendar data for current month:');
     const currentMonth = new Date();
-    const start = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      1
-    );
-    const end = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-      0
-    );
+    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
 
     const startStr = start.toISOString().split('T')[0];
     const endStr = end.toISOString().split('T')[0];
@@ -82,7 +68,7 @@ async function testFinalFixes() {
       .order('date', { ascending: true });
 
     console.log('Month checkins:', monthCheckins?.length || 0);
-    monthCheckins?.forEach(checkin => {
+    monthCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -97,11 +83,7 @@ async function testFinalFixes() {
 
     // Test streak for each day in the month
     for (let day = 1; day <= end.getDate(); day++) {
-      const testDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
+      const testDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const dateStr = testDate.toISOString().split('T')[0];
       const hasCheckin = checkinMap[dateStr] && checkinMap[dateStr] > 0;
 
@@ -112,8 +94,7 @@ async function testFinalFixes() {
 
         while (true) {
           const currentDateStr = currentDate.toISOString().split('T')[0];
-          const hasCheckinOnDate =
-            checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
+          const hasCheckinOnDate = checkinMap[currentDateStr] && checkinMap[currentDateStr] > 0;
 
           if (hasCheckinOnDate) {
             dayStreak++;
@@ -124,9 +105,7 @@ async function testFinalFixes() {
         }
 
         const shouldShowEmoji = dayStreak >= 2;
-        console.log(
-          `  ${dateStr}: ${dayStreak} day streak ${shouldShowEmoji ? '⚡' : ''}`
-        );
+        console.log(`  ${dateStr}: ${dayStreak} day streak ${shouldShowEmoji ? '⚡' : ''}`);
       }
     }
 

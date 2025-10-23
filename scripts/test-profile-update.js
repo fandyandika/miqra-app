@@ -106,15 +106,13 @@ async function testProfileUpdate() {
       'Ali bin Abi Thalib',
     ];
 
-    testNames.forEach(name => {
+    testNames.forEach((name) => {
       const words = name.trim().split(' ');
       let initials;
       if (words.length === 1) {
         initials = words[0].substring(0, 2).toUpperCase();
       } else {
-        initials = (
-          words[0].charAt(0) + words[words.length - 1].charAt(0)
-        ).toUpperCase();
+        initials = (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
       }
       console.log(`📝 ${name} → ${initials}`);
     });

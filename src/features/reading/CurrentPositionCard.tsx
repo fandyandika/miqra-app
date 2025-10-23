@@ -16,7 +16,7 @@ export function CurrentPositionCard({
   onContinuePress,
   isNextUnread = false,
 }: Props) {
-  const surah = SURAH_META.find(s => s.number === surahNumber);
+  const surah = SURAH_META.find((s) => s.number === surahNumber);
 
   return (
     <View
@@ -25,9 +25,7 @@ export function CurrentPositionCard({
       accessibilityLabel={`${isNextUnread ? 'Posisi selanjutnya' : 'Posisi terakhir'}: Surah ${surahNumber} ${surah?.name || 'Tidak diketahui'}, ayat ${ayahNumber}.`}
     >
       <View style={st.header}>
-        <Text style={st.label}>
-          {isNextUnread ? 'Posisi Selanjutnya' : 'Posisi Terakhir'}
-        </Text>
+        <Text style={st.label}>{isNextUnread ? 'Posisi Selanjutnya' : 'Posisi Terakhir'}</Text>
         <Text style={{ fontSize: 20 }}>{isNextUnread ? '🎯' : '📖'}</Text>
       </View>
       <Text style={st.title}>

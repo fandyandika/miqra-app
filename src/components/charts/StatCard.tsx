@@ -9,18 +9,11 @@ type StatCardProps = {
   icon?: string;
 };
 
-export function StatCard({
-  value,
-  label,
-  color = colors.primary,
-  icon,
-}: StatCardProps) {
+export function StatCard({ value, label, color = colors.primary, icon }: StatCardProps) {
   // Safe value handling
   const safeValue = value ?? 0;
   const displayValue =
-    typeof safeValue === 'number'
-      ? safeValue.toLocaleString('id-ID')
-      : safeValue || '0';
+    typeof safeValue === 'number' ? safeValue.toLocaleString('id-ID') : safeValue || '0';
 
   return (
     <View style={styles.container}>

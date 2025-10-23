@@ -25,13 +25,13 @@ export function useSyncManager() {
   useEffect(() => {
     // initial kick
     syncPendingCheckins()
-      .then(r => {
+      .then((r) => {
         if (r.synced > 0) {
           qc.invalidateQueries({ queryKey: ['checkin'] });
           qc.invalidateQueries({ queryKey: ['streak'] });
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('[SyncManager] Initial sync error:', error);
       });
 
@@ -40,13 +40,13 @@ export function useSyncManager() {
       if (s === 'active') {
         console.log('[SyncManager] App foregrounded - syncing');
         syncPendingCheckins()
-          .then(r => {
+          .then((r) => {
             if (r.synced > 0) {
               qc.invalidateQueries({ queryKey: ['checkin'] });
               qc.invalidateQueries({ queryKey: ['streak'] });
             }
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('[SyncManager] Foreground sync error:', error);
           });
       }
@@ -59,13 +59,13 @@ export function useSyncManager() {
         if (state.isConnected && state.isInternetReachable) {
           console.log('[SyncManager] Network connected - syncing');
           syncPendingCheckins()
-            .then(r => {
+            .then((r) => {
               if (r.synced > 0) {
                 qc.invalidateQueries({ queryKey: ['checkin'] });
                 qc.invalidateQueries({ queryKey: ['streak'] });
               }
             })
-            .catch(error => {
+            .catch((error) => {
               console.error('[SyncManager] Network sync error:', error);
             });
         }
@@ -76,7 +76,7 @@ export function useSyncManager() {
     const id = setInterval(
       () => {
         console.log('[SyncManager] Interval sync');
-        syncPendingCheckins().catch(error => {
+        syncPendingCheckins().catch((error) => {
           console.error('[SyncManager] Interval sync error:', error);
         });
       },

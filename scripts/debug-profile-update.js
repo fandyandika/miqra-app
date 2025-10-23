@@ -98,8 +98,7 @@ async function debugProfileUpdate() {
     // Step 4: Check auth users table
     console.log('\n4️⃣ Checking auth users...');
 
-    const { data: authUsers, error: authError } =
-      await supabase.auth.admin.listUsers();
+    const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
 
     if (authError) {
       console.log('❌ Cannot access auth users:', authError.message);
@@ -108,7 +107,7 @@ async function debugProfileUpdate() {
       console.log(`👥 Found ${authUsers.users.length} auth users`);
 
       // Check if profile user exists in auth
-      const profileUser = authUsers.users.find(u => u.id === testProfile.id);
+      const profileUser = authUsers.users.find((u) => u.id === testProfile.id);
       if (profileUser) {
         console.log('✅ Profile user exists in auth');
         console.log('📧 User email:', profileUser.email);
@@ -165,9 +164,7 @@ async function debugProfileUpdate() {
 
     if (profiles.length === 0) {
       console.log('❌ ISSUE: No profiles found in database');
-      console.log(
-        '💡 SOLUTION: User needs to sign up or profile needs to be created'
-      );
+      console.log('💡 SOLUTION: User needs to sign up or profile needs to be created');
     } else if (updateError) {
       console.log('❌ ISSUE: Database update failed');
       console.log('💡 SOLUTION: Check RLS policies and database permissions');
@@ -175,9 +172,7 @@ async function debugProfileUpdate() {
       console.log('❌ ISSUE: User not authenticated in app');
       console.log('💡 SOLUTION: User needs to log in first');
     } else {
-      console.log(
-        '✅ All checks passed - issue might be in React Query or UI state'
-      );
+      console.log('✅ All checks passed - issue might be in React Query or UI state');
     }
   } catch (error) {
     console.error('❌ Debug failed:', error);

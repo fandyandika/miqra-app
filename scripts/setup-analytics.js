@@ -39,8 +39,8 @@ async function setupAnalytics() {
     // Split SQL into individual statements
     const statements = migrationSQL
       .split(';')
-      .map(stmt => stmt.trim())
-      .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0 && !stmt.startsWith('--'));
 
     console.log(`📝 Found ${statements.length} SQL statements`);
 
@@ -48,9 +48,7 @@ async function setupAnalytics() {
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i];
       if (statement.trim()) {
-        console.log(
-          `\n🔄 Executing statement ${i + 1}/${statements.length}...`
-        );
+        console.log(`\n🔄 Executing statement ${i + 1}/${statements.length}...`);
 
         try {
           const { error } = await supabase.rpc('exec_sql', {
@@ -91,7 +89,7 @@ async function setupAnalytics() {
 
     console.log(
       '✅ Functions found:',
-      functions.map(f => f.routine_name)
+      functions.map((f) => f.routine_name)
     );
 
     // Test with a sample user

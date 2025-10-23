@@ -63,12 +63,10 @@ async function seedTestData() {
 
     // Step 3: Insert family members
     console.log('👥 Adding family members...');
-    const { error: membersError } = await supabase
-      .from('family_members')
-      .insert([
-        { family_id: FAMILY_ID, user_id: USER_A, role: 'owner' },
-        { family_id: FAMILY_ID, user_id: USER_B, role: 'member' },
-      ]);
+    const { error: membersError } = await supabase.from('family_members').insert([
+      { family_id: FAMILY_ID, user_id: USER_A, role: 'owner' },
+      { family_id: FAMILY_ID, user_id: USER_B, role: 'member' },
+    ]);
 
     if (membersError) {
       console.error('❌ Error creating family members:', membersError.message);
@@ -92,9 +90,7 @@ async function seedTestData() {
       .single();
 
     if (existingCheckin) {
-      console.log(
-        `✅ Checkin already exists for User ${USER_A}: ${today} (5 ayat)`
-      );
+      console.log(`✅ Checkin already exists for User ${USER_A}: ${today} (5 ayat)`);
     } else {
       const { error: checkinError } = await supabase.from('checkins').insert({
         user_id: USER_A,
@@ -112,13 +108,10 @@ async function seedTestData() {
 
     // Step 5: Update streak
     console.log('🔥 Updating streak...');
-    const { error: streakError } = await supabase.rpc(
-      'update_streak_after_checkin',
-      {
-        checkin_user_id: USER_A,
-        checkin_date: today,
-      }
-    );
+    const { error: streakError } = await supabase.rpc('update_streak_after_checkin', {
+      checkin_user_id: USER_A,
+      checkin_date: today,
+    });
 
     if (streakError) {
       console.error('❌ Error updating streak:', streakError.message);

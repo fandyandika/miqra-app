@@ -76,17 +76,15 @@ async function checkFamilies() {
     });
 
     // Check for duplicates
-    const familyNames = allFamilies.map(f => f.name);
-    const duplicates = familyNames.filter(
-      (name, index) => familyNames.indexOf(name) !== index
-    );
+    const familyNames = allFamilies.map((f) => f.name);
+    const duplicates = familyNames.filter((name, index) => familyNames.indexOf(name) !== index);
 
     if (duplicates.length > 0) {
       console.log('⚠️  DUPLICATE FAMILY NAMES FOUND:');
-      duplicates.forEach(name => {
-        const duplicateFamilies = allFamilies.filter(f => f.name === name);
+      duplicates.forEach((name) => {
+        const duplicateFamilies = allFamilies.filter((f) => f.name === name);
         console.log(`   "${name}" appears ${duplicateFamilies.length} times:`);
-        duplicateFamilies.forEach(f => {
+        duplicateFamilies.forEach((f) => {
           console.log(`     - ID: ${f.id}, Created: ${f.created_at}`);
         });
       });

@@ -4,7 +4,9 @@ import { supabase } from '@/lib/supabase';
  * Debug function untuk melihat data keluarga
  */
 export async function debugFamilyData() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
     console.log('❌ No user found');
     return;
@@ -39,7 +41,7 @@ export async function debugFamilyData() {
   if (membersError) console.error('❌ Members error:', membersError);
 
   // 3. Cek reading sessions untuk semua member
-  const memberIds = familyMembers?.map(m => m.user_id) || [];
+  const memberIds = familyMembers?.map((m) => m.user_id) || [];
   console.log('📚 Member IDs:', memberIds);
 
   if (memberIds.length > 0) {
@@ -52,7 +54,8 @@ export async function debugFamilyData() {
     if (sessionsError) console.error('❌ Sessions error:', sessionsError);
 
     // Manual calculation
-    const totalAyat = readingSessions?.reduce((sum, session) => sum + (session.ayat_count || 0), 0) || 0;
+    const totalAyat =
+      readingSessions?.reduce((sum, session) => sum + (session.ayat_count || 0), 0) || 0;
     const avgAyat = memberIds.length > 0 ? totalAyat / memberIds.length : 0;
 
     console.log('📊 Manual calculation:');
@@ -72,10 +75,13 @@ export async function debugFamilyData() {
   return {
     userFamilies,
     familyMembers,
-    readingSessions: memberIds.length > 0 ? await supabase
-      .from('reading_sessions')
-      .select('user_id, ayat_count')
-      .in('user_id', memberIds) : null,
+    readingSessions:
+      memberIds.length > 0
+        ? await supabase
+            .from('reading_sessions')
+            .select('user_id, ayat_count')
+            .in('user_id', memberIds)
+        : null,
     rpcResult,
   };
 }

@@ -86,9 +86,7 @@ const getAuthUserId = async (): Promise<string> => {
  */
 const handleRPCError = (functionName: string, error: any): never => {
   console.error(`❌ ${functionName} error:`, error);
-  throw new Error(
-    `${functionName} failed: ${error.message || 'Unknown error'}`
-  );
+  throw new Error(`${functionName} failed: ${error.message || 'Unknown error'}`);
 };
 
 // =========================================
@@ -98,10 +96,7 @@ const handleRPCError = (functionName: string, error: any): never => {
 /**
  * Get daily reading stats for a date range (inclusive)
  */
-export async function getDailyStats(
-  startDate: Date,
-  endDate: Date
-): Promise<DailyStats[]> {
+export async function getDailyStats(startDate: Date, endDate: Date): Promise<DailyStats[]> {
   const userId = await getAuthUserId();
 
   console.log('📊 Fetching daily stats:', {
@@ -127,9 +122,7 @@ export async function getDailyStats(
 /**
  * Get weekly aggregated stats for last N weeks
  */
-export async function getWeeklyStats(
-  weeks: number = 8
-): Promise<WeeklyStats[]> {
+export async function getWeeklyStats(weeks: number = 8): Promise<WeeklyStats[]> {
   const userId = await getAuthUserId();
   const endDate = new Date();
   const startDate = subDays(endDate, weeks * 7);
@@ -153,9 +146,7 @@ export async function getWeeklyStats(
 /**
  * Get monthly aggregated stats for last N months (including current)
  */
-export async function getMonthlyStats(
-  months: number = 6
-): Promise<MonthlyStats[]> {
+export async function getMonthlyStats(months: number = 6): Promise<MonthlyStats[]> {
   const userId = await getAuthUserId();
 
   console.log('📊 Fetching monthly stats:', { userId, months });
@@ -221,7 +212,7 @@ export async function getReadingPattern(): Promise<ReadingPattern[]> {
 
   console.log(
     '✅ Reading pattern fetched:',
-    result.filter(r => r.count > 0).length,
+    result.filter((r) => r.count > 0).length,
     'active hours'
   );
 
@@ -242,17 +233,15 @@ export async function getYearHeatmap(): Promise<HeatmapDay[]> {
   const dailyStats = await getDailyStats(startDate, endDate);
 
   // Create lookup map
-  const statsMap = new Map(
-    dailyStats.map(stat => [stat.date, stat.ayat_count])
-  );
+  const statsMap = new Map(dailyStats.map((stat) => [stat.date, stat.ayat_count]));
 
   // Generate all days in range
   const allDays = eachDayOfInterval({ start: startDate, end: endDate });
 
   // Calculate quartiles for intensity levels
   const counts = dailyStats
-    .map(s => s.ayat_count)
-    .filter(count => count > 0)
+    .map((s) => s.ayat_count)
+    .filter((count) => count > 0)
     .sort((a, b) => a - b);
 
   const getQuartile = (percentage: number): number => {
@@ -266,7 +255,7 @@ export async function getYearHeatmap(): Promise<HeatmapDay[]> {
   const q3 = getQuartile(0.75) || 10;
 
   // Map to heatmap format with intensity levels
-  const result: HeatmapDay[] = allDays.map(date => {
+  const result: HeatmapDay[] = allDays.map((date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const count = statsMap.get(dateStr) ?? 0;
 
@@ -283,7 +272,7 @@ export async function getYearHeatmap(): Promise<HeatmapDay[]> {
   console.log('✅ Heatmap generated:', result.length, 'days');
   console.log('🔍 Debug - Quartiles:', { q1, q2, q3 });
   console.log('🔍 Debug - Sample data with levels:', result.slice(0, 10));
-  console.log('🔍 Debug - Days with level > 0:', result.filter(d => d.level > 0).slice(0, 10));
+  console.log('🔍 Debug - Days with level > 0:', result.filter((d) => d.level > 0).slice(0, 10));
 
   return result;
 }
@@ -336,12 +325,9 @@ export async function getComparativeStats(): Promise<ComparativeStats> {
   }
 
   // Get family stats
-  const { data: familyData, error: familyError } = await supabase.rpc(
-    'get_family_stats',
-    {
-      p_family_id: familyMember.family_id,
-    }
-  );
+  const { data: familyData, error: familyError } = await supabase.rpc('get_family_stats', {
+    p_family_id: familyMember.family_id,
+  });
 
   if (familyError) {
     console.error('❌ Family stats error:', familyError);
@@ -370,8 +356,7 @@ export const analyticsKeys = {
       format(end, 'yyyy-MM-dd'),
     ] as const,
   weekly: (weeks: number) => [...analyticsKeys.all, 'weekly', weeks] as const,
-  monthly: (months: number) =>
-    [...analyticsKeys.all, 'monthly', months] as const,
+  monthly: (months: number) => [...analyticsKeys.all, 'monthly', months] as const,
   pattern: () => [...analyticsKeys.all, 'pattern'] as const,
   heatmap: () => [...analyticsKeys.all, 'heatmap'] as const,
   userTotal: () => [...analyticsKeys.all, 'userTotal'] as const,

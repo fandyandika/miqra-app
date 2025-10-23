@@ -26,7 +26,7 @@ async function verifyUserSpecificStreak() {
       return;
     }
 
-    allUsers?.forEach(user => {
+    allUsers?.forEach((user) => {
       console.log(`  ${user.display_name} (ID: ${user.user_id})`);
     });
 
@@ -42,15 +42,12 @@ async function verifyUserSpecificStreak() {
         .order('date', { ascending: false });
 
       if (checkinsError) {
-        console.error(
-          `❌ Error fetching checkins for ${user.display_name}:`,
-          checkinsError
-        );
+        console.error(`❌ Error fetching checkins for ${user.display_name}:`, checkinsError);
         continue;
       }
 
       console.log(`  📅 Checkins (${checkins?.length || 0}):`);
-      checkins?.forEach(checkin => {
+      checkins?.forEach((checkin) => {
         console.log(`    ${checkin.date}: ${checkin.ayat_count} ayat`);
       });
 
@@ -61,10 +58,7 @@ async function verifyUserSpecificStreak() {
         .eq('user_id', user.user_id);
 
       if (streaksError) {
-        console.error(
-          `❌ Error fetching streaks for ${user.display_name}:`,
-          streaksError
-        );
+        console.error(`❌ Error fetching streaks for ${user.display_name}:`, streaksError);
         continue;
       }
 
@@ -83,9 +77,7 @@ async function verifyUserSpecificStreak() {
         let calculatedStreak = 0;
         let lastDate = null;
 
-        const sortedCheckins = checkins.sort((a, b) =>
-          b.date.localeCompare(a.date)
-        );
+        const sortedCheckins = checkins.sort((a, b) => b.date.localeCompare(a.date));
 
         // Start from most recent checkin
         let tempDate = new Date(sortedCheckins[0].date);
@@ -97,32 +89,22 @@ async function verifyUserSpecificStreak() {
         // Check consecutive days backwards
         for (let i = 1; i < sortedCheckins.length; i++) {
           const checkinDate = new Date(sortedCheckins[i].date);
-          const daysDiff = Math.floor(
-            (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-          );
+          const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-          console.log(
-            `    Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-          );
+          console.log(`    Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
           if (daysDiff === 1) {
             calculatedStreak++;
             tempDate = checkinDate;
-            console.log(
-              `      ✅ Consecutive! Streak now: ${calculatedStreak}`
-            );
+            console.log(`      ✅ Consecutive! Streak now: ${calculatedStreak}`);
           } else {
-            console.log(
-              `      ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`
-            );
+            console.log(`      ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`);
             break;
           }
         }
 
         console.log(`  📊 Calculated streak: ${calculatedStreak} days`);
-        console.log(
-          `  📅 Last checkin: ${lastDate?.toISOString().split('T')[0]}`
-        );
+        console.log(`  📅 Last checkin: ${lastDate?.toISOString().split('T')[0]}`);
 
         // Compare with database
         if (streaks && streaks.length > 0) {
@@ -130,9 +112,7 @@ async function verifyUserSpecificStreak() {
           console.log(`  🔍 Database vs Calculated:`);
           console.log(`    Database: ${dbStreak.current} days`);
           console.log(`    Calculated: ${calculatedStreak} days`);
-          console.log(
-            `    Match: ${dbStreak.current === calculatedStreak ? '✅' : '❌'}`
-          );
+          console.log(`    Match: ${dbStreak.current === calculatedStreak ? '✅' : '❌'}`);
 
           if (dbStreak.current !== calculatedStreak) {
             console.log(`  🔧 Updating streak for ${user.display_name}...`);
@@ -196,8 +176,8 @@ async function verifyUserSpecificStreak() {
     if (allStreaksError) {
       console.error('❌ Error fetching all streaks:', allStreaksError);
     } else {
-      allStreaks?.forEach(streak => {
-        const user = allUsers?.find(u => u.user_id === streak.user_id);
+      allStreaks?.forEach((streak) => {
+        const user = allUsers?.find((u) => u.user_id === streak.user_id);
         console.log(
           `  ${user?.display_name || 'Unknown'} (${streak.user_id}): ${streak.current} days (last: ${streak.last_date})`
         );
@@ -211,9 +191,7 @@ async function verifyUserSpecificStreak() {
       const user1 = allUsers[0];
       const user2 = allUsers[1];
 
-      console.log(
-        `Testing isolation between ${user1.display_name} and ${user2.display_name}:`
-      );
+      console.log(`Testing isolation between ${user1.display_name} and ${user2.display_name}:`);
 
       // Check if user1's checkins are not visible to user2
       const { data: user1Checkins } = await supabase
@@ -226,12 +204,8 @@ async function verifyUserSpecificStreak() {
         .select('*')
         .eq('user_id', user2.user_id);
 
-      console.log(
-        `  ${user1.display_name} checkins: ${user1Checkins?.length || 0}`
-      );
-      console.log(
-        `  ${user2.display_name} checkins: ${user2Checkins?.length || 0}`
-      );
+      console.log(`  ${user1.display_name} checkins: ${user1Checkins?.length || 0}`);
+      console.log(`  ${user2.display_name} checkins: ${user2Checkins?.length || 0}`);
 
       // Check if user1's streaks are not visible to user2
       const { data: user1Streaks } = await supabase
@@ -244,18 +218,12 @@ async function verifyUserSpecificStreak() {
         .select('*')
         .eq('user_id', user2.user_id);
 
-      console.log(
-        `  ${user1.display_name} streaks: ${user1Streaks?.[0]?.current || 0} days`
-      );
-      console.log(
-        `  ${user2.display_name} streaks: ${user2Streaks?.[0]?.current || 0} days`
-      );
+      console.log(`  ${user1.display_name} streaks: ${user1Streaks?.[0]?.current || 0} days`);
+      console.log(`  ${user2.display_name} streaks: ${user2Streaks?.[0]?.current || 0} days`);
 
       // Verify data isolation
-      const user1HasUser2Data =
-        user1Checkins?.some(c => c.user_id === user2.user_id) || false;
-      const user2HasUser1Data =
-        user2Checkins?.some(c => c.user_id === user1.user_id) || false;
+      const user1HasUser2Data = user1Checkins?.some((c) => c.user_id === user2.user_id) || false;
+      const user2HasUser1Data = user2Checkins?.some((c) => c.user_id === user1.user_id) || false;
 
       console.log(`  Data isolation check:`);
       console.log(

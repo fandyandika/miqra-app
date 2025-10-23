@@ -18,11 +18,7 @@ async function getProfile() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
 
   if (error) throw error;
   return data;
@@ -114,12 +110,10 @@ async function uploadAvatar(file) {
   const fileName = `${user.id}-${Date.now()}.${fileExt}`;
   const filePath = `avatars/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from('avatars')
-    .upload(filePath, file, {
-      contentType: 'image/jpeg',
-      upsert: true,
-    });
+  const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, {
+    contentType: 'image/jpeg',
+    upsert: true,
+  });
 
   if (uploadError) throw uploadError;
 
@@ -166,13 +160,7 @@ async function testProfileSystem() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.id, ')');
 
     // Test 3: Profile CRUD operations
     console.log('\n3️⃣ Testing profile operations...');
@@ -282,12 +270,11 @@ async function testProfileSystem() {
     // Test 5: Storage bucket
     console.log('\n5️⃣ Testing storage bucket...');
 
-    const { data: buckets, error: bucketsError } =
-      await supabase.storage.listBuckets();
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
     if (bucketsError) {
       console.log('❌ Storage test failed:', bucketsError.message);
     } else {
-      const avatarsBucket = buckets?.find(b => b.id === 'avatars');
+      const avatarsBucket = buckets?.find((b) => b.id === 'avatars');
       if (avatarsBucket) {
         console.log('✅ Avatars storage bucket exists');
         console.log('📊 Bucket info:', {
@@ -310,10 +297,7 @@ async function testProfileSystem() {
       .limit(3);
 
     if (allProfilesError) {
-      console.log(
-        '❌ Profile select policy test failed:',
-        allProfilesError.message
-      );
+      console.log('❌ Profile select policy test failed:', allProfilesError.message);
     } else {
       console.log('✅ Profile select policy working (public read)');
       console.log('📊 Found profiles:', allProfiles.length);

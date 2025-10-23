@@ -27,13 +27,7 @@ async function testStreakGapScenario() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create test scenario data
     console.log('\n📅 Creating test scenario data...');
@@ -86,7 +80,7 @@ async function testStreakGapScenario() {
       .order('date', { ascending: false });
 
     console.log('Checkins data:');
-    checkinsData?.forEach(checkin => {
+    checkinsData?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -95,9 +89,7 @@ async function testStreakGapScenario() {
     let lastDate = null;
 
     if (checkinsData && checkinsData.length > 0) {
-      const sortedCheckins = checkinsData.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkinsData.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -107,13 +99,9 @@ async function testStreakGapScenario() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-        console.log(
-          `  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-        );
+        console.log(`  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
         if (daysDiff === 1) {
           // Consecutive day
@@ -121,9 +109,7 @@ async function testStreakGapScenario() {
           tempDate = checkinDate;
         } else {
           // Gap found, streak breaks
-          console.log(
-            `  Gap found! Streak breaks at ${sortedCheckins[i].date}`
-          );
+          console.log(`  Gap found! Streak breaks at ${sortedCheckins[i].date}`);
           break;
         }
       }

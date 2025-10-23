@@ -87,10 +87,7 @@ import * as analytics from '@/services/analytics';
 // Test in useEffect or button press
 const testAnalytics = async () => {
   try {
-    const daily = await analytics.getDailyStats(
-      subDays(new Date(), 30),
-      new Date()
-    );
+    const daily = await analytics.getDailyStats(subDays(new Date(), 30), new Date());
     console.log('Daily:', daily);
 
     const weekly = await analytics.getWeeklyStats(4);

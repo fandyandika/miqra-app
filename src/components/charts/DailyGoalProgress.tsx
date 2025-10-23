@@ -28,7 +28,7 @@ export function DailyGoalProgress({
           {dailyGoal} ayat/hari × {daysInPeriod} hari
         </Text>
       </View>
-      
+
       <View style={styles.progressContainer}>
         <View style={styles.progressTrack}>
           <View
@@ -41,29 +41,19 @@ export function DailyGoalProgress({
             ]}
           />
         </View>
-        <Text style={styles.percentage}>
-          {Math.round(percentage)}%
-        </Text>
+        <Text style={styles.percentage}>{Math.round(percentage)}%</Text>
       </View>
-      
+
       <View style={styles.statsRow}>
-        <Text style={styles.currentText}>
-          {currentAyat.toLocaleString('id-ID')} ayat
-        </Text>
-        <Text style={styles.targetText}>
-          Target: {targetAyat.toLocaleString('id-ID')} ayat
-        </Text>
+        <Text style={styles.currentText}>{currentAyat.toLocaleString('id-ID')} ayat</Text>
+        <Text style={styles.targetText}>Target: {targetAyat.toLocaleString('id-ID')} ayat</Text>
       </View>
-      
+
       {!isComplete && remainingDays > 0 && (
-        <Text style={styles.remainingText}>
-          Sisa {remainingDays} hari untuk mencapai target
-        </Text>
+        <Text style={styles.remainingText}>Sisa {remainingDays} hari untuk mencapai target</Text>
       )}
-      
-      {isComplete && (
-        <Text style={styles.completeText}>🎉 Target tercapai!</Text>
-      )}
+
+      {isComplete && <Text style={styles.completeText}>🎉 Target tercapai!</Text>}
     </View>
   );
 }

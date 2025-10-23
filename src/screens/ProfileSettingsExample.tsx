@@ -25,7 +25,7 @@ export default function ProfileSettingsExample() {
   const handleAvatarUpload = async (file: Blob): Promise<string> => {
     try {
       const url = await uploadAvatar(file);
-      setProfile(prev => ({ ...prev, avatar_url: url }));
+      setProfile((prev) => ({ ...prev, avatar_url: url }));
       return url;
     } catch (error: any) {
       Alert.alert('Gagal', error.message || 'Tidak bisa mengunggah foto');
@@ -34,7 +34,7 @@ export default function ProfileSettingsExample() {
   };
 
   const updateSetting = (key: keyof typeof settings, value: boolean) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+    setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -46,81 +46,71 @@ export default function ProfileSettingsExample() {
         <Text style={styles.sectionTitle}>Profil</Text>
 
         <View style={styles.avatarContainer}>
-          <AvatarPicker
-            currentUrl={profile.avatar_url}
-            onUpload={handleAvatarUpload}
-            size={120}
-          />
+          <AvatarPicker currentUrl={profile.avatar_url} onUpload={handleAvatarUpload} size={120} />
           <Text style={styles.profileName}>{profile.display_name}</Text>
         </View>
       </View>
 
       {/* Privacy Settings */}
-      <SettingSection title='Privasi'>
+      <SettingSection title="Privasi">
         <SettingToggle
-          label='Tampilkan Estimasi Pahala'
-          description='Bagikan estimasi pahala dengan keluarga'
+          label="Tampilkan Estimasi Pahala"
+          description="Bagikan estimasi pahala dengan keluarga"
           value={settings.hasanat_visible}
-          onChange={value => updateSetting('hasanat_visible', value)}
+          onChange={(value) => updateSetting('hasanat_visible', value)}
         />
 
         <SettingToggle
-          label='Bagikan dengan Keluarga'
-          description='Izinkan keluarga melihat progres Anda'
+          label="Bagikan dengan Keluarga"
+          description="Izinkan keluarga melihat progres Anda"
           value={settings.share_with_family}
-          onChange={value => updateSetting('share_with_family', value)}
+          onChange={(value) => updateSetting('share_with_family', value)}
         />
 
         <SettingToggle
-          label='Ikut Leaderboard'
-          description='Tampilkan nama di papan peringkat'
+          label="Ikut Leaderboard"
+          description="Tampilkan nama di papan peringkat"
           value={settings.join_leaderboard}
-          onChange={value => updateSetting('join_leaderboard', value)}
+          onChange={(value) => updateSetting('join_leaderboard', value)}
         />
       </SettingSection>
 
       {/* Notification Settings */}
-      <SettingSection title='Notifikasi'>
+      <SettingSection title="Notifikasi">
         <SettingToggle
-          label='Pengingat Harian'
+          label="Pengingat Harian"
           description="Ingatkan untuk membaca Al-Qur'an setiap hari"
           value={settings.daily_reminder_enabled}
-          onChange={value => updateSetting('daily_reminder_enabled', value)}
+          onChange={(value) => updateSetting('daily_reminder_enabled', value)}
         />
 
         <SettingToggle
-          label='Peringatan Streak'
-          description='Beritahu jika streak akan terputus'
+          label="Peringatan Streak"
+          description="Beritahu jika streak akan terputus"
           value={settings.streak_warning_enabled}
-          onChange={value => updateSetting('streak_warning_enabled', value)}
+          onChange={(value) => updateSetting('streak_warning_enabled', value)}
         />
 
         <SettingToggle
-          label='Dorongan Keluarga'
-          description='Terima dorongan dari anggota keluarga'
+          label="Dorongan Keluarga"
+          description="Terima dorongan dari anggota keluarga"
           value={settings.family_nudge_enabled}
-          onChange={value => updateSetting('family_nudge_enabled', value)}
+          onChange={(value) => updateSetting('family_nudge_enabled', value)}
         />
 
         <SettingToggle
-          label='Perayaan Pencapaian'
-          description='Rayakan milestone dan pencapaian'
+          label="Perayaan Pencapaian"
+          description="Rayakan milestone dan pencapaian"
           value={settings.milestone_celebration_enabled}
-          onChange={value =>
-            updateSetting('milestone_celebration_enabled', value)
-          }
+          onChange={(value) => updateSetting('milestone_celebration_enabled', value)}
         />
       </SettingSection>
 
       {/* Debug Info */}
       <View style={styles.debugSection}>
         <Text style={styles.debugTitle}>Debug Info</Text>
-        <Text style={styles.debugText}>
-          Avatar URL: {profile.avatar_url || 'None'}
-        </Text>
-        <Text style={styles.debugText}>
-          Settings: {JSON.stringify(settings, null, 2)}
-        </Text>
+        <Text style={styles.debugText}>Avatar URL: {profile.avatar_url || 'None'}</Text>
+        <Text style={styles.debugText}>Settings: {JSON.stringify(settings, null, 2)}</Text>
       </View>
     </ScrollView>
   );

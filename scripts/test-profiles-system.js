@@ -46,13 +46,7 @@ async function createProfilesSystem() {
       }
 
       const testUser = users[0];
-      console.log(
-        '👤 Test user:',
-        testUser.display_name,
-        '(ID:',
-        testUser.id,
-        ')'
-      );
+      console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.id, ')');
 
       // Test profile update
       const { data: updatedProfile, error: updateError } = await supabase
@@ -99,30 +93,28 @@ async function createProfilesSystem() {
       }
 
       // Test storage bucket
-      const { data: buckets, error: bucketsError } =
-        await supabase.storage.listBuckets();
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
       if (bucketsError) {
         console.log('❌ Storage test failed:', bucketsError.message);
       } else {
-        const avatarsBucket = buckets?.find(b => b.id === 'avatars');
+        const avatarsBucket = buckets?.find((b) => b.id === 'avatars');
         if (avatarsBucket) {
           console.log('✅ Avatars storage bucket accessible');
         } else {
           console.log('⚠️  Avatars bucket not found, creating...');
 
           // Try to create bucket via API
-          const { data: bucketData, error: bucketError } =
-            await supabase.storage.createBucket('avatars', {
+          const { data: bucketData, error: bucketError } = await supabase.storage.createBucket(
+            'avatars',
+            {
               public: true,
               allowedMimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
               fileSizeLimit: 5242880, // 5MB
-            });
+            }
+          );
 
           if (bucketError) {
-            console.log(
-              '❌ Failed to create avatars bucket:',
-              bucketError.message
-            );
+            console.log('❌ Failed to create avatars bucket:', bucketError.message);
           } else {
             console.log('✅ Avatars bucket created successfully');
           }
@@ -132,9 +124,7 @@ async function createProfilesSystem() {
       console.log('\n🎉 Profile & Settings system is ready!');
       console.log('\n📱 Available features:');
       console.log('1. ✅ User profiles with display name, avatar, timezone');
-      console.log(
-        '2. ✅ User settings with privacy, notifications, preferences'
-      );
+      console.log('2. ✅ User settings with privacy, notifications, preferences');
       console.log('3. ✅ RLS security policies');
       console.log('4. ✅ Auto-update triggers');
       console.log('5. ✅ Avatar storage bucket');
@@ -229,9 +219,7 @@ where not exists (select 1 from public.user_settings s where s.user_id = u.id);
 
     console.log(migrationSQL);
 
-    console.log(
-      '\n📝 After running the SQL, run this script again to test the setup.'
-    );
+    console.log('\n📝 After running the SQL, run this script again to test the setup.');
   } catch (error) {
     console.error('❌ Setup failed:', error);
   }

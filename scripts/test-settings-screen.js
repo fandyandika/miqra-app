@@ -17,11 +17,10 @@ async function testSettingsScreen() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);

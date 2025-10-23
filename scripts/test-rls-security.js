@@ -16,10 +16,7 @@ async function testRLSSecurity() {
     console.log('🔒 Starting RLS Security Tests...');
 
     // Get test users
-    const { data: users } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .limit(2);
+    const { data: users } = await supabase.from('profiles').select('user_id').limit(2);
 
     if (!users || users.length < 2) {
       console.error('❌ Need at least 2 users for testing');
@@ -49,22 +46,16 @@ async function testRLSSecurity() {
     console.log('');
 
     // Create USER_B client for RLS testing
-    const userBClient = createClient(
-      supabaseUrl,
-      process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${await getUserToken(USER_B)}`,
-          },
+    const userBClient = createClient(supabaseUrl, process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${await getUserToken(USER_B)}`,
         },
-      }
-    );
+      },
+    });
 
     // Test 1: USER_B cannot select families they don't belong to
-    console.log(
-      "🔍 Test 1: USER_B cannot select families they don't belong to"
-    );
+    console.log("🔍 Test 1: USER_B cannot select families they don't belong to");
     const { data: test1Data, error: test1Error } = await userBClient
       .from('families')
       .select('*')
@@ -72,9 +63,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test1Data?.length || 0} rows returned`);
     console.log(`   Expected: 0 rows (USER_B is not a member)`);
-    console.log(
-      `   Status: ${test1Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test1Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 2: USER_B cannot see USER_A checkins
@@ -87,9 +76,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test2Data?.length || 0} rows returned`);
     console.log(`   Expected: 0 rows (USER_B cannot see USER_A data)`);
-    console.log(
-      `   Status: ${test2Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test2Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 3: USER_B can select own checkins (should be none)
@@ -101,9 +88,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test3Data?.length || 0} rows returned`);
     console.log(`   Expected: 0 rows (USER_B has no checkins yet)`);
-    console.log(
-      `   Status: ${test3Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test3Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 4: USER_B cannot update USER_A streak
@@ -116,9 +101,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test4Data?.length || 0} rows updated`);
     console.log(`   Expected: 0 rows (permission denied)`);
-    console.log(
-      `   Status: ${test4Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test4Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 5: USER_B can insert their own checkin
@@ -135,22 +118,17 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test5Data?.length || 0} rows inserted`);
     console.log(`   Expected: 1 row (USER_B can insert own data)`);
-    console.log(
-      `   Status: ${test5Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test5Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`);
 
     if (test5Data?.length === 1) {
       console.log(`   Checkin created: ${test5Data[0].id}`);
 
       // Test streak update
       console.log('🔍 Test 5b: USER_B can update own streak');
-      const { error: streakError } = await userBClient.rpc(
-        'update_streak_after_checkin',
-        {
-          checkin_user_id: USER_B,
-          checkin_date: today,
-        }
-      );
+      const { error: streakError } = await userBClient.rpc('update_streak_after_checkin', {
+        checkin_user_id: USER_B,
+        checkin_date: today,
+      });
 
       console.log(`   Streak update: ${streakError ? '❌ FAIL' : '✅ PASS'}`);
       if (streakError) {

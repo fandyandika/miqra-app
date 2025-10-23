@@ -10,21 +10,16 @@ type Props = {
 
 export function MilestoneGrid({ milestones, compact = false }: Props) {
   const list = compact
-    ? ([
-        ...milestones.filter(m => m.achieved),
-        milestones.find(m => !m.achieved),
-      ].filter(Boolean) as Milestone[])
+    ? ([...milestones.filter((m) => m.achieved), milestones.find((m) => !m.achieved)].filter(
+        Boolean
+      ) as Milestone[])
     : milestones;
 
   return (
     <View style={{ marginVertical: 8 }}>
       {!compact && <Text style={s.title}>Pencapaian</Text>}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={s.row}
-      >
-        {list.map(m => (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.row}>
+        {list.map((m) => (
           <View
             key={m.id}
             style={[s.badge, m.achieved ? s.badgeOn : s.badgeOff]}
@@ -32,9 +27,7 @@ export function MilestoneGrid({ milestones, compact = false }: Props) {
             accessibilityLabel={`${m.label}, ${m.percentage}%${m.achieved ? ' (tercapai)' : ''}`}
           >
             <Text style={s.icon}>{m.icon}</Text>
-            <Text style={[s.perc, m.achieved && s.percOn]}>
-              {m.percentage}%
-            </Text>
+            <Text style={[s.perc, m.achieved && s.percOn]}>{m.percentage}%</Text>
             <Text style={[s.label, m.achieved && s.labelOn]}>{m.label}</Text>
           </View>
         ))}

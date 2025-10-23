@@ -35,10 +35,7 @@ async function clearTestData() {
     }
 
     // Clear families (optional - be careful!)
-    const { error: familyError } = await supabase
-      .from('families')
-      .delete()
-      .like('name', '%Test%');
+    const { error: familyError } = await supabase.from('families').delete().like('name', '%Test%');
 
     if (familyError) {
       console.error('❌ Error clearing test families:', familyError);

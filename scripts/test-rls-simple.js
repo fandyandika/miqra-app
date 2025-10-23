@@ -16,10 +16,7 @@ async function testRLSSecurity() {
     console.log('🔒 Starting RLS Security Tests...');
 
     // Get test users
-    const { data: users } = await supabase
-      .from('profiles')
-      .select('user_id')
-      .limit(2);
+    const { data: users } = await supabase.from('profiles').select('user_id').limit(2);
 
     if (!users || users.length < 2) {
       console.error('❌ Need at least 2 users for testing');
@@ -58,9 +55,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test1Data?.length || 0} rows found`);
     console.log(`   Expected: 1 row (USER_B should be a member)`);
-    console.log(
-      `   Status: ${test1Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test1Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 2: Check USER_A checkins (should exist)
@@ -74,37 +69,25 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test2Data?.length || 0} rows found`);
     console.log(`   Expected: 1 row (USER_A should have checkin)`);
-    console.log(
-      `   Status: ${test2Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test2Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 3: Check USER_B checkins (should be none initially)
     console.log('🔍 Test 3: Check USER_B checkins');
-    const { data: test3Data } = await supabase
-      .from('checkins')
-      .select('*')
-      .eq('user_id', USER_B);
+    const { data: test3Data } = await supabase.from('checkins').select('*').eq('user_id', USER_B);
 
     console.log(`   Result: ${test3Data?.length || 0} rows found`);
     console.log(`   Expected: 0 rows (USER_B has no checkins yet)`);
-    console.log(
-      `   Status: ${test3Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test3Data?.length === 0 ? '✅ PASS' : '❌ FAIL'}`);
     console.log('');
 
     // Test 4: Check USER_A streak
     console.log('🔍 Test 4: Check USER_A streak');
-    const { data: test4Data } = await supabase
-      .from('streaks')
-      .select('*')
-      .eq('user_id', USER_A);
+    const { data: test4Data } = await supabase.from('streaks').select('*').eq('user_id', USER_A);
 
     console.log(`   Result: ${test4Data?.length || 0} rows found`);
     console.log(`   Expected: 1 row (USER_A should have streak)`);
-    console.log(
-      `   Status: ${test4Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test4Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`);
     if (test4Data?.length === 1) {
       console.log(
         `   Streak data: current=${test4Data[0].current}, longest=${test4Data[0].longest}`
@@ -125,9 +108,7 @@ async function testRLSSecurity() {
 
     console.log(`   Result: ${test5Data?.length || 0} rows inserted`);
     console.log(`   Expected: 1 row (should be able to insert)`);
-    console.log(
-      `   Status: ${test5Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`
-    );
+    console.log(`   Status: ${test5Data?.length === 1 ? '✅ PASS' : '❌ FAIL'}`);
     if (test5Error) {
       console.log(`   Error: ${test5Error.message}`);
     }
@@ -135,13 +116,10 @@ async function testRLSSecurity() {
 
     // Test 6: Update streak for USER_B
     console.log('🔍 Test 6: Update streak for USER_B');
-    const { error: streakError } = await supabase.rpc(
-      'update_streak_after_checkin',
-      {
-        checkin_user_id: USER_B,
-        checkin_date: today,
-      }
-    );
+    const { error: streakError } = await supabase.rpc('update_streak_after_checkin', {
+      checkin_user_id: USER_B,
+      checkin_date: today,
+    });
 
     console.log(`   Result: ${streakError ? 'Error' : 'Success'}`);
     console.log(`   Expected: Success`);
@@ -152,15 +130,9 @@ async function testRLSSecurity() {
     console.log('');
 
     console.log('📊 RLS SECURITY TEST SUMMARY:');
-    console.log(
-      '   Note: These tests verify data integrity and RPC functions.'
-    );
-    console.log(
-      '   For true RLS testing, you need to authenticate as each user.'
-    );
-    console.log(
-      '   Use Supabase Dashboard > SQL Editor with different user contexts.'
-    );
+    console.log('   Note: These tests verify data integrity and RPC functions.');
+    console.log('   For true RLS testing, you need to authenticate as each user.');
+    console.log('   Use Supabase Dashboard > SQL Editor with different user contexts.');
   } catch (error) {
     console.error('❌ RLS testing failed:', error.message);
   }

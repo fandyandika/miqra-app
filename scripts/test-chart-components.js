@@ -48,9 +48,7 @@ async function getDailyStats(startDate, endDate) {
 
   if (error) {
     console.error('❌ getDailyStats error:', error);
-    throw new Error(
-      `getDailyStats failed: ${error.message || 'Unknown error'}`
-    );
+    throw new Error(`getDailyStats failed: ${error.message || 'Unknown error'}`);
   }
 
   const result = data ?? [];
@@ -69,20 +67,18 @@ async function getYearHeatmap() {
   const dailyStats = await getDailyStats(startDate, endDate);
 
   // Create lookup map
-  const statsMap = new Map(
-    dailyStats.map(stat => [stat.date, stat.ayat_count])
-  );
+  const statsMap = new Map(dailyStats.map((stat) => [stat.date, stat.ayat_count]));
 
   // Generate all days in range
   const allDays = eachDayOfInterval({ start: startDate, end: endDate });
 
   // Calculate quartiles for intensity levels
   const counts = dailyStats
-    .map(s => s.ayat_count)
-    .filter(count => count > 0)
+    .map((s) => s.ayat_count)
+    .filter((count) => count > 0)
     .sort((a, b) => a - b);
 
-  const getQuartile = percentage => {
+  const getQuartile = (percentage) => {
     if (counts.length === 0) return 0;
     const index = Math.floor(counts.length * percentage);
     return counts[index] || 0;
@@ -93,7 +89,7 @@ async function getYearHeatmap() {
   const q3 = getQuartile(0.75) || 10;
 
   // Map to heatmap format with intensity levels
-  const result = allDays.map(date => {
+  const result = allDays.map((date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const count = statsMap.get(dateStr) ?? 0;
 
@@ -118,11 +114,10 @@ async function testChartComponents() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);
@@ -175,7 +170,7 @@ async function testChartComponents() {
 
       // Count by intensity level
       const levelCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
-      heatmapData.forEach(day => {
+      heatmapData.forEach((day) => {
         levelCounts[day.level]++;
       });
       console.log('📊 Heatmap intensity distribution:', levelCounts);
@@ -201,16 +196,13 @@ async function testChartComponents() {
     // Test 7: Real daily stats for charts
     console.log('\n📊 Testing with real daily stats...');
     try {
-      const realDailyStats = await getDailyStats(
-        subDays(new Date(), 30),
-        new Date()
-      );
+      const realDailyStats = await getDailyStats(subDays(new Date(), 30), new Date());
 
       // Transform for BarChart
       const barChartData = realDailyStats
-        .filter(stat => stat.ayat_count > 0)
+        .filter((stat) => stat.ayat_count > 0)
         .slice(-7) // Last 7 days with data
-        .map(stat => ({
+        .map((stat) => ({
           label: format(new Date(stat.date), 'EEE'),
           value: stat.ayat_count,
         }));
@@ -219,9 +211,9 @@ async function testChartComponents() {
 
       // Transform for LineChart
       const lineChartData = realDailyStats
-        .filter(stat => stat.ayat_count > 0)
+        .filter((stat) => stat.ayat_count > 0)
         .slice(-14) // Last 14 days with data
-        .map(stat => ({
+        .map((stat) => ({
           label: format(new Date(stat.date), 'MMM dd'),
           value: stat.ayat_count,
         }));

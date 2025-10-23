@@ -27,13 +27,7 @@ async function testFinalVerification() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Check current data
     console.log('\n📊 Current data:');
@@ -45,7 +39,7 @@ async function testFinalVerification() {
       .order('date', { ascending: false });
 
     console.log('Checkins:', checkins?.length || 0);
-    checkins?.forEach(checkin => {
+    checkins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
@@ -98,9 +92,7 @@ async function testFinalVerification() {
     let lastDate = null;
 
     if (checkins && checkins.length > 0) {
-      const sortedCheckins = checkins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = checkins.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -110,9 +102,7 @@ async function testFinalVerification() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
         if (daysDiff === 1) {
           currentStreak++;

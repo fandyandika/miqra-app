@@ -20,8 +20,8 @@ async function verifyCleanup() {
 
     // Get both test users
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test1User || !test2User) {
       console.log('❌ One or both test users not found');
@@ -134,10 +134,7 @@ async function verifyCleanup() {
     console.log(`📊 Future checkins remaining: ${futureCheckins?.length || 0}`);
     console.log(`📊 Future sessions remaining: ${futureSessions?.length || 0}`);
 
-    if (
-      (futureCheckins?.length || 0) === 0 &&
-      (futureSessions?.length || 0) === 0
-    ) {
+    if ((futureCheckins?.length || 0) === 0 && (futureSessions?.length || 0) === 0) {
       console.log('✅ No future data found - cleanup successful!');
     } else {
       console.log('⚠️ Some future data still remains');

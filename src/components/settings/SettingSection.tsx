@@ -5,11 +5,7 @@ type SettingSectionProps = { title: string; children: React.ReactNode };
 
 export function SettingSection({ title, children }: SettingSectionProps) {
   return (
-    <View
-      style={styles.container}
-      accessible
-      accessibilityLabel={`Bagian ${title}`}
-    >
+    <View style={styles.container} accessible accessibilityLabel={`Bagian ${title}`}>
       <Text style={styles.title}>{title}</Text>
       <View style={styles.content}>{children}</View>
     </View>

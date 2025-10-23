@@ -27,13 +27,7 @@ async function syncCheckinsAndSessions() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Get all reading sessions for October
     console.log('\n📚 Getting reading sessions for October:');
@@ -56,7 +50,7 @@ async function syncCheckinsAndSessions() {
     console.log('\n📊 Grouping sessions by date:');
     const dailyTotals = {};
 
-    sessions?.forEach(session => {
+    sessions?.forEach((session) => {
       const date = session.date;
       if (!dailyTotals[date]) {
         dailyTotals[date] = 0;
@@ -67,7 +61,7 @@ async function syncCheckinsAndSessions() {
     console.log('Daily totals from sessions:');
     Object.keys(dailyTotals)
       .sort()
-      .forEach(date => {
+      .forEach((date) => {
         console.log(`  ${date}: ${dailyTotals[date]} ayat`);
       });
 
@@ -85,22 +79,20 @@ async function syncCheckinsAndSessions() {
     }
 
     console.log('Current checkins:', currentCheckins?.length || 0);
-    currentCheckins?.forEach(checkin => {
+    currentCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 
     // 5. Compare sessions vs checkins
     console.log('\n🔍 Comparing sessions vs checkins:');
     const sessionDates = Object.keys(dailyTotals);
-    const checkinDates = currentCheckins?.map(c => c.date) || [];
+    const checkinDates = currentCheckins?.map((c) => c.date) || [];
 
     console.log('Dates with sessions:', sessionDates.length);
     console.log('Dates with checkins:', checkinDates.length);
 
     // Find dates that have sessions but no checkins
-    const missingCheckins = sessionDates.filter(
-      date => !checkinDates.includes(date)
-    );
+    const missingCheckins = sessionDates.filter((date) => !checkinDates.includes(date));
     console.log('Dates with sessions but no checkins:', missingCheckins);
 
     // 6. Create missing checkins
@@ -110,14 +102,12 @@ async function syncCheckinsAndSessions() {
       for (const date of missingCheckins) {
         const ayatCount = dailyTotals[date];
 
-        const { data: newCheckin, error: checkinError } = await supabase
-          .from('checkins')
-          .insert({
-            user_id: testUser.user_id,
-            date: date,
-            ayat_count: ayatCount,
-            created_at: new Date(date + 'T08:00:00Z').toISOString(),
-          });
+        const { data: newCheckin, error: checkinError } = await supabase.from('checkins').insert({
+          user_id: testUser.user_id,
+          date: date,
+          ayat_count: ayatCount,
+          created_at: new Date(date + 'T08:00:00Z').toISOString(),
+        });
 
         if (checkinError) {
           console.error(`❌ Error creating checkin for ${date}:`, checkinError);
@@ -140,9 +130,7 @@ async function syncCheckinsAndSessions() {
     let lastDate = null;
 
     if (updatedCheckins && updatedCheckins.length > 0) {
-      const sortedCheckins = updatedCheckins.sort((a, b) =>
-        b.date.localeCompare(a.date)
-      );
+      const sortedCheckins = updatedCheckins.sort((a, b) => b.date.localeCompare(a.date));
 
       // Start from most recent checkin
       let tempDate = new Date(sortedCheckins[0].date);
@@ -154,22 +142,16 @@ async function syncCheckinsAndSessions() {
       // Check consecutive days backwards
       for (let i = 1; i < sortedCheckins.length; i++) {
         const checkinDate = new Date(sortedCheckins[i].date);
-        const daysDiff = Math.floor(
-          (tempDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((tempDate - checkinDate) / (1000 * 60 * 60 * 24));
 
-        console.log(
-          `  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`
-        );
+        console.log(`  Checking ${sortedCheckins[i].date}: diff = ${daysDiff} days`);
 
         if (daysDiff === 1) {
           currentStreak++;
           tempDate = checkinDate;
           console.log(`    ✅ Consecutive! Streak now: ${currentStreak}`);
         } else {
-          console.log(
-            `    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`
-          );
+          console.log(`    ❌ Gap found! Streak breaks at ${sortedCheckins[i].date}`);
           break;
         }
       }
@@ -177,10 +159,7 @@ async function syncCheckinsAndSessions() {
 
     console.log('\n📊 Final calculation:');
     console.log('Current streak:', currentStreak, 'days');
-    console.log(
-      'Last checkin date:',
-      lastDate?.toISOString().split('T')[0] || 'None'
-    );
+    console.log('Last checkin date:', lastDate?.toISOString().split('T')[0] || 'None');
 
     // 8. Update streaks table
     console.log('\n🔧 Updating streaks table...');
@@ -216,7 +195,7 @@ async function syncCheckinsAndSessions() {
       .order('date', { ascending: true });
 
     console.log('Final checkins:');
-    finalCheckins?.forEach(checkin => {
+    finalCheckins?.forEach((checkin) => {
       console.log(`  ${checkin.date}: ${checkin.ayat_count} ayat`);
     });
 

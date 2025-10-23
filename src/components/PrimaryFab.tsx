@@ -7,7 +7,7 @@ type Props = { onPress: () => void };
 export default function PrimaryFab({ onPress }: Props) {
   return (
     <View
-      pointerEvents='box-none'
+      pointerEvents="box-none"
       style={{
         position: 'absolute',
         left: 0,
@@ -27,7 +27,7 @@ export default function PrimaryFab({ onPress }: Props) {
           }
           onPress();
         }}
-        accessibilityRole='button'
+        accessibilityRole="button"
         accessibilityLabel="Catat bacaan Al-Qur'an"
         style={{
           width: 64,
@@ -57,9 +57,7 @@ export default function PrimaryFab({ onPress }: Props) {
             marginBottom: 2,
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>
-            📖
-          </Text>
+          <Text style={{ color: '#fff', fontSize: 18, fontWeight: 'bold' }}>📖</Text>
         </View>
       </Pressable>
 

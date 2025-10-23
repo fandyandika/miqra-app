@@ -118,7 +118,7 @@ export const SURAH_META: SurahMeta[] = [
 ];
 
 export function getAyatCount(surah: number): number {
-  return SURAH_META.find(s => s.number === surah)?.ayatCount ?? 7;
+  return SURAH_META.find((s) => s.number === surah)?.ayatCount ?? 7;
 }
 
 export function getNextPosition(surah: number, ayat: number) {

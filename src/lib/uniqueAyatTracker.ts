@@ -33,11 +33,7 @@ export function parseAyatKey(key: string): AyatPosition {
 /**
  * Get all ayat positions in a range
  */
-export function getAyatPositionsInRange(
-  surah: number,
-  start: number,
-  end: number
-): AyatPosition[] {
+export function getAyatPositionsInRange(surah: number, start: number, end: number): AyatPosition[] {
   const positions: AyatPosition[] = [];
   for (let ayat = start; ayat <= end; ayat++) {
     positions.push({ surah, ayat });
@@ -49,12 +45,12 @@ export function getAyatPositionsInRange(
  * Calculate unique ayat progress from reading sessions
  */
 export function calculateUniqueAyatProgress(
-  sessions: Array<{
+  sessions: {
     surah_number: number;
     ayat_start: number;
     ayat_end: number;
     session_time: string;
-  }>
+  }[]
 ): UniqueAyatData {
   const uniquePositions = new Set<string>();
   let lastPosition: AyatPosition | null = null;
@@ -62,8 +58,7 @@ export function calculateUniqueAyatProgress(
 
   // Process sessions chronologically
   const sortedSessions = [...sessions].sort(
-    (a, b) =>
-      new Date(a.session_time).getTime() - new Date(b.session_time).getTime()
+    (a, b) => new Date(a.session_time).getTime() - new Date(b.session_time).getTime()
   );
 
   for (const session of sortedSessions) {
@@ -115,7 +110,7 @@ export function getNextUnreadPosition(
 ): AyatPosition {
   // Start from current position
   for (let surah = currentSurah; surah <= 114; surah++) {
-    const surahMeta = SURAH_META.find(s => s.number === surah);
+    const surahMeta = SURAH_META.find((s) => s.number === surah);
     if (!surahMeta) continue;
 
     const startAyat = surah === currentSurah ? currentAyat : 1;
@@ -142,9 +137,9 @@ export function getSurahCoverage(
   read: number;
   total: number;
   percentage: number;
-  missingRanges: Array<{ start: number; end: number }>;
+  missingRanges: { start: number; end: number }[];
 } {
-  const surahMeta = SURAH_META.find(s => s.number === surah);
+  const surahMeta = SURAH_META.find((s) => s.number === surah);
   if (!surahMeta) {
     return { read: 0, total: 0, percentage: 0, missingRanges: [] };
   }
@@ -157,7 +152,7 @@ export function getSurahCoverage(
     }
   }
 
-  const missingRanges: Array<{ start: number; end: number }> = [];
+  const missingRanges: { start: number; end: number }[] = [];
   let rangeStart: number | null = null;
 
   for (let ayat = 1; ayat <= surahMeta.ayatCount; ayat++) {

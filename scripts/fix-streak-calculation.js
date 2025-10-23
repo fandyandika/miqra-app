@@ -21,7 +21,7 @@ async function fixStreakCalculation() {
 
     // Get test2 user
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test2User) {
       console.log('❌ test2@miqra.com not found');
@@ -38,12 +38,12 @@ async function fixStreakCalculation() {
 
     console.log(
       '📅 Test2 checkin dates:',
-      test2Checkins.map(c => c.date)
+      test2Checkins.map((c) => c.date)
     );
 
     // CORRECT streak calculation
     // We need to find the longest consecutive sequence ending with the most recent checkin
-    const checkinDates = test2Checkins.map(c => c.date).sort();
+    const checkinDates = test2Checkins.map((c) => c.date).sort();
 
     let maxStreak = 0;
     let currentStreak = 0;
@@ -56,8 +56,7 @@ async function fixStreakCalculation() {
       for (let j = i + 1; j < checkinDates.length; j++) {
         const currentDate = new Date(checkinDates[j]);
         const prevDate = new Date(checkinDates[j - 1]);
-        const daysDiff =
-          (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
         if (daysDiff === 1) {
           tempStreak++;
@@ -87,8 +86,7 @@ async function fixStreakCalculation() {
       for (let i = checkinDates.length - 2; i >= 0; i--) {
         const currentDate = new Date(checkinDates[i + 1]);
         const prevDate = new Date(checkinDates[i]);
-        const daysDiff =
-          (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+        const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
         if (daysDiff === 1) {
           currentActiveStreak++;
@@ -136,7 +134,7 @@ async function fixStreakCalculation() {
     // Also fix test1 by removing future checkin
     console.log('\n🔧 FIXING TEST1 - REMOVING FUTURE CHECKIN...');
 
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
     if (test1User) {
       const { error: deleteError } = await supabase
         .from('checkins')

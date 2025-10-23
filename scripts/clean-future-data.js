@@ -45,10 +45,7 @@ async function cleanFutureData() {
           .gt('date', today);
 
         if (deleteCheckinsError) {
-          console.log(
-            '❌ Error deleting future checkins:',
-            deleteCheckinsError.message
-          );
+          console.log('❌ Error deleting future checkins:', deleteCheckinsError.message);
         } else {
           console.log('✅ Future checkins deleted successfully');
         }
@@ -68,9 +65,7 @@ async function cleanFutureData() {
     if (sessionsError) {
       console.log('❌ Error fetching future sessions:', sessionsError.message);
     } else {
-      console.log(
-        `📊 Found ${futureSessions?.length || 0} future reading sessions`
-      );
+      console.log(`📊 Found ${futureSessions?.length || 0} future reading sessions`);
 
       if (futureSessions && futureSessions.length > 0) {
         console.log('🗑️ Future reading sessions to delete:');
@@ -86,10 +81,7 @@ async function cleanFutureData() {
           .gt('date', today);
 
         if (deleteSessionsError) {
-          console.log(
-            '❌ Error deleting future sessions:',
-            deleteSessionsError.message
-          );
+          console.log('❌ Error deleting future sessions:', deleteSessionsError.message);
         } else {
           console.log('✅ Future reading sessions deleted successfully');
         }
@@ -105,12 +97,10 @@ async function cleanFutureData() {
     const usersWithCheckins = new Set();
 
     // Get all users who have checkins
-    const { data: allCheckins } = await supabase
-      .from('checkins')
-      .select('user_id');
+    const { data: allCheckins } = await supabase.from('checkins').select('user_id');
 
     if (allCheckins) {
-      allCheckins.forEach(checkin => usersWithCheckins.add(checkin.user_id));
+      allCheckins.forEach((checkin) => usersWithCheckins.add(checkin.user_id));
     }
 
     console.log(`👥 Found ${usersWithCheckins.size} users with checkins`);
@@ -130,7 +120,7 @@ async function cleanFutureData() {
         continue;
       }
 
-      const checkinDates = userCheckins.map(c => c.date).sort();
+      const checkinDates = userCheckins.map((c) => c.date).sort();
       console.log(`  📅 Checkin dates: ${checkinDates.join(', ')}`);
 
       // Calculate streak
@@ -145,9 +135,7 @@ async function cleanFutureData() {
         for (let j = i + 1; j < checkinDates.length; j++) {
           const currentDate = new Date(checkinDates[j]);
           const prevDate = new Date(checkinDates[j - 1]);
-          const daysDiff =
-            (currentDate.getTime() - prevDate.getTime()) /
-            (1000 * 60 * 60 * 24);
+          const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
           if (daysDiff === 1) {
             tempStreak++;
@@ -176,9 +164,7 @@ async function cleanFutureData() {
         for (let i = checkinDates.length - 2; i >= 0; i--) {
           const currentDate = new Date(checkinDates[i + 1]);
           const prevDate = new Date(checkinDates[i]);
-          const daysDiff =
-            (currentDate.getTime() - prevDate.getTime()) /
-            (1000 * 60 * 60 * 24);
+          const daysDiff = (currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
 
           if (daysDiff === 1) {
             currentStreak++;
@@ -188,9 +174,7 @@ async function cleanFutureData() {
         }
       }
 
-      console.log(
-        `  📊 Calculated: ${currentStreak} current, ${maxStreak} longest`
-      );
+      console.log(`  📊 Calculated: ${currentStreak} current, ${maxStreak} longest`);
 
       // Update streak in database
       const { error: updateError } = await supabase.from('streaks').upsert(
@@ -223,12 +207,8 @@ async function cleanFutureData() {
       .select('user_id, date')
       .gt('date', today);
 
-    console.log(
-      `📊 Remaining future checkins: ${remainingFutureCheckins?.length || 0}`
-    );
-    console.log(
-      `📊 Remaining future sessions: ${remainingFutureSessions?.length || 0}`
-    );
+    console.log(`📊 Remaining future checkins: ${remainingFutureCheckins?.length || 0}`);
+    console.log(`📊 Remaining future sessions: ${remainingFutureSessions?.length || 0}`);
 
     if (
       (remainingFutureCheckins?.length || 0) === 0 &&

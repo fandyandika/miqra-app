@@ -118,9 +118,7 @@ where not exists (select 1 from public.user_settings s where s.user_id = u.id);
 
     console.log(migrationSQL);
 
-    console.log(
-      '\n📝 After running the SQL, run this script again to test the setup.'
-    );
+    console.log('\n📝 After running the SQL, run this script again to test the setup.');
     console.log('Or run: node scripts/test-profile-functions.js');
   } catch (error) {
     console.error('❌ Setup failed:', error);

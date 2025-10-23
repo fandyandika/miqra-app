@@ -27,8 +27,7 @@ export function getHouseA11yLabel(
   membersReadToday: number,
   totalMembers: number
 ): string {
-  const percent =
-    totalMembers > 0 ? Math.round((membersReadToday / totalMembers) * 100) : 0;
+  const percent = totalMembers > 0 ? Math.round((membersReadToday / totalMembers) * 100) : 0;
 
   const base =
     state === 'dark'

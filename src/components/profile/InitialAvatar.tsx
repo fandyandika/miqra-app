@@ -8,11 +8,7 @@ type InitialAvatarProps = {
   onPress?: () => void;
 };
 
-export function InitialAvatar({
-  name,
-  size = 80,
-  onPress,
-}: InitialAvatarProps) {
+export function InitialAvatar({ name, size = 80, onPress }: InitialAvatarProps) {
   const getInitials = (fullName: string | null): string => {
     if (!fullName) return 'U';
 
@@ -21,9 +17,7 @@ export function InitialAvatar({
       return words[0].substring(0, 2).toUpperCase();
     }
 
-    return (
-      words[0].charAt(0) + words[words.length - 1].charAt(0)
-    ).toUpperCase();
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
   };
 
   const getBackgroundColor = (name: string | null): string => {
@@ -62,14 +56,12 @@ export function InitialAvatar({
   return (
     <Pressable
       onPress={onPress}
-      accessibilityRole='button'
-      accessibilityLabel='Ubah avatar'
+      accessibilityRole="button"
+      accessibilityLabel="Ubah avatar"
       style={[styles.container, { width: size, height: size }]}
     >
       <View style={[styles.avatarContainer, { backgroundColor }]}>
-        <Text style={[styles.initials, { fontSize: size * 0.4 }]}>
-          {initials}
-        </Text>
+        <Text style={[styles.initials, { fontSize: size * 0.4 }]}>{initials}</Text>
       </View>
 
       <View style={styles.editBadge}>

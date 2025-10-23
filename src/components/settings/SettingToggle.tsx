@@ -18,11 +18,7 @@ export function SettingToggle({
   disabled = false,
 }: SettingToggleProps) {
   return (
-    <View
-      style={styles.container}
-      accessible
-      accessibilityLabel={`${label}. ${description ?? ''}`}
-    >
+    <View style={styles.container} accessible accessibilityLabel={`${label}. ${description ?? ''}`}>
       <View style={styles.textContainer}>
         <Text style={styles.label}>{label}</Text>
         {description && <Text style={styles.description}>{description}</Text>}

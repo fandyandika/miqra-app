@@ -23,8 +23,8 @@ async function testFinalState() {
 
     // Get both users
     const { data: users } = await supabase.auth.admin.listUsers();
-    const test1User = users.users.find(u => u.email === 'test1@miqra.com');
-    const test2User = users.users.find(u => u.email === 'test2@miqra.com');
+    const test1User = users.users.find((u) => u.email === 'test1@miqra.com');
+    const test2User = users.users.find((u) => u.email === 'test2@miqra.com');
 
     if (!test1User || !test2User) {
       console.log('❌ One or both test users not found');
@@ -92,8 +92,8 @@ async function testFinalState() {
     // Calculate reading days for both users
     console.log('\n3️⃣ READING DAYS CALCULATION...');
 
-    const test1CheckinDates = [...new Set(test1Checkins.map(c => c.date))];
-    const test2CheckinDates = [...new Set(test2Checkins.map(c => c.date))];
+    const test1CheckinDates = [...new Set(test1Checkins.map((c) => c.date))];
+    const test2CheckinDates = [...new Set(test2Checkins.map((c) => c.date))];
 
     console.log(`📊 Test1 reading days: ${test1CheckinDates.length}`);
     console.log(`📊 Test2 reading days: ${test2CheckinDates.length}`);
@@ -106,17 +106,13 @@ async function testFinalState() {
       futureDate.setDate(futureDate.getDate() + 1);
       const futureDateStr = futureDate.toISOString().split('T')[0];
 
-      console.log(
-        `🧪 Attempting to create checkin for future date: ${futureDateStr}`
-      );
+      console.log(`🧪 Attempting to create checkin for future date: ${futureDateStr}`);
 
-      const { error: futureCheckinError } = await supabase
-        .from('checkins')
-        .insert({
-          user_id: test1User.id,
-          date: futureDateStr,
-          ayat_count: 5,
-        });
+      const { error: futureCheckinError } = await supabase.from('checkins').insert({
+        user_id: test1User.id,
+        date: futureDateStr,
+        ayat_count: 5,
+      });
 
       if (futureCheckinError) {
         console.log('✅ Date validation working - future checkin blocked');

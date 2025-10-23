@@ -17,11 +17,10 @@ async function testAnalytics() {
   try {
     // Login as test user
     console.log('🔐 Logging in as test1@miqra.com...');
-    const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: 'test1@miqra.com',
-        password: 'password123',
-      });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: 'test1@miqra.com',
+      password: 'password123',
+    });
 
     if (authError) {
       console.error('❌ Auth error:', authError.message);
@@ -35,14 +34,11 @@ async function testAnalytics() {
 
     // Test 1: Daily Stats
     console.log('\n📊 Testing get_daily_stats...');
-    const { data: dailyStats, error: dailyError } = await supabase.rpc(
-      'get_daily_stats',
-      {
-        p_user_id: userId,
-        p_start_date: '2025-01-01',
-        p_end_date: '2025-12-31',
-      }
-    );
+    const { data: dailyStats, error: dailyError } = await supabase.rpc('get_daily_stats', {
+      p_user_id: userId,
+      p_start_date: '2025-01-01',
+      p_end_date: '2025-12-31',
+    });
 
     if (dailyError) {
       console.error('❌ Daily stats error:', dailyError);
@@ -55,14 +51,11 @@ async function testAnalytics() {
 
     // Test 2: Weekly Stats
     console.log('\n📊 Testing get_weekly_stats...');
-    const { data: weeklyStats, error: weeklyError } = await supabase.rpc(
-      'get_weekly_stats',
-      {
-        p_user_id: userId,
-        p_start_date: '2025-09-01',
-        p_end_date: '2025-12-31',
-      }
-    );
+    const { data: weeklyStats, error: weeklyError } = await supabase.rpc('get_weekly_stats', {
+      p_user_id: userId,
+      p_start_date: '2025-09-01',
+      p_end_date: '2025-12-31',
+    });
 
     if (weeklyError) {
       console.error('❌ Weekly stats error:', weeklyError);
@@ -75,13 +68,10 @@ async function testAnalytics() {
 
     // Test 3: Monthly Stats
     console.log('\n📊 Testing get_monthly_stats...');
-    const { data: monthlyStats, error: monthlyError } = await supabase.rpc(
-      'get_monthly_stats',
-      {
-        p_user_id: userId,
-        p_months: 6,
-      }
-    );
+    const { data: monthlyStats, error: monthlyError } = await supabase.rpc('get_monthly_stats', {
+      p_user_id: userId,
+      p_months: 6,
+    });
 
     if (monthlyError) {
       console.error('❌ Monthly stats error:', monthlyError);
@@ -94,12 +84,9 @@ async function testAnalytics() {
 
     // Test 4: User Total Stats
     console.log('\n📊 Testing get_user_total_stats...');
-    const { data: totalStats, error: totalError } = await supabase.rpc(
-      'get_user_total_stats',
-      {
-        p_user_id: userId,
-      }
-    );
+    const { data: totalStats, error: totalError } = await supabase.rpc('get_user_total_stats', {
+      p_user_id: userId,
+    });
 
     if (totalError) {
       console.error('❌ User total stats error:', totalError);
@@ -120,12 +107,9 @@ async function testAnalytics() {
 
       // Test 6: Family Stats
       console.log('\n📊 Testing get_family_stats...');
-      const { data: familyStats, error: familyError } = await supabase.rpc(
-        'get_family_stats',
-        {
-          p_family_id: familyMember.family_id,
-        }
-      );
+      const { data: familyStats, error: familyError } = await supabase.rpc('get_family_stats', {
+        p_family_id: familyMember.family_id,
+      });
 
       if (familyError) {
         console.error('❌ Family stats error:', familyError);

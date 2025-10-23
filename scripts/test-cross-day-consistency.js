@@ -27,13 +27,7 @@ async function testCrossDayConsistency() {
     }
 
     const testUser = users[0];
-    console.log(
-      '👤 Test user:',
-      testUser.display_name,
-      '(ID:',
-      testUser.user_id,
-      ')'
-    );
+    console.log('👤 Test user:', testUser.display_name, '(ID:', testUser.user_id, ')');
 
     // 2. Create checkins for different days
     const today = new Date();
@@ -68,12 +62,7 @@ async function testCrossDayConsistency() {
       const { error } = await supabase.from('checkins').upsert(checkin);
 
       if (error && error.code !== '23505') {
-        console.error(
-          '❌ Error creating checkin for',
-          checkin.date,
-          ':',
-          error
-        );
+        console.error('❌ Error creating checkin for', checkin.date, ':', error);
       } else {
         console.log(
           '✅ Checkin created/updated for',
@@ -121,12 +110,7 @@ async function testCrossDayConsistency() {
       const { error } = await supabase.from('reading_sessions').insert(session);
 
       if (error) {
-        console.error(
-          '❌ Error creating session for',
-          session.date,
-          ':',
-          error
-        );
+        console.error('❌ Error creating session for', session.date, ':', error);
       } else {
         console.log(
           '✅ Session created for',
@@ -157,8 +141,7 @@ async function testCrossDayConsistency() {
     console.log('📚 Total sessions:', allSessions?.length || 0);
 
     // 5. Calculate streak
-    const sortedCheckins =
-      allCheckins?.sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
+    const sortedCheckins = allCheckins?.sort((a, b) => new Date(b.date) - new Date(a.date)) || [];
     let currentStreak = 0;
     let lastDate = null;
 
@@ -168,9 +151,7 @@ async function testCrossDayConsistency() {
         currentStreak = 1;
         lastDate = checkinDate;
       } else {
-        const daysDiff = Math.floor(
-          (lastDate - checkinDate) / (1000 * 60 * 60 * 24)
-        );
+        const daysDiff = Math.floor((lastDate - checkinDate) / (1000 * 60 * 60 * 24));
         if (daysDiff === 1) {
           currentStreak++;
           lastDate = checkinDate;
@@ -186,15 +167,12 @@ async function testCrossDayConsistency() {
     // 6. Test cross-day consistency scenarios
     console.log('\n🧪 Cross-day Consistency Test Scenarios:');
     console.log('1. ✅ User checks in today - streak should be', currentStreak);
-    console.log(
-      '2. ✅ User checks in yesterday - streak should be',
-      currentStreak
-    );
+    console.log('2. ✅ User checks in yesterday - streak should be', currentStreak);
     console.log('3. ❌ User checks in 2+ days ago - streak should be 0');
     console.log('4. ✅ Tree should grow based on streak:', currentStreak);
 
     // 7. Calculate tree growth level
-    const getTreeLevel = streak => {
+    const getTreeLevel = (streak) => {
       if (streak === 0) return { level: 0, description: 'Seed' };
       if (streak < 3) return { level: 1, description: 'Sprout' };
       if (streak < 7) return { level: 2, description: 'Sapling' };
@@ -212,9 +190,7 @@ async function testCrossDayConsistency() {
     console.log('1. Open the app - should show current streak:', currentStreak);
     console.log('2. Close the app');
     console.log('3. Change device time to tomorrow');
-    console.log(
-      '4. Open the app - streak should increase if you check in today'
-    );
+    console.log('4. Open the app - streak should increase if you check in today');
     console.log('5. Change device time to 2 days from now');
     console.log('6. Open the app - streak should reset to 0');
     console.log('7. Tree should reflect the correct growth level');

@@ -48,7 +48,7 @@ export default function FabCatat({ onPress }: Props) {
     >
       {/* Outer halo ring */}
       <View
-        pointerEvents='none'
+        pointerEvents="none"
         style={{
           position: 'absolute',
           top: -8,
@@ -65,7 +65,7 @@ export default function FabCatat({ onPress }: Props) {
         onPress={handlePress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        accessibilityRole='button'
+        accessibilityRole="button"
         accessibilityLabel="Catat bacaan Al-Qur'an"
         style={{
           width: SIZE,
@@ -93,7 +93,7 @@ export default function FabCatat({ onPress }: Props) {
             borderColor: 'rgba(255,255,255,0.6)', // subtle inner ring to separate from blur
           }}
         >
-          <MaterialIcons name='menu-book' size={28} color='#FFFFFF' />
+          <MaterialIcons name="menu-book" size={28} color="#FFFFFF" />
         </LinearGradient>
       </Pressable>
     </Animated.View>

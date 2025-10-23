@@ -38,17 +38,13 @@ export function SimpleStatsCard({
         <Text style={styles.title}>{title}</Text>
         {icon && <Text style={styles.icon}>{icon}</Text>}
       </View>
-      
+
       <View style={styles.content}>
         <Text style={[styles.value, { color }]}>{value}</Text>
-        {trend && (
-          <Text style={styles.trendIcon}>{getTrendIcon()}</Text>
-        )}
+        {trend && <Text style={styles.trendIcon}>{getTrendIcon()}</Text>}
       </View>
-      
-      {subtitle && (
-        <Text style={styles.subtitle}>{subtitle}</Text>
-      )}
+
+      {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
     </View>
   );
 }
