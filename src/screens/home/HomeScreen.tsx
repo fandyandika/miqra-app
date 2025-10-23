@@ -62,10 +62,14 @@ export default function HomeScreen() {
         queryClient.invalidateQueries({ queryKey: ['checkin'] });
         queryClient.invalidateQueries({ queryKey: ['streak'] });
         queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
         console.log('[HomeScreen] Reading sessions updated, invalidating queries');
         queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
       })
       .subscribe();
 
@@ -89,7 +93,7 @@ export default function HomeScreen() {
   } = useQuery({
     queryKey: ['streak', 'current'],
     queryFn: getCurrentStreak,
-    staleTime: 30_000,
+    staleTime: 0, // Always fresh
   });
 
   const onRefresh = async () => {

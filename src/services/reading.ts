@@ -314,22 +314,10 @@ export async function getCalendarData(date: Date = new Date(), timezone: string 
   let dateMap: Record<string, { count: number; ayatCount: number; sessions: any[] }> = {};
 
   if (userId) {
-    const { data: checkinData } = await supabase
-      .from('checkins')
-      .select('date, ayat_count')
-      .eq('user_id', userId)
-      .gte('date', start)
-      .lte('date', end);
-    (checkinData ?? []).forEach((c: any) => {
-      if (!dateMap[c.date]) dateMap[c.date] = { count: 0, ayatCount: 0, sessions: [] };
-      dateMap[c.date].count += 1;
-      dateMap[c.date].ayatCount += c.ayat_count || 0;
-    });
-  }
-
-  // Fallback to sessions if there are no checkins (e.g., legacy data)
-  if (Object.keys(dateMap).length === 0) {
+    // Use reading_sessions for consistency with Daftar Bacaan
     const sessions = await getMonthSessions(date, timezone);
+    console.log('📅 Using reading_sessions for calendar data:', sessions?.length || 0, 'sessions');
+
     dateMap = (sessions || []).reduce(
       (acc: Record<string, { count: number; ayatCount: number; sessions: any[] }>, s: any) => {
         const key = s.date as string;
@@ -341,9 +329,43 @@ export async function getCalendarData(date: Date = new Date(), timezone: string 
       },
       {} as Record<string, { count: number; ayatCount: number; sessions: any[] }>
     );
+
+    // If no sessions data, fallback to checkins
+    if (Object.keys(dateMap).length === 0) {
+      console.log('📅 No sessions data, falling back to checkins');
+      const { data: checkinData } = await supabase
+        .from('checkins')
+        .select('date, ayat_count')
+        .eq('user_id', userId)
+        .gte('date', start)
+        .lte('date', end);
+      (checkinData ?? []).forEach((c: any) => {
+        if (!dateMap[c.date]) dateMap[c.date] = { count: 0, ayatCount: 0, sessions: [] };
+        dateMap[c.date].count += 1;
+        dateMap[c.date].ayatCount += c.ayat_count || 0;
+      });
+    }
   }
 
-  return dateMap;
+  // Convert to array format expected by StreakCalendar
+  // ayatCount is the total ayat read on that specific day
+  const result = Object.entries(dateMap).map(([date, data]) => ({
+    date,
+    ayat_count: data.ayatCount, // Total ayat read on this day
+  }));
+
+  console.log('📅 Calendar data for month:', format(date, 'yyyy-MM'));
+  console.log('📅 Total days with data:', result.length);
+  console.log('📅 Sample data:', result.slice(0, 3));
+
+  // Log specific dates for debugging
+  result.forEach((item) => {
+    if (item.date.includes('2024-10-23') || item.date.includes('2024-10-24')) {
+      console.log(`📅 DEBUG - Date ${item.date}: ${item.ayat_count} ayat`);
+    }
+  });
+
+  return result;
 }
 
 /**

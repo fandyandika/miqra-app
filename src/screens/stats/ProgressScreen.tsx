@@ -75,15 +75,37 @@ export default function ProgressScreen() {
     };
   }, [user, queryClient]);
 
-  // Fetch reading stats for current month
+  // Fetch reading stats based on selected period
   const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ['reading-stats', format(currentMonth, 'yyyy-MM')],
+    queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
     queryFn: () => {
-      const start = format(startOfMonth(currentMonth), 'yyyy-MM-dd');
-      const end = format(endOfMonth(currentMonth), 'yyyy-MM-dd');
-      return getReadingStats(start, end);
+      let start: Date, end: Date;
+
+      if (selectedPeriod === 'day') {
+        // Today only
+        const today = new Date();
+        start = today;
+        end = today;
+      } else if (selectedPeriod === 'week') {
+        // Current week
+        const today = new Date();
+        start = new Date(today.setDate(today.getDate() - today.getDay()));
+        end = new Date(today.setDate(today.getDate() - today.getDay() + 6));
+      } else if (selectedPeriod === 'month') {
+        // Current month
+        start = startOfMonth(currentMonth);
+        end = endOfMonth(currentMonth);
+      } else {
+        // Current year
+        start = new Date(currentMonth.getFullYear(), 0, 1);
+        end = new Date(currentMonth.getFullYear(), 11, 31);
+      }
+
+      return getReadingStats(format(start, 'yyyy-MM-dd'), format(end, 'yyyy-MM-dd'));
     },
     enabled: !!user,
+    staleTime: 0, // Always fresh data
+    refetchOnWindowFocus: true,
   });
 
   // Fetch checkin data for calendar
@@ -91,6 +113,8 @@ export default function ProgressScreen() {
     queryKey: ['checkin-data', format(currentMonth, 'yyyy-MM')],
     queryFn: () => getCalendarData(currentMonth),
     enabled: !!user,
+    staleTime: 0, // Always fresh data
+    refetchOnWindowFocus: true,
   });
 
   // Fetch recent reading sessions for reading list
@@ -323,51 +347,14 @@ export default function ProgressScreen() {
         </View>
       </View>
 
-      {/* Last Reading Info - Above Calendar */}
-      {lastReading && (
-        <View style={styles.lastReadingSection}>
-          <Text style={styles.lastReadingTitle}>Terakhir Baca</Text>
-          <View style={styles.lastReadingCard}>
-            <View style={styles.lastReadingInfo}>
-              <Text style={styles.lastReadingDate}>
-                {format(new Date(lastReading.date), 'dd MMMM yyyy', {
-                  locale: id,
-                })}
-              </Text>
-              <Text style={styles.lastReadingSurah}>
-                {lastReading.surah_name || 'Surah tidak diketahui'}
-              </Text>
-            </View>
-            <View style={styles.lastReadingStats}>
-              <Text style={styles.lastReadingAyat}>{lastReading.ayat_count} ayat</Text>
-              <Text style={styles.lastReadingRange}>
-                Ayat {lastReading.ayat_start || 1} -{' '}
-                {lastReading.ayat_end || lastReading.ayat_count}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
-
       {/* Calendar Section */}
       <View style={styles.calendarSection}>
-        <View style={styles.calendarHeader}>
-          <View style={styles.monthNavigation}>
-            <Pressable style={styles.navButton} onPress={goToPreviousMonth}>
-              <Text style={styles.navButtonText}>&lt;</Text>
-            </Pressable>
-            <Text style={styles.sectionTitle}>
-              {format(currentMonth, 'MMMM yyyy', { locale: id })}
-            </Text>
-            <Pressable style={styles.navButton} onPress={goToNextMonth}>
-              <Text style={styles.navButtonText}>&gt;</Text>
-            </Pressable>
-          </View>
-        </View>
+        {console.log('📅 ProgressScreen - Sending checkinData to StreakCalendar:', checkinData)}
         <StreakCalendar
           currentMonth={currentMonth}
           onMonthChange={setCurrentMonth}
           checkinData={Array.isArray(checkinData) ? checkinData : []}
+          readingSessions={Array.isArray(readingSessions) ? readingSessions : []}
           streakData={{
             current: stats?.daysRead || 0,
             last_date: null,
@@ -375,7 +362,7 @@ export default function ProgressScreen() {
         />
       </View>
 
-      {/* Reading List Section - Below Calendar */}
+      {/* Reading List Section - Card Version */}
       <View style={styles.readingListSection}>
         <Text style={styles.sectionTitle}>Daftar Bacaan</Text>
         <View style={styles.readingList}>

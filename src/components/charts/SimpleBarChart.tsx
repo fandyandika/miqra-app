@@ -5,6 +5,9 @@ import { colors } from '@/theme/colors';
 type DataPoint = {
   label: string;
   value: number;
+  goal?: number;
+  isGoalMet?: boolean;
+  status?: string;
 };
 
 type BarChartProps = {
@@ -39,12 +42,10 @@ export function BarChart({ data, title, color = colors.primary, height = 220 }: 
       {title && <Text style={styles.title}>{title}</Text>}
 
       <View style={[styles.chartContainer, { height: height - (title ? 40 : 0) }]}>
-        {/* Y-axis labels */}
+        {/* Y-axis - removed numerical labels for cleaner look */}
         <View style={styles.yAxis}>
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, index) => (
-            <Text key={index} style={styles.yAxisLabel}>
-              {Math.round(maxValue * ratio).toLocaleString('id-ID')}
-            </Text>
+            <View key={index} style={styles.yAxisLine} />
           ))}
         </View>
 
@@ -52,6 +53,8 @@ export function BarChart({ data, title, color = colors.primary, height = 220 }: 
         <View style={styles.chartArea}>
           {data.map((item, index) => {
             const barHeight = (item.value / maxValue) * (height - 80);
+            const barColor = item.value > 0 ? color : colors.gray[300];
+
             return (
               <View key={index} style={styles.barContainer}>
                 <View
@@ -59,7 +62,7 @@ export function BarChart({ data, title, color = colors.primary, height = 220 }: 
                     styles.bar,
                     {
                       height: Math.max(barHeight, 2),
-                      backgroundColor: color,
+                      backgroundColor: barColor,
                       width: barWidth,
                     },
                   ]}
@@ -67,6 +70,17 @@ export function BarChart({ data, title, color = colors.primary, height = 220 }: 
                 <Text style={styles.barLabel} numberOfLines={1}>
                   {item.label}
                 </Text>
+                <Text style={styles.barValue}>{item.value.toLocaleString('id-ID')}</Text>
+                {/* Goal status for day view */}
+                {item.status && (
+                  <Text
+                    style={[styles.goalStatus, { color: item.isGoalMet ? '#10B981' : '#EF4444' }]}
+                  >
+                    {item.status}
+                  </Text>
+                )}
+                {/* Goal info for day view */}
+                {item.goal && <Text style={styles.goalInfo}>Target: {item.goal} ayat</Text>}
               </View>
             );
           })}
@@ -118,6 +132,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'right',
   },
+  yAxisLine: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    width: '100%',
+  },
   chartArea: {
     flex: 1,
     flexDirection: 'row',
@@ -140,5 +159,24 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     textAlign: 'center',
     maxWidth: 60,
+  },
+  barValue: {
+    fontSize: 9,
+    color: '#374151',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  goalStatus: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  goalInfo: {
+    fontSize: 8,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 1,
   },
 });

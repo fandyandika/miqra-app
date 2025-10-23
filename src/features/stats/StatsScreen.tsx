@@ -14,6 +14,7 @@ import { getComparativeStatsWithFamiliesDirect } from '@/services/familyAnalytic
 import { debugFamilyData } from '@/services/debugFamily';
 import { getSettings } from '@/services/profile';
 import { getCurrentStreak } from '@/services/checkins';
+import { supabase } from '@/lib/supabase';
 import { CompactStatsCard } from '@/components/charts/CompactStatsCard';
 import { DailyGoalProgress } from '@/components/charts/DailyGoalProgress';
 import { FamilyComparisonCard } from '@/components/charts/FamilyComparisonCard';
@@ -21,17 +22,17 @@ import { Heatmap } from '@/components/charts/Heatmap';
 import { BarChart } from '@/components/charts/SimpleBarChart';
 import { colors } from '@/theme/colors';
 
-type TimePeriod = '7D' | '30D' | '90D' | '365D';
+type TimePeriod = 'day' | 'week' | 'month' | 'year';
 
 const PERIOD_CONFIG = {
-  '7D': { weeks: 1, label: '7 Hari', days: 7 },
-  '30D': { weeks: 4, label: '30 Hari', days: 30 },
-  '90D': { weeks: 12, label: '90 Hari', days: 90 },
-  '365D': { weeks: 52, label: '1 Tahun', days: 365 },
+  day: { weeks: 1, label: 'Hari', days: 1 },
+  week: { weeks: 1, label: 'Minggu', days: 7 },
+  month: { weeks: 4, label: 'Bulan', days: 30 },
+  year: { weeks: 52, label: 'Tahun', days: 365 },
 };
 
 export default function StatsScreen() {
-  const [period, setPeriod] = useState<TimePeriod>('30D');
+  const [period, setPeriod] = useState<TimePeriod>('month');
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
 
   // =========================================
@@ -39,15 +40,70 @@ export default function StatsScreen() {
   // =========================================
 
   const { data: weeklyData, isLoading: weeklyLoading } = useQuery({
-    queryKey: analyticsKeys.weekly(PERIOD_CONFIG[period].weeks),
-    queryFn: () => getWeeklyStats(PERIOD_CONFIG[period].weeks),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: ['weekly', period, PERIOD_CONFIG[period].days],
+    queryFn: () => {
+      if (period === 'day') {
+        // For day view, get only 1 week to get today's data
+        return getWeeklyStats(1);
+      } else if (period === 'week') {
+        // For week view, get 1 week
+        return getWeeklyStats(1);
+      } else if (period === 'month') {
+        // For month view, get 4 weeks
+        return getWeeklyStats(4);
+      } else {
+        // For year view, get 52 weeks
+        return getWeeklyStats(52);
+      }
+    },
+    staleTime: 0, // Always fresh data
+  });
+
+  // Get today's data directly for day period
+  const { data: todayData } = useQuery({
+    queryKey: ['today-stats'],
+    queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id;
+      if (!userId) return { total_ayat: 0, days_active: 0 };
+
+      const today = new Date();
+      const todayStr = format(today, 'yyyy-MM-dd');
+
+      const { data: checkins } = await supabase
+        .from('checkins')
+        .select('ayat_count')
+        .eq('user_id', userId)
+        .eq('date', todayStr);
+
+      const totalAyat = checkins?.reduce((sum, c) => sum + (c.ayat_count || 0), 0) || 0;
+
+      console.log('📊 Today direct data:', { todayStr, checkins, totalAyat });
+
+      return {
+        total_ayat: totalAyat,
+        days_active: totalAyat > 0 ? 1 : 0,
+      };
+    },
+    enabled: period === 'day',
+    staleTime: 0,
   });
 
   const { data: monthlyData, isLoading: monthlyLoading } = useQuery({
-    queryKey: analyticsKeys.monthly(6),
-    queryFn: () => getMonthlyStats(6),
-    staleTime: 5 * 60 * 1000,
+    queryKey: ['monthly', period, PERIOD_CONFIG[period].days],
+    queryFn: () => {
+      if (period === 'day' || period === 'week') {
+        // For day/week view, get 1 month
+        return getMonthlyStats(1);
+      } else if (period === 'month') {
+        // For month view, get 1 month
+        return getMonthlyStats(1);
+      } else {
+        // For year view, get 12 months
+        return getMonthlyStats(12);
+      }
+    },
+    staleTime: 0, // Always fresh data
   });
 
   const { data: patternData, isLoading: patternLoading } = useQuery({
@@ -64,13 +120,7 @@ export default function StatsScreen() {
 
   const { data: comparativeData, isLoading: comparativeLoading } = useQuery({
     queryKey: ['comparativeStats', selectedFamilyId],
-    queryFn: async () => {
-      // Debug family data
-      console.log('🔍 Debugging family data...');
-      await debugFamilyData();
-
-      return getComparativeStatsWithFamiliesDirect(selectedFamilyId || undefined);
-    },
+    queryFn: () => getComparativeStatsWithFamiliesDirect(selectedFamilyId || undefined),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -83,7 +133,7 @@ export default function StatsScreen() {
   const { data: streakData, isLoading: streakLoading } = useQuery({
     queryKey: ['streak', 'current'],
     queryFn: getCurrentStreak,
-    staleTime: 30_000, // 30 seconds
+    staleTime: 0, // Always fresh
   });
 
   const isLoading =
@@ -98,10 +148,59 @@ export default function StatsScreen() {
   // CALCULATIONS
   // =========================================
 
-  // Summary stats from weekly data with safe fallbacks
-  const totalAyat = weeklyData?.reduce((sum, w) => sum + (w?.total_ayat || 0), 0) || 0;
-  const daysActive = weeklyData?.reduce((sum, w) => sum + (w?.days_active || 0), 0) || 0;
-  const avgPerDay = daysActive > 0 ? Math.round(totalAyat / daysActive) : 0;
+  // Summary stats based on selected period
+  const getStatsForPeriod = () => {
+    console.log('📊 Calculating stats for period:', period);
+    console.log('📊 Weekly data:', weeklyData);
+    console.log('📊 Monthly data:', monthlyData);
+
+    if (period === 'day') {
+      // For day view, use direct today data
+      const totalAyat = todayData?.total_ayat || 0;
+      const daysActive = todayData?.days_active || 0;
+
+      console.log('📊 Today data for period "day":', {
+        todayData,
+        totalAyat,
+        daysActive,
+      });
+
+      return {
+        totalAyat: totalAyat,
+        daysActive: daysActive,
+        avgPerDay: totalAyat, // Same as total for single day
+      };
+    } else if (period === 'week') {
+      // For week view, show current week data
+      const totalAyat = weeklyData?.reduce((sum, w) => sum + (w?.total_ayat || 0), 0) || 0;
+      const daysActive = weeklyData?.reduce((sum, w) => sum + (w?.days_active || 0), 0) || 0;
+      return {
+        totalAyat,
+        daysActive,
+        avgPerDay: daysActive > 0 ? Math.round(totalAyat / daysActive) : 0,
+      };
+    } else if (period === 'month') {
+      // For month view, show monthly data
+      const totalAyat = monthlyData?.reduce((sum, m) => sum + (m?.total_ayat || 0), 0) || 0;
+      const daysActive = monthlyData?.reduce((sum, m) => sum + (m?.days_active || 0), 0) || 0;
+      return {
+        totalAyat,
+        daysActive,
+        avgPerDay: daysActive > 0 ? Math.round(totalAyat / daysActive) : 0,
+      };
+    } else {
+      // For year view, aggregate all weekly data
+      const totalAyat = weeklyData?.reduce((sum, w) => sum + (w?.total_ayat || 0), 0) || 0;
+      const daysActive = weeklyData?.reduce((sum, w) => sum + (w?.days_active || 0), 0) || 0;
+      return {
+        totalAyat,
+        daysActive,
+        avgPerDay: daysActive > 0 ? Math.round(totalAyat / daysActive) : 0,
+      };
+    }
+  };
+
+  const { totalAyat, daysActive, avgPerDay } = getStatsForPeriod();
 
   // Transform data for charts with safe fallbacks
   const weeklyChartData =
@@ -121,6 +220,75 @@ export default function StatsScreen() {
         value: m?.total_ayat || 0,
       }))
       .reverse() || []; // Reverse to show oldest first
+
+  // Chart data based on selected period
+  const getChartData = () => {
+    if (period === 'day') {
+      // For day view, show today's data with goal comparison
+      const todayValue = todayData?.total_ayat || 0;
+      const dailyGoal = userSettings?.daily_goal_ayat || 5;
+      const isGoalMet = todayValue >= dailyGoal;
+
+      return [
+        {
+          label: 'Hari Ini',
+          value: todayValue,
+          goal: dailyGoal,
+          isGoalMet: isGoalMet,
+          status: isGoalMet ? '✅' : '❌',
+        },
+      ];
+    } else if (period === 'week') {
+      // For week view, show 7 days of current week
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+
+      const weekData = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startOfWeek);
+        date.setDate(startOfWeek.getDate() + i);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const dayName = format(date, 'EEE', { locale: localeID });
+
+        // For now, use placeholder data - in real implementation,
+        // you'd fetch daily data for each day of the week
+        weekData.push({
+          label: dayName,
+          value: Math.floor(Math.random() * 50), // Placeholder - replace with real data
+          date: dateStr,
+        });
+      }
+      return weekData;
+    } else if (period === 'month') {
+      // For month view, show all days of current month
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const monthData = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateStr = format(date, 'yyyy-MM-dd');
+        const dayName = format(date, 'd');
+
+        // For now, use placeholder data - in real implementation,
+        // you'd fetch daily data for each day of the month
+        monthData.push({
+          label: dayName,
+          value: Math.floor(Math.random() * 30), // Placeholder - replace with real data
+          date: dateStr,
+        });
+      }
+      return monthData;
+    } else {
+      // For year view, show monthly data
+      return monthlyChartData;
+    }
+  };
+
+  const chartData = getChartData();
 
   const patternChartData =
     patternData
@@ -188,15 +356,10 @@ export default function StatsScreen() {
           icon="📖"
           color={colors.primary}
         />
+        <CompactStatsCard value={avgPerDay} label="Ayat/Hari" icon="📈" color={colors.accent} />
         <CompactStatsCard
-          value={avgPerDay}
-          label="Rata-rata/Hari"
-          icon="📈"
-          color={colors.accent}
-        />
-        <CompactStatsCard
-          value={daysActive}
-          label="Hari Aktif"
+          value={streakData?.current || 0}
+          label="Streak"
           icon="🔥"
           color={colors.secondary}
         />
@@ -204,16 +367,16 @@ export default function StatsScreen() {
 
       {/* Daily Goal Progress */}
       <DailyGoalProgress
-        currentAyat={totalAyat}
+        currentAyat={period === 'day' ? totalAyat : totalAyat / Math.max(daysActive, 1)}
         dailyGoal={userSettings?.daily_goal_ayat || 5}
         daysInPeriod={PERIOD_CONFIG[period].days}
         periodLabel={PERIOD_CONFIG[period].label}
       />
 
-      {/* Weekly Trend Chart */}
-      {weeklyChartData.length > 0 && (
+      {/* Trend Chart */}
+      {chartData.length > 0 && (
         <BarChart
-          data={weeklyChartData}
+          data={chartData}
           title={`📊 Trend ${PERIOD_CONFIG[period].label}`}
           color={colors.primary}
           height={200}

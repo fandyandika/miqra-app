@@ -66,7 +66,7 @@ export async function debugFamilyData() {
 
   // 4. Test RPC function
   const { data: rpcResult, error: rpcError } = await supabase.rpc('get_family_stats', {
-    p_family_id: familyId,
+    p_family_id: familyId.toString(),
   });
 
   console.log('🔧 RPC result:', rpcResult);

@@ -42,10 +42,11 @@ export default function ProfileScreen() {
   });
 
   // Get real progress data
-  const { data: streakData } = useQuery({
+  const { data: streakData, refetch: refetchStreak } = useQuery({
     queryKey: ['streak', 'current'],
     queryFn: getCurrentStreak,
-    staleTime: 30_000,
+    staleTime: 0, // Always fresh
+    refetchOnWindowFocus: true,
   });
 
   // Monthly stats (user-specific from reading sessions)
@@ -78,15 +79,10 @@ export default function ProfileScreen() {
 
   // Real-time updates for streak and reading data
   useEffect(() => {
-    // Get current user for filtering
-    const getCurrentUser = async () => {
+    const setupRealtime = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      return user;
-    };
-
-    getCurrentUser().then((user) => {
       if (!user) return;
 
       console.log('[ProfileScreen] Setting up real-time sync for user:', user.id);
@@ -106,6 +102,8 @@ export default function ProfileScreen() {
             qc.invalidateQueries({ queryKey: ['checkin'] });
             qc.invalidateQueries({ queryKey: ['streak'] });
             qc.invalidateQueries({ queryKey: ['reading'] });
+            // Force refetch streak data
+            refetchStreak();
           }
         )
         .on(
@@ -127,7 +125,9 @@ export default function ProfileScreen() {
         console.log('[ProfileScreen] Cleaning up real-time subscriptions');
         supabase.removeChannel(channel);
       };
-    });
+    };
+
+    setupRealtime();
   }, [qc]);
 
   const updateMutation = useMutation({
