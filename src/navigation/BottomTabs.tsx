@@ -267,8 +267,10 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                       queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
                       queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
                       queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.invalidateQueries({ queryKey: ['hasanat'] });
                       queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
                       queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+                      queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
                       // We don't know selectedPeriod here; refetch all reading-stats
                       queryClient.refetchQueries({ queryKey: ['reading-stats'] });
                     } catch {}
@@ -357,8 +359,10 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                       queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
                       queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
                       queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.invalidateQueries({ queryKey: ['hasanat'] });
                       queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
                       queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+                      queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
                       queryClient.refetchQueries({ queryKey: ['reading-stats'] });
                     } catch {}
                   }

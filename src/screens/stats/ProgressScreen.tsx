@@ -9,6 +9,8 @@ import { id } from 'date-fns/locale';
 import { colors } from '@/theme/colors';
 import { useAuthSession } from '@/hooks/useAuth';
 import { getReadingStats, getCalendarData, getRecentReadingSessions } from '@/services/reading';
+import { getHasanatStats } from '@/services/hasanat';
+import { getSettings } from '@/services/profile';
 import { StreakCalendar } from '@/features/reading/StreakCalendar';
 import { StatsCard } from '@/features/reading/StatsCard';
 import { supabase } from '@/lib/supabase';
@@ -40,6 +42,7 @@ export default function ProgressScreen() {
         queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
         queryClient.invalidateQueries({ queryKey: ['khatam'] });
         queryClient.invalidateQueries({ queryKey: ['families'] });
+        queryClient.invalidateQueries({ queryKey: ['hasanat'] });
         // Force refetch for immediate UI update
         queryClient.refetchQueries({
           queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
@@ -52,6 +55,7 @@ export default function ProgressScreen() {
         queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
         queryClient.refetchQueries({ queryKey: ['reading', 'today'] });
         queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
+        queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
         console.log('[ProgressScreen] 📚 Reading sessions updated, invalidating queries');
@@ -60,6 +64,7 @@ export default function ProgressScreen() {
         queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
         queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
         queryClient.invalidateQueries({ queryKey: ['khatam'] });
+        queryClient.invalidateQueries({ queryKey: ['hasanat'] });
         // Force refetch for immediate UI update
         queryClient.refetchQueries({
           queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
@@ -71,6 +76,7 @@ export default function ProgressScreen() {
         queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
         queryClient.refetchQueries({ queryKey: ['reading', 'today'] });
         queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
+        queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'streaks' }, () => {
         console.log('[ProgressScreen] 🔥 Streaks updated, invalidating queries');
@@ -100,11 +106,13 @@ export default function ProgressScreen() {
       queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
       queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
       queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['hasanat'] });
 
       queryClient.refetchQueries({ queryKey: ['reading-stats', selectedPeriod, monthKey] });
       queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
       queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
       queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
+      queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
     }, [user, selectedPeriod, currentMonth, queryClient])
   );
 
@@ -157,6 +165,21 @@ export default function ProgressScreen() {
     enabled: !!user,
     staleTime: 0,
     refetchOnWindowFocus: true,
+  });
+
+  // Get user settings
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+    staleTime: 300_000,
+  });
+
+  // Fetch hasanat stats (only if hasanat_visible is true)
+  const { data: hasanatStats, isLoading: hasanatLoading } = useQuery({
+    queryKey: ['hasanat', 'stats'],
+    queryFn: getHasanatStats,
+    enabled: !!user && settings?.hasanat_visible === true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const goToPreviousMonth = () => {
@@ -251,7 +274,7 @@ export default function ProgressScreen() {
   const start = startOfMonth(currentMonth);
   const end = endOfMonth(currentMonth);
 
-  const isLoading = statsLoading || checkinLoading;
+  const isLoading = statsLoading || checkinLoading || hasanatLoading;
 
   if (isLoading) {
     return (
@@ -336,6 +359,41 @@ export default function ProgressScreen() {
           period={selectedPeriod as 'day' | 'week' | 'month' | 'year'}
         />
       </View>
+
+      {/* Hasanat Stats Card - Only if hasanat_visible is true */}
+      {settings?.hasanat_visible && hasanatStats && (
+        <View style={styles.hasanatSection}>
+          <View style={styles.hasanatCard}>
+            <View style={styles.hasanatHeader}>
+              <Text style={styles.hasanatIcon}>🌟</Text>
+              <Text style={styles.hasanatTitle}>Hasanat</Text>
+            </View>
+            <View style={styles.hasanatStats}>
+              <View style={styles.hasanatStatItem}>
+                <Text style={styles.hasanatStatValue}>
+                  {hasanatStats.total_hasanat.toLocaleString('id-ID')}
+                </Text>
+                <Text style={styles.hasanatStatLabel}>Total Hasanat</Text>
+              </View>
+              <View style={styles.hasanatStatItem}>
+                <Text style={styles.hasanatStatValue}>
+                  {hasanatStats.total_letters.toLocaleString('id-ID')}
+                </Text>
+                <Text style={styles.hasanatStatLabel}>Huruf Dibaca</Text>
+              </View>
+              <View style={styles.hasanatStatItem}>
+                <Text style={styles.hasanatStatValue}>{hasanatStats.streak_days}</Text>
+                <Text style={styles.hasanatStatLabel}>Hari Berturut</Text>
+              </View>
+              <View style={styles.hasanatStatItem}>
+                <Text style={styles.hasanatStatValue}>{hasanatStats.daily_average}</Text>
+                <Text style={styles.hasanatStatLabel}>Rata-rata/Hari</Text>
+              </View>
+            </View>
+            <Text style={styles.hasanatFooter}>💫 Setiap huruf = 10 hasanat</Text>
+          </View>
+        </View>
+      )}
 
       {/* Action Cards - Moved above calendar */}
       <View style={styles.actionSection}>
@@ -833,5 +891,64 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text.secondary,
     marginTop: 8,
+  },
+  // Hasanat styles
+  hasanatSection: {
+    margin: 16,
+    marginTop: 0,
+  },
+  hasanatCard: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  hasanatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  hasanatIcon: {
+    fontSize: 24,
+    marginRight: 8,
+  },
+  hasanatTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+  },
+  hasanatStats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  hasanatStatItem: {
+    width: '50%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  hasanatStatValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  hasanatStatLabel: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  hasanatFooter: {
+    fontSize: 12,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: 12,
   },
 });

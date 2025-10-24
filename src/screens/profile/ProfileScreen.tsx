@@ -9,6 +9,8 @@ import { colors } from '@/theme/colors';
 import { useAuthSession } from '@/hooks/useAuth';
 import { getCurrentStreak } from '@/services/checkins';
 import { getUserProfile, getSettings } from '@/services/profile';
+import { getUserTotalHasanat } from '@/services/hasanat';
+import { HasanatCard } from '@/components/hasanat/HasanatCard';
 import { supabase } from '@/lib/supabase';
 
 export default function ProfileScreen() {
@@ -29,6 +31,14 @@ export default function ProfileScreen() {
     queryKey: ['settings'],
     queryFn: getSettings,
     staleTime: 300_000,
+  });
+
+  // Get hasanat data (only if hasanat_visible is true)
+  const { data: hasanatData } = useQuery({
+    queryKey: ['hasanat', 'total'],
+    queryFn: getUserTotalHasanat,
+    enabled: settings?.hasanat_visible === true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Get current streak for quick stats - with real-time updates
@@ -174,6 +184,18 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+
+        {/* Hasanat Card - Only if hasanat_visible is true */}
+        {settings?.hasanat_visible && hasanatData && (
+          <View style={{ marginBottom: 16 }}>
+            <HasanatCard
+              totalHasanat={hasanatData.totalHasanat}
+              totalLetters={hasanatData.totalLetters}
+              streakDays={0} // Not used in this context
+              dailyAverage={0} // Not used in this context
+            />
+          </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>

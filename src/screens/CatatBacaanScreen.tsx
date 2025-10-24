@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { getReadingProgress, createReadingSession, ReadingSessionInput } from '@/services/reading';
 import { getAyatCount, getNextPosition } from '@/data/quran_meta';
+import { previewHasanatForRange } from '@/services/hasanat';
+import { getSettings } from '@/services/profile';
 import { SurahPicker } from '@/features/reading/SurahPicker';
 import { AyatRangeInput } from '@/features/reading/AyatRangeInput';
 import { colors } from '@/theme/colors';
@@ -14,6 +16,13 @@ export default function CatatBacaanScreen() {
   const { data: progress } = useQuery({
     queryKey: ['reading', 'progress'],
     queryFn: getReadingProgress,
+  });
+
+  // Get settings to check if hasanat is visible
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+    staleTime: 300_000,
   });
 
   const [surah, setSurah] = React.useState(progress?.current_surah ?? 1);
@@ -45,6 +54,7 @@ export default function CatatBacaanScreen() {
       qc.invalidateQueries({ queryKey: ['reading-stats'] });
       qc.invalidateQueries({ queryKey: ['checkin-data'] });
       qc.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+      qc.invalidateQueries({ queryKey: ['hasanat'] });
 
       // Force refetch critical data immediately
       qc.refetchQueries({ queryKey: ['reading', 'progress'] });
@@ -56,9 +66,23 @@ export default function CatatBacaanScreen() {
       qc.refetchQueries({ queryKey: ['reading-stats'] });
       qc.refetchQueries({ queryKey: ['checkin-data'] });
       qc.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+      qc.refetchQueries({ queryKey: ['hasanat', 'stats'] });
 
       console.log('[CatatBacaan] Real-time updates triggered');
-      Alert.alert('Tersimpan', 'Catatan bacaan berhasil disimpan.');
+
+      // Show hasanat alert if enabled
+      if (settings?.hasanat_visible) {
+        const ayatCount = range.end - range.start + 1;
+        const { hasanat } = previewHasanatForRange(surah, range.start, range.end);
+
+        Alert.alert(
+          'Alhamdulillah! ✅',
+          `Catatan tersimpan.\n\n📖 ${ayatCount} ayat\n🌙 +${hasanat.toLocaleString('id-ID')} hasanat`,
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert('Tersimpan', 'Catatan bacaan berhasil disimpan.');
+      }
       // clear form but keep next suggestion
       const next = getNextPosition(surah, range.end);
       setSurah(next.surah);

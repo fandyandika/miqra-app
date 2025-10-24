@@ -12,9 +12,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import { getKhatamProgress } from '@/services/reading';
 import { calculateProgress, estimateCompletion, getMilestones } from '@/lib/quranProgress';
+import { getUserTotalHasanat } from '@/services/hasanat';
+import { getSettings } from '@/services/profile';
 import { ProgressBar } from './ProgressBar';
 import { CurrentPositionCard } from './CurrentPositionCard';
 import { MilestoneGrid } from './MilestoneGrid';
+import { HasanatDisplay } from '@/components/hasanat/HasanatDisplay';
 import { colors } from '@/theme/colors';
 
 export default function KhatamProgressScreen() {
@@ -27,6 +30,20 @@ export default function KhatamProgressScreen() {
     retry: 1,
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,
+  });
+
+  // Get settings and hasanat data
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+    staleTime: 300_000,
+  });
+
+  const { data: hasanatData } = useQuery({
+    queryKey: ['hasanat', 'total'],
+    queryFn: getUserTotalHasanat,
+    enabled: settings?.hasanat_visible === true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Calculate progress data (always call hooks before early returns)
@@ -131,6 +148,16 @@ export default function KhatamProgressScreen() {
           isNextUnread={true}
           onContinuePress={() => navigation.navigate('LogReading')}
         />
+
+        {/* Hasanat Display - Only if hasanat_visible is true */}
+        {settings?.hasanat_visible && hasanatData && (
+          <View style={{ marginTop: 8, alignItems: 'center' }}>
+            <HasanatDisplay hasanat={hasanatData.totalHasanat} size="medium" />
+            <Text style={{ fontSize: 12, color: '#6B7280', marginTop: 4 }}>
+              Total hasanat bacaan Anda
+            </Text>
+          </View>
+        )}
 
         <View style={st.card}>
           <Text style={st.cardTitle}>Estimasi Khatam</Text>

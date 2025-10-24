@@ -14,6 +14,7 @@ import { getComparativeStatsWithFamiliesDirect } from '@/services/familyAnalytic
 import { debugFamilyData } from '@/services/debugFamily';
 import { getSettings } from '@/services/profile';
 import { getCurrentStreak } from '@/services/checkins';
+import { getUserTotalHasanat, getDailyHasanat } from '@/services/hasanat';
 import { supabase } from '@/lib/supabase';
 import { useQueryClient } from '@tanstack/react-query';
 import { CompactStatsCard } from '@/components/charts/CompactStatsCard';
@@ -59,6 +60,7 @@ export default function StatsScreen() {
         queryClient.invalidateQueries({ queryKey: ['pattern'] });
         queryClient.invalidateQueries({ queryKey: ['heatmap'] });
         queryClient.invalidateQueries({ queryKey: ['comparativeStats'] });
+        queryClient.invalidateQueries({ queryKey: ['hasanat'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
         console.log('[StatsScreen] Reading sessions updated, invalidating queries');
@@ -71,6 +73,7 @@ export default function StatsScreen() {
         queryClient.invalidateQueries({ queryKey: ['pattern'] });
         queryClient.invalidateQueries({ queryKey: ['heatmap'] });
         queryClient.invalidateQueries({ queryKey: ['comparativeStats'] });
+        queryClient.invalidateQueries({ queryKey: ['hasanat'] });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'streaks' }, () => {
         console.log('[StatsScreen] Streaks updated, invalidating queries');
@@ -187,6 +190,21 @@ export default function StatsScreen() {
     queryKey: ['streak', 'current'],
     queryFn: getCurrentStreak,
     staleTime: 0, // Always fresh
+  });
+
+  // Get hasanat data (only if hasanat_visible is true)
+  const { data: hasanatData } = useQuery({
+    queryKey: ['hasanat', 'total'],
+    queryFn: getUserTotalHasanat,
+    enabled: userSettings?.hasanat_visible === true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  const { data: dailyHasanatData } = useQuery({
+    queryKey: ['hasanat', 'daily'],
+    queryFn: () => getDailyHasanat(30), // Last 30 days
+    enabled: userSettings?.hasanat_visible === true,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const isLoading =
@@ -416,6 +434,15 @@ export default function StatsScreen() {
           icon="🔥"
           color={colors.secondary}
         />
+        {/* Hasanat Card - Only if hasanat_visible is true */}
+        {userSettings?.hasanat_visible && hasanatData && (
+          <CompactStatsCard
+            value={hasanatData.totalHasanat.toLocaleString('id-ID')}
+            label="Total Hasanat"
+            icon="🌟"
+            color={colors.warning}
+          />
+        )}
       </View>
 
       {/* Daily Goal Progress */}

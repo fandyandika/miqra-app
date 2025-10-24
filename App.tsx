@@ -26,6 +26,7 @@ import ReadingHistoryScreen from '@/features/reading/ReadingHistoryScreen';
 import ProfileScreen from '@/features/profile/ProfileScreen';
 import SettingsScreen from '@/features/profile/SettingsScreen';
 import StatsScreen from '@/features/stats/StatsScreen';
+import HasanatScreen from '@/screens/hasanat/HasanatScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -105,6 +106,21 @@ function AppContent() {
                 presentation: 'modal',
                 headerStyle: {
                   backgroundColor: '#FFF8F0',
+                },
+                headerTitleStyle: {
+                  fontWeight: '700',
+                },
+              }}
+            />
+            <Stack.Screen
+              name="Hasanat"
+              component={HasanatScreen}
+              options={{
+                title: 'Hasanat',
+                headerShown: true,
+                presentation: 'modal',
+                headerStyle: {
+                  backgroundColor: '#F0F9FF',
                 },
                 headerTitleStyle: {
                   fontWeight: '700',

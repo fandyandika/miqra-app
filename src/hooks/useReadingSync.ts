@@ -110,11 +110,13 @@ export function useReadingSync() {
           queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
           queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
           queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+          queryClient.invalidateQueries({ queryKey: ['hasanat'] });
 
           // Force refetch critical data immediately
           queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
           queryClient.refetchQueries({ queryKey: ['reading', 'today'] });
           queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
+          queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
           queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
           queryClient.refetchQueries({ queryKey: ['checkin', 'today'] });
           // Progress screen specific keys (use current month)
