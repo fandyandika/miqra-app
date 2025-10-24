@@ -227,6 +227,16 @@ export async function createReadingSession(
       { onConflict: 'user_id,date' }
     );
 
+  // Update streak after checkin (same as upsertCheckin)
+  const { error: rpcError } = await supabase.rpc('update_streak_after_checkin', {
+    checkin_date: todayCheckin,
+  });
+  if (rpcError) {
+    console.warn('[createReadingSession] RPC streak update error:', rpcError);
+  } else {
+    console.log('[createReadingSession] Streak updated successfully for date:', todayCheckin);
+  }
+
   return inserted;
 }
 

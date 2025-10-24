@@ -13,9 +13,13 @@ export const colors = {
   surface: '#FFFFFF',
   sand: '#FFF8F0',
   text: { primary: '#1A1A1A', secondary: '#666666' },
+  textSecondary: '#666666',
+  charcoal: '#1A1A1A',
   border: '#E5E5E5',
   error: '#EF4444',
   success: '#10B981',
+  warning: '#F59E0B',
+  tertiary: '#6B7280',
   forest: '#1B5E4F',
   mutedText: '#999999',
 

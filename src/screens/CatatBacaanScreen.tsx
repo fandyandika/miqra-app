@@ -41,6 +41,10 @@ export default function CatatBacaanScreen() {
       qc.invalidateQueries({ queryKey: ['reading', 'history'] });
       qc.invalidateQueries({ queryKey: ['reading', 'stats'] });
       qc.invalidateQueries({ queryKey: ['reading', 'calendar'] });
+      // Progress screen specific keys
+      qc.invalidateQueries({ queryKey: ['reading-stats'] });
+      qc.invalidateQueries({ queryKey: ['checkin-data'] });
+      qc.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
 
       // Force refetch critical data immediately
       qc.refetchQueries({ queryKey: ['reading', 'progress'] });
@@ -48,6 +52,10 @@ export default function CatatBacaanScreen() {
       qc.refetchQueries({ queryKey: ['khatam', 'progress'] });
       qc.refetchQueries({ queryKey: ['streak', 'current'] });
       qc.refetchQueries({ queryKey: ['checkin', 'today'] });
+      // Progress screen specific keys
+      qc.refetchQueries({ queryKey: ['reading-stats'] });
+      qc.refetchQueries({ queryKey: ['checkin-data'] });
+      qc.refetchQueries({ queryKey: ['recent-reading-sessions'] });
 
       console.log('[CatatBacaan] Real-time updates triggered');
       Alert.alert('Tersimpan', 'Catatan bacaan berhasil disimpan.');

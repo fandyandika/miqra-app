@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { format, subDays } from 'date-fns';
@@ -15,6 +15,7 @@ import { debugFamilyData } from '@/services/debugFamily';
 import { getSettings } from '@/services/profile';
 import { getCurrentStreak } from '@/services/checkins';
 import { supabase } from '@/lib/supabase';
+import { useQueryClient } from '@tanstack/react-query';
 import { CompactStatsCard } from '@/components/charts/CompactStatsCard';
 import { DailyGoalProgress } from '@/components/charts/DailyGoalProgress';
 import { FamilyComparisonCard } from '@/components/charts/FamilyComparisonCard';
@@ -34,6 +35,58 @@ const PERIOD_CONFIG = {
 export default function StatsScreen() {
   const [period, setPeriod] = useState<TimePeriod>('month');
   const [selectedFamilyId, setSelectedFamilyId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  // =========================================
+  // REAL-TIME UPDATES
+  // =========================================
+
+  useEffect(() => {
+    console.log('[StatsScreen] Setting up real-time updates');
+
+    const channel = supabase
+      .channel('stats-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkins' }, () => {
+        console.log('[StatsScreen] Checkins updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['checkin'] });
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['weekly'] });
+        queryClient.invalidateQueries({ queryKey: ['monthly'] });
+        queryClient.invalidateQueries({ queryKey: ['today-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['pattern'] });
+        queryClient.invalidateQueries({ queryKey: ['heatmap'] });
+        queryClient.invalidateQueries({ queryKey: ['comparativeStats'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
+        console.log('[StatsScreen] Reading sessions updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['weekly'] });
+        queryClient.invalidateQueries({ queryKey: ['monthly'] });
+        queryClient.invalidateQueries({ queryKey: ['today-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['pattern'] });
+        queryClient.invalidateQueries({ queryKey: ['heatmap'] });
+        queryClient.invalidateQueries({ queryKey: ['comparativeStats'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'streaks' }, () => {
+        console.log('[StatsScreen] Streaks updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['weekly'] });
+        queryClient.invalidateQueries({ queryKey: ['monthly'] });
+        queryClient.invalidateQueries({ queryKey: ['today-stats'] });
+      })
+      .subscribe();
+
+    return () => {
+      console.log('[StatsScreen] Cleaning up real-time subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // =========================================
   // QUERIES
@@ -402,21 +455,19 @@ export default function StatsScreen() {
       )}
 
       {/* Family Comparison */}
-      {console.log('🔍 StatsScreen - Family Data:', {
-        families: comparativeData?.families?.length || 0,
-        selectedFamilyId: comparativeData?.selectedFamilyId,
-        personalAyat: comparativeData?.personal?.total_ayat || 0,
-        familyStats: comparativeData?.family,
-        period,
-      })}
       <FamilyComparisonCard
         personalAyat={comparativeData?.personal?.total_ayat || 0}
         familyStats={comparativeData?.family || null}
         families={comparativeData?.families || []}
         selectedFamilyId={comparativeData?.selectedFamilyId || null}
         onFamilyChange={setSelectedFamilyId}
-        period={period}
-        onPeriodChange={setPeriod}
+        period={
+          period === 'day' ? '7D' : period === 'week' ? '7D' : period === 'month' ? '30D' : '365D'
+        }
+        onPeriodChange={(newPeriod) => {
+          const timePeriod = newPeriod === '7D' ? 'day' : newPeriod === '30D' ? 'month' : 'year';
+          setPeriod(timePeriod as TimePeriod);
+        }}
         isLoading={comparativeLoading}
       />
 

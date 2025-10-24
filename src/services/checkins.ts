@@ -62,18 +62,26 @@ export async function getTodayCheckin(timezone: string = 'Asia/Jakarta') {
 export async function getCurrentStreak() {
   const { data: session } = await supabase.auth.getSession();
   const userId = session?.session?.user?.id;
-  if (!userId) return { current: 0, longest: 0, last_date: null as string | null };
+  if (!userId) {
+    console.log('[getCurrentStreak] No user ID found');
+    return { current: 0, longest: 0, last_date: null as string | null };
+  }
 
-  console.log('[getCurrentStreak] Fetching streak for user:', userId);
+  console.log('[getCurrentStreak] 🔍 Fetching streak for user:', userId);
 
   // First, let's check the raw checkins data
-  const { data: checkinsData } = await supabase
+  const { data: checkinsData, error: checkinsError } = await supabase
     .from('checkins')
     .select('date, ayat_count')
     .eq('user_id', userId)
     .order('date', { ascending: true });
 
-  console.log('[getCurrentStreak] Raw checkins data:', checkinsData);
+  if (checkinsError) {
+    console.error('[getCurrentStreak] Checkins error:', checkinsError);
+    return { current: 0, longest: 0, last_date: null };
+  }
+
+  console.log('[getCurrentStreak] 📊 Raw checkins data:', checkinsData);
 
   const { data, error } = await supabase
     .from('streaks')
@@ -82,46 +90,59 @@ export async function getCurrentStreak() {
     .maybeSingle();
 
   if (error) {
-    console.warn('[Streak] Fetch error:', error);
+    console.warn('[getCurrentStreak] Streak fetch error:', error);
     return { current: 0, longest: 0, last_date: null };
   }
 
-  const result = data || { current: 0, longest: 0, last_date: null };
-  console.log('[getCurrentStreak] Streak table result for user', userId, ':', result);
+  const existing = data || { current: 0, longest: 0, last_date: null };
+  console.log('[getCurrentStreak] ⚡ Streak table result for user', userId, ':', existing);
 
-  // If we have checkins but streak is 0 or 1, try to recalculate
-  if (checkinsData && checkinsData.length >= 2 && result.current <= 1) {
-    console.log('[getCurrentStreak] Attempting to recalculate streak...');
-    // Trigger streak recalculation for the most recent checkin
-    const lastCheckin = checkinsData[checkinsData.length - 1];
-    const { error: rpcError } = await supabase.rpc('update_streak_after_checkin', {
-      checkin_date: lastCheckin.date,
-    });
+  // Always compute manual streak from checkins to avoid stale streak values
+  if (checkinsData && checkinsData.length > 0) {
+    const manual = calculateStreakManually(checkinsData);
 
-    if (rpcError) {
-      console.warn('[getCurrentStreak] RPC error during recalculation:', rpcError);
-      // If RPC fails, try manual calculation
-      console.log('[getCurrentStreak] Attempting manual streak calculation...');
-      const manualStreak = calculateStreakManually(checkinsData);
-      console.log('[getCurrentStreak] Manual calculation result:', manualStreak);
-      return manualStreak;
-    } else {
-      console.log('[getCurrentStreak] Streak recalculated, fetching updated data...');
-      // Fetch updated streak data
-      const { data: updatedData } = await supabase
-        .from('streaks')
-        .select('current, longest, last_date')
-        .eq('user_id', userId)
-        .maybeSingle();
+    // If last checkin is older than yesterday, current streak should be 0
+    try {
+      const todayStr = getTodayDate();
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const lastMs = new Date(manual.last_date as string).getTime();
+      const todayMs = new Date(todayStr).getTime();
+      const gapDays = Math.floor((todayMs - lastMs) / msPerDay);
+      if (gapDays >= 2) {
+        manual.current = 0;
+      }
+    } catch (e) {
+      // ignore parse issues; keep manual value
+    }
 
-      if (updatedData) {
-        console.log('[getCurrentStreak] Updated streak data:', updatedData);
-        return updatedData;
+    // If manual differs from existing, upsert to DB for consistency
+    if (
+      manual.current !== existing.current ||
+      manual.last_date !== existing.last_date ||
+      (existing.longest ?? 0) < (manual.longest ?? 0)
+    ) {
+      try {
+        await supabase.from('streaks').upsert(
+          {
+            user_id: userId,
+            current: manual.current,
+            longest: manual.longest,
+            last_date: manual.last_date,
+          },
+          { onConflict: 'user_id' }
+        );
+        console.log('[getCurrentStreak] 🔄 Upserted corrected streak:', manual);
+      } catch (e) {
+        console.warn('[getCurrentStreak] ⚠️ Failed to upsert corrected streak:', e);
       }
     }
+
+    console.log('[getCurrentStreak] 📤 Returning manual streak:', manual);
+    return manual;
   }
 
-  return result;
+  console.log('[getCurrentStreak] 📤 Returning existing streak (no checkins):', existing);
+  return existing;
 }
 
 // Manual streak calculation as fallback
@@ -130,42 +151,41 @@ function calculateStreakManually(checkinsData: any[]) {
     return { current: 0, longest: 0, last_date: null };
   }
 
-  // Sort by date
-  const sortedCheckins = [...checkinsData].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  // Sort by date and deduplicate by date (multiple sessions in the same day count as one)
+  const sorted = [...checkinsData]
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((c) => c.date);
+  const uniqueDates: string[] = Array.from(new Set(sorted));
 
-  let currentStreak = 1;
+  let currentStreak = 1; // First day always counts as streak 1
   let longestStreak = 1;
-  let lastDate = new Date(sortedCheckins[sortedCheckins.length - 1].date);
+  const lastDateStr = uniqueDates[uniqueDates.length - 1];
+  const lastDate = new Date(lastDateStr);
 
-  // Calculate consecutive days from the end
-  for (let i = sortedCheckins.length - 2; i >= 0; i--) {
-    const currentDate = new Date(sortedCheckins[i].date);
-    const prevDate = new Date(sortedCheckins[i + 1].date);
+  console.log('[calculateStreakManually] Evaluating', uniqueDates.length, 'unique days');
 
-    // Check if dates are consecutive
+  // Walk backwards over unique dates to count consecutive days
+  for (let i = uniqueDates.length - 2; i >= 0; i--) {
+    const currentDate = new Date(uniqueDates[i]);
+    const prevDate = new Date(uniqueDates[i + 1]);
     const dayDiff = (prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24);
 
     if (dayDiff === 1) {
       currentStreak++;
-    } else {
-      // Streak broken, check if this was the longest
-      if (currentStreak > longestStreak) {
-        longestStreak = currentStreak;
-      }
+    } else if (dayDiff > 1) {
+      if (currentStreak > longestStreak) longestStreak = currentStreak;
       currentStreak = 1;
     }
+    // if dayDiff === 0 (same day due to duplicates), already removed by uniqueDates
   }
 
-  // Check if the final streak is the longest
-  if (currentStreak > longestStreak) {
-    longestStreak = currentStreak;
-  }
+  if (currentStreak > longestStreak) longestStreak = currentStreak;
 
-  return {
+  const result = {
     current: currentStreak,
     longest: longestStreak,
     last_date: lastDate.toISOString().split('T')[0],
   };
+
+  return result;
 }

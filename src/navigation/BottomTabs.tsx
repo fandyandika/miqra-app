@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Pressable, useColorScheme, Animated, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -198,6 +199,7 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const palette = usePalette();
+  const queryClient = useQueryClient();
 
   const hideFab = route.name === 'CatatBacaan';
 
@@ -257,6 +259,20 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 if (!isFocused && !evt.defaultPrevented) {
                   Haptics.selectionAsync().catch(() => {});
                   navigation.navigate(r.name, r.params);
+
+                  // If navigating to Progress, proactively refresh Progress queries
+                  if (r.name === 'Progress') {
+                    try {
+                      const monthKey = new Date().toISOString().slice(0, 7); // yyyy-MM
+                      queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+                      queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+                      queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+                      // We don't know selectedPeriod here; refetch all reading-stats
+                      queryClient.refetchQueries({ queryKey: ['reading-stats'] });
+                    } catch {}
+                  }
                 }
               };
               const onLongPress = () => {
@@ -333,6 +349,19 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
                 if (!isFocused && !evt.defaultPrevented) {
                   Haptics.selectionAsync().catch(() => {});
                   navigation.navigate(r.name, r.params);
+
+                  // If navigating to Progress, proactively refresh Progress queries
+                  if (r.name === 'Progress') {
+                    try {
+                      const monthKey = new Date().toISOString().slice(0, 7); // yyyy-MM
+                      queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+                      queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+                      queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+                      queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+                      queryClient.refetchQueries({ queryKey: ['reading-stats'] });
+                    } catch {}
+                  }
                 }
               };
               const onLongPress = () => {

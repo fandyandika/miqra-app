@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   selectorButtonSubtext: {
     fontSize: 10,
-    color: colors.text.tertiary,
+    color: colors.tertiary,
     marginTop: 2,
   },
   selectorContainer: {

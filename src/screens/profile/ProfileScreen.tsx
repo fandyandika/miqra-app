@@ -232,7 +232,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
-        <Button title="Keluar" onPress={handleLogout} className="mb-8" />
+        <Button title="Keluar" onPress={handleLogout} style={{ marginBottom: 32 }} />
       </View>
     </ScrollView>
   );

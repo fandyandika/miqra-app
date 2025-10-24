@@ -15,4 +15,15 @@ config.resolver.alias = {
 // Ensure proper module resolution
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
+// Add transformer options for better Android compatibility
+config.transformer = {
+  ...config.transformer,
+  minifierConfig: {
+    keep_fnames: true,
+    mangle: {
+      keep_fnames: true,
+    },
+  },
+};
+
 module.exports = withNativeWind(config, { input: './global.css' });

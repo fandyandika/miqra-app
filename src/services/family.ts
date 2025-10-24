@@ -64,7 +64,7 @@ export async function myFamilies() {
 
 export async function familyMembers(familyId: string) {
   // Try with relationship first
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('family_members')
     .select(
       `

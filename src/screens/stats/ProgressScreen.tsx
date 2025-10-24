@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -22,58 +22,91 @@ export default function ProgressScreen() {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
-  // REAL-TIME SYNC for Progress Screen
+  // REAL-TIME SYNC for Progress Screen (same pattern as HomeScreen)
   useEffect(() => {
     if (!user) return;
 
     console.log('[ProgressScreen] Setting up real-time sync for user:', user.id);
 
-    // Subscribe to checkins changes for stats updates
-    const checkinsChannel = supabase
-      .channel('progress-checkins')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'checkins',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log('[ProgressScreen] 🔥 Checkins changed, updating stats:', payload.eventType);
-          queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
-          queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
-        }
-      )
-      .subscribe();
-
-    // Subscribe to reading sessions for progress updates
-    const sessionsChannel = supabase
-      .channel('progress-sessions')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reading_sessions',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          console.log('[ProgressScreen] 📚 Reading sessions changed:', payload.eventType);
-          queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
-          queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
-          queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
-        }
-      )
+    const channel = supabase
+      .channel('progress-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'checkins' }, () => {
+        console.log('[ProgressScreen] 🔥 Checkins updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['checkin'] });
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['khatam'] });
+        queryClient.invalidateQueries({ queryKey: ['families'] });
+        // Force refetch for immediate UI update
+        queryClient.refetchQueries({
+          queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
+        });
+        queryClient.refetchQueries({
+          queryKey: ['checkin-data', format(currentMonth, 'yyyy-MM')],
+        });
+        queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+        queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
+        queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
+        queryClient.refetchQueries({ queryKey: ['reading', 'today'] });
+        queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reading_sessions' }, () => {
+        console.log('[ProgressScreen] 📚 Reading sessions updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['reading'] });
+        queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['khatam'] });
+        // Force refetch for immediate UI update
+        queryClient.refetchQueries({
+          queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
+        });
+        queryClient.refetchQueries({
+          queryKey: ['checkin-data', format(currentMonth, 'yyyy-MM')],
+        });
+        queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+        queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
+        queryClient.refetchQueries({ queryKey: ['reading', 'today'] });
+        queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'streaks' }, () => {
+        console.log('[ProgressScreen] 🔥 Streaks updated, invalidating queries');
+        queryClient.invalidateQueries({ queryKey: ['streak'] });
+        queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+        // Force refetch for immediate UI update
+        queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
+        queryClient.refetchQueries({
+          queryKey: ['reading-stats', selectedPeriod, format(currentMonth, 'yyyy-MM')],
+        });
+      })
       .subscribe();
 
     return () => {
       console.log('[ProgressScreen] Cleaning up real-time subscriptions');
-      checkinsChannel.unsubscribe();
-      sessionsChannel.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [user, queryClient, selectedPeriod, currentMonth]);
+
+  // Ensure fresh data when screen gains focus (e.g., switching tabs)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!user) return;
+      const monthKey = format(currentMonth, 'yyyy-MM');
+
+      // Invalidate + refetch Progress-specific queries
+      queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+      queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+
+      queryClient.refetchQueries({ queryKey: ['reading-stats', selectedPeriod, monthKey] });
+      queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+      queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+      queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
+    }, [user, selectedPeriod, currentMonth, queryClient])
+  );
 
   // Fetch reading stats based on selected period
   const { data: stats, isLoading: statsLoading } = useQuery({
@@ -122,6 +155,8 @@ export default function ProgressScreen() {
     queryKey: ['recent-reading-sessions'],
     queryFn: () => getRecentReadingSessions(10),
     enabled: !!user,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const goToPreviousMonth = () => {
@@ -349,12 +384,21 @@ export default function ProgressScreen() {
 
       {/* Calendar Section */}
       <View style={styles.calendarSection}>
-        {console.log('📅 ProgressScreen - Sending checkinData to StreakCalendar:', checkinData)}
         <StreakCalendar
           currentMonth={currentMonth}
           onMonthChange={setCurrentMonth}
           checkinData={Array.isArray(checkinData) ? checkinData : []}
-          readingSessions={Array.isArray(readingSessions) ? readingSessions : []}
+          readingSessions={
+            Array.isArray(readingSessions)
+              ? readingSessions.map((session) => ({
+                  date: session.date,
+                  surah_name: session.surah_name,
+                  surah_number: 1, // Default value since it's not in the data
+                  ayat_start: Number(session.ayat_start) || 1,
+                  ayat_end: Number(session.ayat_end) || 1,
+                }))
+              : []
+          }
           streakData={{
             current: stats?.daysRead || 0,
             last_date: null,

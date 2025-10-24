@@ -26,8 +26,23 @@ export default function LogReadingScreen() {
   const m = useMutation({
     mutationFn: (input: ReadingSessionInput) => createReadingSession(input),
     onSuccess: () => {
+      // Invalidate reading-related
       qc.invalidateQueries({ queryKey: ['reading', 'progress'] });
       qc.invalidateQueries({ queryKey: ['reading', 'today'] });
+      qc.invalidateQueries({ queryKey: ['streak'] });
+      qc.invalidateQueries({ queryKey: ['checkin'] });
+      // Progress screen specific keys
+      qc.invalidateQueries({ queryKey: ['reading-stats'] });
+      qc.invalidateQueries({ queryKey: ['checkin-data'] });
+      qc.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+
+      // Force refetch
+      qc.refetchQueries({ queryKey: ['reading', 'progress'] });
+      qc.refetchQueries({ queryKey: ['reading', 'today'] });
+      qc.refetchQueries({ queryKey: ['streak', 'current'] });
+      qc.refetchQueries({ queryKey: ['reading-stats'] });
+      qc.refetchQueries({ queryKey: ['checkin-data'] });
+      qc.refetchQueries({ queryKey: ['recent-reading-sessions'] });
       Alert.alert('Tersimpan', 'Catatan bacaan berhasil disimpan.');
       // clear form but keep next suggestion
       const next = getNextPosition(surah, range.end);

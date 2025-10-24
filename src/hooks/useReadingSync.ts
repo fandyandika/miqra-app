@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuthSession } from '@/hooks/useAuth';
@@ -33,6 +34,69 @@ export function useReadingSync() {
             payload.new || payload.old
           );
 
+          const newRow: any = payload?.new || {};
+          const sessionDate: string | undefined = newRow?.date;
+          const sessionAyat: number = Number(newRow?.ayat_count || 0);
+          const monthKeyFromSession = sessionDate
+            ? format(new Date(sessionDate), 'yyyy-MM')
+            : format(new Date(), 'yyyy-MM');
+
+          // Optimistic cache updates for Progress screen
+          try {
+            // Update recent-reading-sessions grouped data
+            queryClient.setQueryData<any[]>(['recent-reading-sessions'], (prev) => {
+              if (!Array.isArray(prev)) return prev;
+              if (!sessionDate) return prev;
+              // Clone
+              const copy = [...prev];
+              const idx = copy.findIndex((d) => d?.date === sessionDate);
+              if (idx >= 0) {
+                const day = copy[idx];
+                const updated = {
+                  ...day,
+                  ayat_count: (Number(day?.ayat_count) || 0) + sessionAyat,
+                  session_count: (Number(day?.session_count) || 0) + 1,
+                  sessions: [...(day?.sessions || []), newRow],
+                };
+                copy[idx] = updated;
+                return copy;
+              }
+              // Not found -> prepend new day
+              return [
+                {
+                  date: sessionDate,
+                  ayat_count: sessionAyat,
+                  session_count: 1,
+                  sessions: [newRow],
+                  surah_name: newRow?.surah_number
+                    ? `Surah ${newRow?.surah_number}`
+                    : 'Surah tidak diketahui',
+                  ayat_start: newRow?.ayat_start || 1,
+                  ayat_end: newRow?.ayat_end || sessionAyat || 1,
+                },
+                ...copy,
+              ];
+            });
+
+            // Update calendar month map
+            queryClient.setQueryData<any[]>(['checkin-data', monthKeyFromSession], (prev) => {
+              if (!Array.isArray(prev)) return prev;
+              if (!sessionDate) return prev;
+              const copy = [...prev];
+              const idx = copy.findIndex((d) => d?.date === sessionDate);
+              if (idx >= 0) {
+                copy[idx] = {
+                  ...copy[idx],
+                  ayat_count: (Number(copy[idx]?.ayat_count) || 0) + sessionAyat,
+                };
+                return copy;
+              }
+              return [...copy, { date: sessionDate, ayat_count: sessionAyat }];
+            });
+          } catch (e) {
+            console.warn('[ReadingSync] Optimistic cache update failed:', e);
+          }
+
           // Invalidate all reading-related queries with more specific keys
           queryClient.invalidateQueries({ queryKey: ['reading'] });
           queryClient.invalidateQueries({ queryKey: ['khatam'] });
@@ -42,6 +106,10 @@ export function useReadingSync() {
           queryClient.invalidateQueries({ queryKey: ['reading', 'history'] });
           queryClient.invalidateQueries({ queryKey: ['reading', 'stats'] });
           queryClient.invalidateQueries({ queryKey: ['reading', 'calendar'] });
+          // Progress screen specific keys
+          queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+          queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+          queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
 
           // Force refetch critical data immediately
           queryClient.refetchQueries({ queryKey: ['reading', 'progress'] });
@@ -49,6 +117,11 @@ export function useReadingSync() {
           queryClient.refetchQueries({ queryKey: ['khatam', 'progress'] });
           queryClient.refetchQueries({ queryKey: ['streak', 'current'] });
           queryClient.refetchQueries({ queryKey: ['checkin', 'today'] });
+          // Progress screen specific keys (use current month)
+          const currentMonthKey = format(new Date(), 'yyyy-MM');
+          queryClient.refetchQueries({ queryKey: ['reading-stats'] });
+          queryClient.refetchQueries({ queryKey: ['checkin-data', currentMonthKey] });
+          queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
         }
       )
       .subscribe();
