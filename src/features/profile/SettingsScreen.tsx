@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSettings, updateSettings } from '@/services/profile';
 import { SettingSection } from '@/components/settings/SettingSection';
@@ -15,6 +16,7 @@ import { SettingToggle } from '@/components/settings/SettingToggle';
 import { colors } from '@/theme/colors';
 
 export default function SettingsScreen() {
+  const navigation = useNavigation<any>();
   const qc = useQueryClient();
 
   const {
@@ -103,18 +105,18 @@ export default function SettingsScreen() {
 
       {/* Notifikasi */}
       <SettingSection title="Notifikasi">
-        <SettingToggle
-          label="Pengingat Harian"
-          description={`Waktu saat ini: ${s.reminder_time?.slice(0, 5)}`}
-          value={s.daily_reminder_enabled}
-          onChange={handleToggle('daily_reminder_enabled')}
-        />
-        <SettingToggle
-          label="Peringatan Streak"
-          description="Ingatkan jika belum membaca hari ini"
-          value={s.streak_warning_enabled}
-          onChange={handleToggle('streak_warning_enabled')}
-        />
+        <Pressable
+          style={styles.navigationItem}
+          onPress={() => navigation.navigate('ReminderSettings')}
+        >
+          <View style={styles.navigationContent}>
+            <Text style={styles.navigationLabel}>Pengingat Harian</Text>
+            <Text style={styles.navigationDescription}>
+              Atur waktu pengingat dan peringatan streak
+            </Text>
+          </View>
+          <Text style={styles.navigationArrow}>→</Text>
+        </Pressable>
         <SettingToggle
           label="Aktivitas Keluarga"
           description="Kabar saat anggota keluarga membaca"
@@ -206,4 +208,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteTxt: { color: '#DC2626', fontSize: 16, fontWeight: '600' },
+  navigationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  navigationContent: {
+    flex: 1,
+  },
+  navigationLabel: {
+    fontSize: 16,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  navigationDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  navigationArrow: {
+    fontSize: 16,
+    color: '#9ca3af',
+    marginLeft: 8,
+  },
 });

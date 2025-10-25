@@ -161,3 +161,14 @@ export async function requestAccountDeletion() {
     'Penghapusan akun memerlukan fungsi server. Fitur dinonaktifkan untuk sementara.'
   );
 }
+
+// BACA SETTINGS USER LAIN — PERLU RLS AMAN (rekomendasi via Edge Function; untuk sementara, batasi ke anggota keluarga sama)
+export async function getSettingsByUserId(userId: string) {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}

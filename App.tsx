@@ -27,6 +27,7 @@ import KhatamProgressScreen from '@/features/reading/KhatamProgressScreen';
 import ReadingHistoryScreen from '@/features/reading/ReadingHistoryScreen';
 import ProfileScreen from '@/features/profile/ProfileScreen';
 import SettingsScreen from '@/features/profile/SettingsScreen';
+import ReminderSettingsScreen from '@/features/settings/ReminderSettingsScreen';
 import StatsScreen from '@/features/stats/StatsScreen';
 import HasanatScreen from '@/screens/hasanat/HasanatScreen';
 
@@ -98,6 +99,11 @@ function AppContent() {
               name="Settings"
               component={SettingsScreen}
               options={{ title: 'Pengaturan', headerShown: true }}
+            />
+            <Stack.Screen
+              name="ReminderSettings"
+              component={ReminderSettingsScreen}
+              options={{ title: 'Pengaturan Pengingat', headerShown: true }}
             />
             <Stack.Screen
               name="Stats"

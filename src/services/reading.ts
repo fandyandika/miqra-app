@@ -12,6 +12,11 @@ import {
 import { toZonedTime } from 'date-fns-tz';
 import { getAyatCount, getNextPosition } from '@/data/quran_meta';
 import { calculateUniqueAyatProgress, getNextUnreadPosition } from '@/lib/uniqueAyatTracker';
+import {
+  sendMilestoneNotification,
+  sendFamilyActivityNotification,
+} from '@/services/notifications';
+import { getSettings, getSettingsByUserId } from '@/services/profile';
 
 export type ReadingSessionInput = {
   surah_number: number;
@@ -235,6 +240,29 @@ export async function createReadingSession(
     console.warn('[createReadingSession] RPC streak update error:', rpcError);
   } else {
     console.log('[createReadingSession] Streak updated successfully for date:', todayCheckin);
+  }
+
+  // Trigger notifications after successful save
+  try {
+    // Get current streak and total ayat for notifications
+    const { data: streakData } = await supabase
+      .from('streaks')
+      .select('current_streak')
+      .eq('user_id', user.id)
+      .single();
+
+    const newStreak = streakData?.current_streak || 0;
+    const totalAyat = patch.total_ayat_read || 0;
+
+    await afterSaveSessionHook({
+      userId: user.id,
+      newStreak,
+      totalAyat,
+      ayatCount,
+    });
+  } catch (notifError) {
+    console.warn('[createReadingSession] Notification error:', notifError);
+    // Don't fail the session save if notifications fail
   }
 
   return inserted;
@@ -522,4 +550,39 @@ export async function getKhatamProgress() {
       uniqueData: null,
     };
   }
+}
+
+// Setelah berhasil insert session, panggil:
+async function afterSaveSessionHook({
+  userId,
+  newStreak,
+  totalAyat,
+  ayatCount,
+}: {
+  userId: string;
+  newStreak: number;
+  totalAyat: number;
+  ayatCount: number;
+}) {
+  // Milestones (local)
+  if ([7, 30, 100].includes(newStreak)) {
+    const title =
+      newStreak === 7
+        ? '7 Hari Berturut! 🔥'
+        : newStreak === 30
+          ? '30 Hari Istiqomah! 🌙'
+          : '100 Hari Luar Biasa! ⭐';
+    await sendMilestoneNotification(title, 'MasyaAllah! Terus istiqomah.');
+  }
+  if ([100, 1000, 5000].includes(totalAyat)) {
+    await sendMilestoneNotification(`${totalAyat} Ayat! 🎉`, 'Perjalanan yang menginspirasi.');
+  }
+
+  // Family activity (MVP: local untuk user ini saja; full push perlu server)
+  // Jika mau kirim local-notif ke diri sendiri sebagai "feed", boleh:
+  // await sendFamilyActivityNotification('Anda', ayatCount);
+
+  // Jika nanti sudah ada server push:
+  // 1) Ambil anggota keluarga lain + preferensi mereka (getSettingsByUserId)
+  // 2) Kirim via Edge Function ke token mereka.
 }
