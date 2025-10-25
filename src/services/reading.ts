@@ -16,7 +16,6 @@ import {
   sendMilestoneNotification,
   sendFamilyActivityNotification,
 } from '@/services/notifications';
-import { getSettings, getSettingsByUserId } from '@/services/profile';
 
 export type ReadingSessionInput = {
   surah_number: number;

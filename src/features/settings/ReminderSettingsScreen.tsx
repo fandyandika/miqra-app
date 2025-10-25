@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Alert,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, Pressable, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSettings, updateSettings } from '@/services/profile';
@@ -16,17 +8,17 @@ import {
   scheduleDailyReminder,
   scheduleStreakWarning,
   cancelAllNotifications,
+  PRESET_TIMES,
 } from '@/services/notifications';
-import { getCachedPrayerTimes, applyPrayerBuffer, clampToQuietHours } from '@/services/prayerTimes';
-import { registerDailyRescheduler } from '@/services/notifications';
 import { SettingSection } from '@/components/settings/SettingSection';
 import { SettingToggle } from '@/components/settings/SettingToggle';
-import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import { colors } from '@/theme/colors';
 
 export default function ReminderSettingsScreen() {
+  const [selectedPreset, setSelectedPreset] = useState('morning');
+  const [customTime, setCustomTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [showStreakTimePicker, setShowStreakTimePicker] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: settings, isLoading } = useQuery({
@@ -42,8 +34,22 @@ export default function ReminderSettingsScreen() {
   });
 
   useEffect(() => {
-    registerDailyRescheduler(); // supaya harian otomatis reschedule
-  }, []);
+    // Set initial preset based on current settings
+    if (settings?.reminder_time) {
+      const currentTime = settings.reminder_time.slice(0, 5); // Remove seconds
+      const matchingPreset = PRESET_TIMES.find((preset) => preset.time === currentTime);
+      if (matchingPreset) {
+        setSelectedPreset(matchingPreset.id);
+      } else {
+        // If no matching preset, it's a custom time
+        setSelectedPreset('custom');
+        const [hours, minutes] = currentTime.split(':').map(Number);
+        const customDate = new Date();
+        customDate.setHours(hours, minutes, 0, 0);
+        setCustomTime(customDate);
+      }
+    }
+  }, [settings]);
 
   const handleToggleReminder = async (enabled: boolean) => {
     if (enabled) {
@@ -53,8 +59,9 @@ export default function ReminderSettingsScreen() {
         return;
       }
 
-      // prayer-aware schedule menggunakan jam dari settings (atau 06:00)
-      await scheduleDailyReminder(settings?.reminder_time || '06:00');
+      // Schedule with current preset time
+      const currentPreset = PRESET_TIMES.find((p) => p.id === selectedPreset);
+      await scheduleDailyReminder(currentPreset?.time || '06:00');
       if (settings?.streak_warning_enabled) await scheduleStreakWarning();
     } else {
       await cancelAllNotifications();
@@ -78,54 +85,43 @@ export default function ReminderSettingsScreen() {
     updateMutation.mutate({ streak_warning_enabled: enabled });
   };
 
-  const handleTimeChange = async (_: any, date?: Date) => {
-    setShowTimePicker(false);
-    if (!date) return;
+  const handlePresetSelect = async (presetId: string) => {
+    setSelectedPreset(presetId);
+    const preset = PRESET_TIMES.find((p) => p.id === presetId);
+    if (!preset) return;
 
-    const hh = String(date.getHours()).padStart(2, '0');
-    const mm = String(date.getMinutes()).padStart(2, '0');
-    let hm = `${hh}:${mm}`;
+    if (presetId === 'custom') {
+      setShowTimePicker(true);
+      return;
+    }
 
-    const pt = await getCachedPrayerTimes(null);
-    const original = hm;
-    hm = clampToQuietHours(hm);
-    hm = applyPrayerBuffer(hm, pt, 15, 20);
+    if (preset.time) {
+      updateMutation.mutate({
+        reminder_time: preset.time + ':00', // Add seconds for database
+        reminder_preset: presetId,
+      });
+    }
 
-    updateMutation.mutate({ reminder_time: hm });
-
-    if (settings?.daily_reminder_enabled) await scheduleDailyReminder(hm);
-
-    if (hm !== original) {
-      Alert.alert(
-        'Waktu Disesuaikan',
-        `Untuk menghormati waktu sholat/quiet hours, pengingat digeser ke ${hm}.`
-      );
+    if (settings?.daily_reminder_enabled && preset.time) {
+      await scheduleDailyReminder(preset.time);
     }
   };
 
-  const handleUseOptimalTime = async () => {
-    const pt = await getCachedPrayerTimes(null);
-    // default "optimal" kita set 30m setelah Fajr → lalu apply clamp/buffer agar aman
-    const [fh, fm] = pt.fajr.split(':').map(Number);
-    const base = `${String(fh).padStart(2, '0')}:${String(fm + 30).padStart(2, '0')}`;
-    let hm = clampToQuietHours(base);
-    hm = applyPrayerBuffer(hm, pt, 15, 20);
+  const handleCustomTimeChange = async (event: any, selectedDate?: Date) => {
+    setShowTimePicker(false);
+    if (!selectedDate) return;
 
-    updateMutation.mutate({ reminder_time: hm });
-    if (settings?.daily_reminder_enabled) await scheduleDailyReminder(hm);
-    Alert.alert('Waktu Optimal', `Pengingat diatur ke ${hm} (≈ 30 menit setelah Subuh).`);
-  };
+    setCustomTime(selectedDate);
+    const timeString = `${selectedDate.getHours().toString().padStart(2, '0')}:${selectedDate.getMinutes().toString().padStart(2, '0')}`;
 
-  const formatTime = (timeStr: string) => {
-    const [h, m] = timeStr.split(':');
-    return `${h}:${m}`;
-  };
+    updateMutation.mutate({
+      reminder_time: timeString + ':00', // Add seconds for database
+      reminder_preset: 'custom',
+    });
 
-  const parseTime = (timeStr: string) => {
-    const [h, m] = timeStr.split(':').map(Number);
-    const date = new Date();
-    date.setHours(h, m, 0, 0);
-    return date;
+    if (settings?.daily_reminder_enabled) {
+      await scheduleDailyReminder(timeString);
+    }
   };
 
   if (isLoading) {
@@ -142,8 +138,8 @@ export default function ReminderSettingsScreen() {
         {/* Info Box */}
         <Card style={styles.infoCard}>
           <Text style={styles.infoText}>
-            Notifikasi akan otomatis menyesuaikan agar tidak mengganggu waktu sholat dan jam tidur
-            (23:00–05:00).
+            Notifikasi dikirim sesuai waktu yang Anda pilih. Pilih waktu yang paling sesuai dengan
+            rutinitas Anda.
           </Text>
         </Card>
 
@@ -156,21 +152,44 @@ export default function ReminderSettingsScreen() {
           />
 
           {settings?.daily_reminder_enabled && (
-            <>
-              <TouchableOpacity style={styles.timeRow} onPress={() => setShowTimePicker(true)}>
-                <Text style={styles.timeLabel}>Waktu Pengingat</Text>
-                <Text style={styles.timeValue}>
-                  {formatTime(settings?.reminder_time || '06:00')}
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Pilih Waktu</Text>
 
-              <Button
-                title="Gunakan Waktu Optimal"
-                onPress={handleUseOptimalTime}
-                variant="secondary"
-                style={styles.optimalButton}
-              />
-            </>
+              {PRESET_TIMES.map((preset) => (
+                <Pressable
+                  key={preset.id}
+                  style={[
+                    styles.presetOption,
+                    preset.id === 'custom' && styles.customOption,
+                    selectedPreset === preset.id && styles.presetSelected,
+                  ]}
+                  onPress={() => handlePresetSelect(preset.id)}
+                >
+                  <Text style={styles.presetIcon}>{preset.icon}</Text>
+                  <View style={styles.presetContent}>
+                    <Text style={styles.presetLabel}>{preset.label}</Text>
+                    <Text style={styles.presetTime}>
+                      {preset.id === 'custom' && selectedPreset === 'custom'
+                        ? `${customTime.getHours().toString().padStart(2, '0')}:${customTime.getMinutes().toString().padStart(2, '0')}`
+                        : preset.time}
+                    </Text>
+                  </View>
+                  <View style={styles.radio}>
+                    {selectedPreset === preset.id && <View style={styles.radioSelected} />}
+                  </View>
+                </Pressable>
+              ))}
+
+              {selectedPreset === 'custom' && showTimePicker && (
+                <DateTimePicker
+                  value={customTime}
+                  mode="time"
+                  is24Hour={true}
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={handleCustomTimeChange}
+                />
+              )}
+            </View>
           )}
         </SettingSection>
 
@@ -185,17 +204,6 @@ export default function ReminderSettingsScreen() {
             Peringatan akan dikirim sebelum Maghrib jika belum membaca hari ini.
           </Text>
         </SettingSection>
-
-        {/* Time Pickers */}
-        {showTimePicker && (
-          <DateTimePicker
-            value={parseTime(settings?.reminder_time || '06:00')}
-            mode="time"
-            is24Hour={true}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleTimeChange}
-          />
-        )}
       </View>
     </ScrollView>
   );
@@ -221,30 +229,66 @@ const styles = StyleSheet.create({
     color: '#0c4a6e',
     lineHeight: 20,
   },
-  timeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  section: {
+    marginTop: 16,
   },
-  timeLabel: {
+  sectionTitle: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#374151',
-    fontWeight: '500',
+    marginBottom: 12,
+    paddingHorizontal: 16,
   },
-  timeValue: {
-    fontSize: 16,
-    color: '#6b7280',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  presetOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 6,
+    borderWidth: 2,
+    borderColor: '#F3F4F6',
   },
-  optimalButton: {
-    marginTop: 12,
+  presetSelected: {
+    borderColor: colors.primary,
+  },
+  customOption: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  presetIcon: {
+    fontSize: 28,
+    marginRight: 12,
+  },
+  presetContent: {
+    flex: 1,
+  },
+  presetLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  presetTime: {
+    fontSize: 13,
+    color: '#6B7280',
+    marginTop: 2,
+  },
+  radio: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioSelected: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.primary,
   },
   streakDescription: {
     fontSize: 14,

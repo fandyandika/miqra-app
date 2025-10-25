@@ -19,6 +19,7 @@ export type UserSettings = {
   join_leaderboard: boolean;
   daily_reminder_enabled: boolean;
   reminder_time: string; // 'HH:MM:SS'
+  reminder_preset?: string; // preset ID
   streak_warning_enabled: boolean;
   family_nudge_enabled: boolean;
   milestone_celebration_enabled: boolean;
