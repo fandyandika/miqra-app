@@ -6,8 +6,8 @@
  * 2) Set env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
  * 3) npx ts-node scripts/seed_letter_counts.ts
  */
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL!;
@@ -41,7 +41,7 @@ async function main() {
     const [surahStr, ayahStr] = key.split(':');
     return {
       surah: Number(surahStr),
-      ayah: Number(ayahStr),
+      ayat: Number(ayahStr),
       letters: Number(letters),
     };
   });
@@ -55,7 +55,7 @@ async function main() {
   for (let i = 0; i < rows.length; i += chunkSize) {
     const slice = rows.slice(i, i + chunkSize);
     const { error } = await supabase.from('letter_counts').upsert(slice, {
-      onConflict: 'surah,ayah',
+      onConflict: 'surah,ayat',
       ignoreDuplicates: false,
     });
 

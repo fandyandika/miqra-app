@@ -227,7 +227,7 @@ npx ts-node scripts/test-leaderboard.ts
 
 ### 1. Indexing
 
-- `letter_counts(surah, ayah)` - Primary key
+- `letter_counts(surah, ayat)` - Primary key
 - `daily_hasanat(user_id, date DESC)` - For user queries
 - `reading_sessions(user_id, session_time)` - For date filtering
 
