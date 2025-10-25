@@ -8,6 +8,11 @@ export default {
     orientation: 'portrait',
     userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
+    splash: {
+      image: './assets/splash/logo.png',
+      backgroundColor: '#00c896',
+      resizeMode: 'contain',
+    },
     ios: { supportsTablet: true, bundleIdentifier: 'com.miqra.miqra' },
     android: { package: 'com.miqra.miqra' },
     plugins: [

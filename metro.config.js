@@ -10,6 +10,7 @@ config.resolver.assetExts.push('wasm');
 // Add @ alias support
 config.resolver.alias = {
   '@': path.resolve(__dirname, 'src'),
+  '@assets': path.resolve(__dirname, 'assets'),
 };
 
 // Ensure proper module resolution

@@ -1,8 +1,9 @@
 import 'react-native-reanimated';
 import './global.css';
 import 'react-native-css-interop/jsx-runtime';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import * as SplashScreen from 'expo-splash-screen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/lib/queryClient';
@@ -13,6 +14,7 @@ import { useAuthSession } from './src/hooks/useAuth';
 import { useReadingSync } from './src/hooks/useReadingSync';
 import { useCheckinSync } from './src/hooks/useCheckinSync';
 import './src/config/sentry';
+import CustomSplashScreen from './src/screens/SplashScreen';
 import BottomTabs from '@/navigation/BottomTabs';
 import CatatBacaanScreen from '@/screens/CatatBacaanScreen';
 import CreateFamilyScreen from '@/screens/family/CreateFamilyScreen';
@@ -137,11 +139,39 @@ function AppContent() {
 }
 
 export default function App() {
+  const [isSplashComplete, setIsSplashComplete] = useState(false);
+  const [isAppReady, setIsAppReady] = useState(false);
+
   useEffect(() => {
-    initLocal();
-    posthog?.capture(EVENTS.APP_OPEN);
-    console.log('[App] Initialized');
+    const initializeApp = async () => {
+      try {
+        // Hide native splash first
+        await SplashScreen.hideAsync();
+
+        // Initialize app data
+        await initLocal();
+        posthog?.capture(EVENTS.APP_OPEN);
+        console.log('[App] Initialized');
+
+        // Mark app as ready
+        setIsAppReady(true);
+      } catch (error) {
+        console.error('[App] Initialization error:', error);
+        setIsAppReady(true); // Continue anyway
+      }
+    };
+
+    initializeApp();
   }, []);
+
+  const handleSplashComplete = () => {
+    setIsSplashComplete(true);
+  };
+
+  // Show custom splash while app is initializing or for branding
+  if (!isAppReady || !isSplashComplete) {
+    return <CustomSplashScreen onAnimationComplete={handleSplashComplete} />;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

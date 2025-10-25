@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start",
     "start:local": "DOTENV_CONFIG_PATH=.env.local expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "create:test-users": "node scripts/create-test-users.js",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
@@ -43,6 +43,7 @@
     "expo-linking": "~8.0.8",
     "expo-notifications": "~0.32.12",
     "expo-router": "~6.0.13",
+    "expo-splash-screen": "~31.0.10",
     "expo-sqlite": "~16.0.8",
     "expo-status-bar": "~3.0.8",
     "lottie-react-native": "~7.3.1",
