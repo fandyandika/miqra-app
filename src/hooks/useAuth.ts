@@ -41,3 +41,14 @@ export function useAuthSession() {
 
   return { session, loading, signOut };
 }
+
+// Export useAuth for compatibility with existing code
+export function useAuth() {
+  const { session, loading, signOut } = useAuthSession();
+  return {
+    user: session?.user || null,
+    session,
+    loading,
+    signOut,
+  };
+}

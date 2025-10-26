@@ -4,6 +4,7 @@ import 'react-native-css-interop/jsx-runtime';
 import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './src/lib/queryClient';
@@ -148,6 +149,13 @@ export default function App() {
   const [isSplashComplete, setIsSplashComplete] = useState(false);
   const [isAppReady, setIsAppReady] = useState(false);
 
+  // Load custom fonts
+  const [fontsLoaded] = useFonts({
+    'Me Quran': require('./assets/fonts/me_quran-Regular.ttf'),
+    'AmiriQuran-Regular': require('./assets/fonts/AmiriQuran-Regular.ttf'),
+    'LPMQ-Isep-Misbah': require('./assets/fonts/LPMQ-Isep-Misbah.ttf'),
+  });
+
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -169,6 +177,11 @@ export default function App() {
 
     initializeApp();
   }, []);
+
+  // Wait for fonts to load
+  if (!fontsLoaded) {
+    return null;
+  }
 
   const handleSplashComplete = () => {
     setIsSplashComplete(true);

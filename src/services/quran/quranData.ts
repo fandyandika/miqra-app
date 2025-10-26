@@ -1,0 +1,785 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export type Ayah = {
+  number: number;
+  text: string;
+  translation?: string;
+};
+
+export type Surah = {
+  number: number;
+  name: string;
+  ayat_count: number;
+  ayat: Ayah[];
+  source?: { dataset: string; version: string };
+};
+
+const CACHE_PREFIX = 'quran_surah_v3_';
+
+// Remove basmalah from ayah 1 for surahs where it is not counted as an ayah
+function stripBasmalahIfPresent(
+  surahNumber: number,
+  ayat: { number: number; text: string }[]
+): { number: number; text: string }[] {
+  if (!Array.isArray(ayat) || ayat.length === 0) return ayat;
+  // Keep basmalah only for Al-Fatihah (1). At-Tawbah (9) has no basmalah.
+  if (surahNumber === 1 || surahNumber === 9) return ayat;
+  const first = ayat[0];
+  if (!first || typeof first.text !== 'string') return ayat;
+  // Normalize: remove BOM, tatweel, and collapse spaces
+  const raw = first.text || '';
+  const text = raw
+    .replace(/^\uFEFF/, '')
+    .replace(/ـ+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Find the end of basmalah by scanning common endings
+  const endings = ['ٱلرَّحِيمِ', 'ٱلرَّحِيمِ', 'الرَّحِيمِ', 'الرَّحِيمِ', 'الرحيم'];
+  let endIdx = -1;
+  let endToken = '';
+  for (const token of endings) {
+    const idx = text.indexOf(token);
+    if (idx !== -1 && (endIdx === -1 || idx < endIdx)) {
+      endIdx = idx;
+      endToken = token;
+    }
+  }
+  if (endIdx !== -1 && endIdx < 80) {
+    const cleaned = text.slice(endIdx + endToken.length).trim();
+    const updated = { ...first, text: cleaned };
+    return [updated, ...ayat.slice(1)];
+  }
+  return ayat;
+}
+
+// Static imports for surah 1-114
+import surah001Arabic from '../../../assets/quran/ar/surah_001.json';
+import surah001Indonesian from '../../../assets/quran/id/surah_001.id.json';
+import surah002Arabic from '../../../assets/quran/ar/surah_002.json';
+import surah002Indonesian from '../../../assets/quran/id/surah_002.id.json';
+import surah003Arabic from '../../../assets/quran/ar/surah_003.json';
+import surah003Indonesian from '../../../assets/quran/id/surah_003.id.json';
+import surah004Arabic from '../../../assets/quran/ar/surah_004.json';
+import surah004Indonesian from '../../../assets/quran/id/surah_004.id.json';
+import surah005Arabic from '../../../assets/quran/ar/surah_005.json';
+import surah005Indonesian from '../../../assets/quran/id/surah_005.id.json';
+import surah006Arabic from '../../../assets/quran/ar/surah_006.json';
+import surah006Indonesian from '../../../assets/quran/id/surah_006.id.json';
+import surah007Arabic from '../../../assets/quran/ar/surah_007.json';
+import surah007Indonesian from '../../../assets/quran/id/surah_007.id.json';
+import surah008Arabic from '../../../assets/quran/ar/surah_008.json';
+import surah008Indonesian from '../../../assets/quran/id/surah_008.id.json';
+import surah009Arabic from '../../../assets/quran/ar/surah_009.json';
+import surah009Indonesian from '../../../assets/quran/id/surah_009.id.json';
+import surah010Arabic from '../../../assets/quran/ar/surah_010.json';
+import surah010Indonesian from '../../../assets/quran/id/surah_010.id.json';
+import surah011Arabic from '../../../assets/quran/ar/surah_011.json';
+import surah011Indonesian from '../../../assets/quran/id/surah_011.id.json';
+import surah012Arabic from '../../../assets/quran/ar/surah_012.json';
+import surah012Indonesian from '../../../assets/quran/id/surah_012.id.json';
+import surah013Arabic from '../../../assets/quran/ar/surah_013.json';
+import surah013Indonesian from '../../../assets/quran/id/surah_013.id.json';
+import surah014Arabic from '../../../assets/quran/ar/surah_014.json';
+import surah014Indonesian from '../../../assets/quran/id/surah_014.id.json';
+import surah015Arabic from '../../../assets/quran/ar/surah_015.json';
+import surah015Indonesian from '../../../assets/quran/id/surah_015.id.json';
+import surah016Arabic from '../../../assets/quran/ar/surah_016.json';
+import surah016Indonesian from '../../../assets/quran/id/surah_016.id.json';
+import surah017Arabic from '../../../assets/quran/ar/surah_017.json';
+import surah017Indonesian from '../../../assets/quran/id/surah_017.id.json';
+import surah018Arabic from '../../../assets/quran/ar/surah_018.json';
+import surah018Indonesian from '../../../assets/quran/id/surah_018.id.json';
+import surah019Arabic from '../../../assets/quran/ar/surah_019.json';
+import surah019Indonesian from '../../../assets/quran/id/surah_019.id.json';
+import surah020Arabic from '../../../assets/quran/ar/surah_020.json';
+import surah020Indonesian from '../../../assets/quran/id/surah_020.id.json';
+import surah021Arabic from '../../../assets/quran/ar/surah_021.json';
+import surah021Indonesian from '../../../assets/quran/id/surah_021.id.json';
+import surah022Arabic from '../../../assets/quran/ar/surah_022.json';
+import surah022Indonesian from '../../../assets/quran/id/surah_022.id.json';
+import surah023Arabic from '../../../assets/quran/ar/surah_023.json';
+import surah023Indonesian from '../../../assets/quran/id/surah_023.id.json';
+import surah024Arabic from '../../../assets/quran/ar/surah_024.json';
+import surah024Indonesian from '../../../assets/quran/id/surah_024.id.json';
+import surah025Arabic from '../../../assets/quran/ar/surah_025.json';
+import surah025Indonesian from '../../../assets/quran/id/surah_025.id.json';
+import surah026Arabic from '../../../assets/quran/ar/surah_026.json';
+import surah026Indonesian from '../../../assets/quran/id/surah_026.id.json';
+import surah027Arabic from '../../../assets/quran/ar/surah_027.json';
+import surah027Indonesian from '../../../assets/quran/id/surah_027.id.json';
+import surah028Arabic from '../../../assets/quran/ar/surah_028.json';
+import surah028Indonesian from '../../../assets/quran/id/surah_028.id.json';
+import surah029Arabic from '../../../assets/quran/ar/surah_029.json';
+import surah029Indonesian from '../../../assets/quran/id/surah_029.id.json';
+import surah030Arabic from '../../../assets/quran/ar/surah_030.json';
+import surah030Indonesian from '../../../assets/quran/id/surah_030.id.json';
+import surah031Arabic from '../../../assets/quran/ar/surah_031.json';
+import surah031Indonesian from '../../../assets/quran/id/surah_031.id.json';
+import surah032Arabic from '../../../assets/quran/ar/surah_032.json';
+import surah032Indonesian from '../../../assets/quran/id/surah_032.id.json';
+import surah033Arabic from '../../../assets/quran/ar/surah_033.json';
+import surah033Indonesian from '../../../assets/quran/id/surah_033.id.json';
+import surah034Arabic from '../../../assets/quran/ar/surah_034.json';
+import surah034Indonesian from '../../../assets/quran/id/surah_034.id.json';
+import surah035Arabic from '../../../assets/quran/ar/surah_035.json';
+import surah035Indonesian from '../../../assets/quran/id/surah_035.id.json';
+import surah036Arabic from '../../../assets/quran/ar/surah_036.json';
+import surah036Indonesian from '../../../assets/quran/id/surah_036.id.json';
+import surah037Arabic from '../../../assets/quran/ar/surah_037.json';
+import surah037Indonesian from '../../../assets/quran/id/surah_037.id.json';
+import surah038Arabic from '../../../assets/quran/ar/surah_038.json';
+import surah038Indonesian from '../../../assets/quran/id/surah_038.id.json';
+import surah039Arabic from '../../../assets/quran/ar/surah_039.json';
+import surah039Indonesian from '../../../assets/quran/id/surah_039.id.json';
+import surah040Arabic from '../../../assets/quran/ar/surah_040.json';
+import surah040Indonesian from '../../../assets/quran/id/surah_040.id.json';
+import surah041Arabic from '../../../assets/quran/ar/surah_041.json';
+import surah041Indonesian from '../../../assets/quran/id/surah_041.id.json';
+import surah042Arabic from '../../../assets/quran/ar/surah_042.json';
+import surah042Indonesian from '../../../assets/quran/id/surah_042.id.json';
+import surah043Arabic from '../../../assets/quran/ar/surah_043.json';
+import surah043Indonesian from '../../../assets/quran/id/surah_043.id.json';
+import surah044Arabic from '../../../assets/quran/ar/surah_044.json';
+import surah044Indonesian from '../../../assets/quran/id/surah_044.id.json';
+import surah045Arabic from '../../../assets/quran/ar/surah_045.json';
+import surah045Indonesian from '../../../assets/quran/id/surah_045.id.json';
+import surah046Arabic from '../../../assets/quran/ar/surah_046.json';
+import surah046Indonesian from '../../../assets/quran/id/surah_046.id.json';
+import surah047Arabic from '../../../assets/quran/ar/surah_047.json';
+import surah047Indonesian from '../../../assets/quran/id/surah_047.id.json';
+import surah048Arabic from '../../../assets/quran/ar/surah_048.json';
+import surah048Indonesian from '../../../assets/quran/id/surah_048.id.json';
+import surah049Arabic from '../../../assets/quran/ar/surah_049.json';
+import surah049Indonesian from '../../../assets/quran/id/surah_049.id.json';
+import surah050Arabic from '../../../assets/quran/ar/surah_050.json';
+import surah050Indonesian from '../../../assets/quran/id/surah_050.id.json';
+import surah051Arabic from '../../../assets/quran/ar/surah_051.json';
+import surah051Indonesian from '../../../assets/quran/id/surah_051.id.json';
+import surah052Arabic from '../../../assets/quran/ar/surah_052.json';
+import surah052Indonesian from '../../../assets/quran/id/surah_052.id.json';
+import surah053Arabic from '../../../assets/quran/ar/surah_053.json';
+import surah053Indonesian from '../../../assets/quran/id/surah_053.id.json';
+import surah054Arabic from '../../../assets/quran/ar/surah_054.json';
+import surah054Indonesian from '../../../assets/quran/id/surah_054.id.json';
+import surah055Arabic from '../../../assets/quran/ar/surah_055.json';
+import surah055Indonesian from '../../../assets/quran/id/surah_055.id.json';
+import surah056Arabic from '../../../assets/quran/ar/surah_056.json';
+import surah056Indonesian from '../../../assets/quran/id/surah_056.id.json';
+import surah057Arabic from '../../../assets/quran/ar/surah_057.json';
+import surah057Indonesian from '../../../assets/quran/id/surah_057.id.json';
+import surah058Arabic from '../../../assets/quran/ar/surah_058.json';
+import surah058Indonesian from '../../../assets/quran/id/surah_058.id.json';
+import surah059Arabic from '../../../assets/quran/ar/surah_059.json';
+import surah059Indonesian from '../../../assets/quran/id/surah_059.id.json';
+import surah060Arabic from '../../../assets/quran/ar/surah_060.json';
+import surah060Indonesian from '../../../assets/quran/id/surah_060.id.json';
+import surah061Arabic from '../../../assets/quran/ar/surah_061.json';
+import surah061Indonesian from '../../../assets/quran/id/surah_061.id.json';
+import surah062Arabic from '../../../assets/quran/ar/surah_062.json';
+import surah062Indonesian from '../../../assets/quran/id/surah_062.id.json';
+import surah063Arabic from '../../../assets/quran/ar/surah_063.json';
+import surah063Indonesian from '../../../assets/quran/id/surah_063.id.json';
+import surah064Arabic from '../../../assets/quran/ar/surah_064.json';
+import surah064Indonesian from '../../../assets/quran/id/surah_064.id.json';
+import surah065Arabic from '../../../assets/quran/ar/surah_065.json';
+import surah065Indonesian from '../../../assets/quran/id/surah_065.id.json';
+import surah066Arabic from '../../../assets/quran/ar/surah_066.json';
+import surah066Indonesian from '../../../assets/quran/id/surah_066.id.json';
+import surah067Arabic from '../../../assets/quran/ar/surah_067.json';
+import surah067Indonesian from '../../../assets/quran/id/surah_067.id.json';
+import surah068Arabic from '../../../assets/quran/ar/surah_068.json';
+import surah068Indonesian from '../../../assets/quran/id/surah_068.id.json';
+import surah069Arabic from '../../../assets/quran/ar/surah_069.json';
+import surah069Indonesian from '../../../assets/quran/id/surah_069.id.json';
+import surah070Arabic from '../../../assets/quran/ar/surah_070.json';
+import surah070Indonesian from '../../../assets/quran/id/surah_070.id.json';
+import surah071Arabic from '../../../assets/quran/ar/surah_071.json';
+import surah071Indonesian from '../../../assets/quran/id/surah_071.id.json';
+import surah072Arabic from '../../../assets/quran/ar/surah_072.json';
+import surah072Indonesian from '../../../assets/quran/id/surah_072.id.json';
+import surah073Arabic from '../../../assets/quran/ar/surah_073.json';
+import surah073Indonesian from '../../../assets/quran/id/surah_073.id.json';
+import surah074Arabic from '../../../assets/quran/ar/surah_074.json';
+import surah074Indonesian from '../../../assets/quran/id/surah_074.id.json';
+import surah075Arabic from '../../../assets/quran/ar/surah_075.json';
+import surah075Indonesian from '../../../assets/quran/id/surah_075.id.json';
+import surah076Arabic from '../../../assets/quran/ar/surah_076.json';
+import surah076Indonesian from '../../../assets/quran/id/surah_076.id.json';
+import surah077Arabic from '../../../assets/quran/ar/surah_077.json';
+import surah077Indonesian from '../../../assets/quran/id/surah_077.id.json';
+import surah078Arabic from '../../../assets/quran/ar/surah_078.json';
+import surah078Indonesian from '../../../assets/quran/id/surah_078.id.json';
+import surah079Arabic from '../../../assets/quran/ar/surah_079.json';
+import surah079Indonesian from '../../../assets/quran/id/surah_079.id.json';
+import surah080Arabic from '../../../assets/quran/ar/surah_080.json';
+import surah080Indonesian from '../../../assets/quran/id/surah_080.id.json';
+import surah081Arabic from '../../../assets/quran/ar/surah_081.json';
+import surah081Indonesian from '../../../assets/quran/id/surah_081.id.json';
+import surah082Arabic from '../../../assets/quran/ar/surah_082.json';
+import surah082Indonesian from '../../../assets/quran/id/surah_082.id.json';
+import surah083Arabic from '../../../assets/quran/ar/surah_083.json';
+import surah083Indonesian from '../../../assets/quran/id/surah_083.id.json';
+import surah084Arabic from '../../../assets/quran/ar/surah_084.json';
+import surah084Indonesian from '../../../assets/quran/id/surah_084.id.json';
+import surah085Arabic from '../../../assets/quran/ar/surah_085.json';
+import surah085Indonesian from '../../../assets/quran/id/surah_085.id.json';
+import surah086Arabic from '../../../assets/quran/ar/surah_086.json';
+import surah086Indonesian from '../../../assets/quran/id/surah_086.id.json';
+import surah087Arabic from '../../../assets/quran/ar/surah_087.json';
+import surah087Indonesian from '../../../assets/quran/id/surah_087.id.json';
+import surah088Arabic from '../../../assets/quran/ar/surah_088.json';
+import surah088Indonesian from '../../../assets/quran/id/surah_088.id.json';
+import surah089Arabic from '../../../assets/quran/ar/surah_089.json';
+import surah089Indonesian from '../../../assets/quran/id/surah_089.id.json';
+import surah090Arabic from '../../../assets/quran/ar/surah_090.json';
+import surah090Indonesian from '../../../assets/quran/id/surah_090.id.json';
+import surah091Arabic from '../../../assets/quran/ar/surah_091.json';
+import surah091Indonesian from '../../../assets/quran/id/surah_091.id.json';
+import surah092Arabic from '../../../assets/quran/ar/surah_092.json';
+import surah092Indonesian from '../../../assets/quran/id/surah_092.id.json';
+import surah093Arabic from '../../../assets/quran/ar/surah_093.json';
+import surah093Indonesian from '../../../assets/quran/id/surah_093.id.json';
+import surah094Arabic from '../../../assets/quran/ar/surah_094.json';
+import surah094Indonesian from '../../../assets/quran/id/surah_094.id.json';
+import surah095Arabic from '../../../assets/quran/ar/surah_095.json';
+import surah095Indonesian from '../../../assets/quran/id/surah_095.id.json';
+import surah096Arabic from '../../../assets/quran/ar/surah_096.json';
+import surah096Indonesian from '../../../assets/quran/id/surah_096.id.json';
+import surah097Arabic from '../../../assets/quran/ar/surah_097.json';
+import surah097Indonesian from '../../../assets/quran/id/surah_097.id.json';
+import surah098Arabic from '../../../assets/quran/ar/surah_098.json';
+import surah098Indonesian from '../../../assets/quran/id/surah_098.id.json';
+import surah099Arabic from '../../../assets/quran/ar/surah_099.json';
+import surah099Indonesian from '../../../assets/quran/id/surah_099.id.json';
+import surah100Arabic from '../../../assets/quran/ar/surah_100.json';
+import surah100Indonesian from '../../../assets/quran/id/surah_100.id.json';
+import surah101Arabic from '../../../assets/quran/ar/surah_101.json';
+import surah101Indonesian from '../../../assets/quran/id/surah_101.id.json';
+import surah102Arabic from '../../../assets/quran/ar/surah_102.json';
+import surah102Indonesian from '../../../assets/quran/id/surah_102.id.json';
+import surah103Arabic from '../../../assets/quran/ar/surah_103.json';
+import surah103Indonesian from '../../../assets/quran/id/surah_103.id.json';
+import surah104Arabic from '../../../assets/quran/ar/surah_104.json';
+import surah104Indonesian from '../../../assets/quran/id/surah_104.id.json';
+import surah105Arabic from '../../../assets/quran/ar/surah_105.json';
+import surah105Indonesian from '../../../assets/quran/id/surah_105.id.json';
+import surah106Arabic from '../../../assets/quran/ar/surah_106.json';
+import surah106Indonesian from '../../../assets/quran/id/surah_106.id.json';
+import surah107Arabic from '../../../assets/quran/ar/surah_107.json';
+import surah107Indonesian from '../../../assets/quran/id/surah_107.id.json';
+import surah108Arabic from '../../../assets/quran/ar/surah_108.json';
+import surah108Indonesian from '../../../assets/quran/id/surah_108.id.json';
+import surah109Arabic from '../../../assets/quran/ar/surah_109.json';
+import surah109Indonesian from '../../../assets/quran/id/surah_109.id.json';
+import surah110Arabic from '../../../assets/quran/ar/surah_110.json';
+import surah110Indonesian from '../../../assets/quran/id/surah_110.id.json';
+import surah111Arabic from '../../../assets/quran/ar/surah_111.json';
+import surah111Indonesian from '../../../assets/quran/id/surah_111.id.json';
+import surah112Arabic from '../../../assets/quran/ar/surah_112.json';
+import surah112Indonesian from '../../../assets/quran/id/surah_112.id.json';
+import surah113Arabic from '../../../assets/quran/ar/surah_113.json';
+import surah113Indonesian from '../../../assets/quran/id/surah_113.id.json';
+import surah114Arabic from '../../../assets/quran/ar/surah_114.json';
+import surah114Indonesian from '../../../assets/quran/id/surah_114.id.json';
+
+// Arabic data mapping
+
+const ARABIC_DATA = {
+  1: surah001Arabic,
+  2: surah002Arabic,
+  3: surah003Arabic,
+  4: surah004Arabic,
+  5: surah005Arabic,
+  6: surah006Arabic,
+  7: surah007Arabic,
+  8: surah008Arabic,
+  9: surah009Arabic,
+  10: surah010Arabic,
+  11: surah011Arabic,
+  12: surah012Arabic,
+  13: surah013Arabic,
+  14: surah014Arabic,
+  15: surah015Arabic,
+  16: surah016Arabic,
+  17: surah017Arabic,
+  18: surah018Arabic,
+  19: surah019Arabic,
+  20: surah020Arabic,
+  21: surah021Arabic,
+  22: surah022Arabic,
+  23: surah023Arabic,
+  24: surah024Arabic,
+  25: surah025Arabic,
+  26: surah026Arabic,
+  27: surah027Arabic,
+  28: surah028Arabic,
+  29: surah029Arabic,
+  30: surah030Arabic,
+  31: surah031Arabic,
+  32: surah032Arabic,
+  33: surah033Arabic,
+  34: surah034Arabic,
+  35: surah035Arabic,
+  36: surah036Arabic,
+  37: surah037Arabic,
+  38: surah038Arabic,
+  39: surah039Arabic,
+  40: surah040Arabic,
+  41: surah041Arabic,
+  42: surah042Arabic,
+  43: surah043Arabic,
+  44: surah044Arabic,
+  45: surah045Arabic,
+  46: surah046Arabic,
+  47: surah047Arabic,
+  48: surah048Arabic,
+  49: surah049Arabic,
+  50: surah050Arabic,
+  51: surah051Arabic,
+  52: surah052Arabic,
+  53: surah053Arabic,
+  54: surah054Arabic,
+  55: surah055Arabic,
+  56: surah056Arabic,
+  57: surah057Arabic,
+  58: surah058Arabic,
+  59: surah059Arabic,
+  60: surah060Arabic,
+  61: surah061Arabic,
+  62: surah062Arabic,
+  63: surah063Arabic,
+  64: surah064Arabic,
+  65: surah065Arabic,
+  66: surah066Arabic,
+  67: surah067Arabic,
+  68: surah068Arabic,
+  69: surah069Arabic,
+  70: surah070Arabic,
+  71: surah071Arabic,
+  72: surah072Arabic,
+  73: surah073Arabic,
+  74: surah074Arabic,
+  75: surah075Arabic,
+  76: surah076Arabic,
+  77: surah077Arabic,
+  78: surah078Arabic,
+  79: surah079Arabic,
+  80: surah080Arabic,
+  81: surah081Arabic,
+  82: surah082Arabic,
+  83: surah083Arabic,
+  84: surah084Arabic,
+  85: surah085Arabic,
+  86: surah086Arabic,
+  87: surah087Arabic,
+  88: surah088Arabic,
+  89: surah089Arabic,
+  90: surah090Arabic,
+  91: surah091Arabic,
+  92: surah092Arabic,
+  93: surah093Arabic,
+  94: surah094Arabic,
+  95: surah095Arabic,
+  96: surah096Arabic,
+  97: surah097Arabic,
+  98: surah098Arabic,
+  99: surah099Arabic,
+  100: surah100Arabic,
+  101: surah101Arabic,
+  102: surah102Arabic,
+  103: surah103Arabic,
+  104: surah104Arabic,
+  105: surah105Arabic,
+  106: surah106Arabic,
+  107: surah107Arabic,
+  108: surah108Arabic,
+  109: surah109Arabic,
+  110: surah110Arabic,
+  111: surah111Arabic,
+  112: surah112Arabic,
+  113: surah113Arabic,
+  114: surah114Arabic,
+};
+
+// Translation data mapping
+
+const TRANSLATION_DATA = {
+  1: surah001Indonesian,
+  2: surah002Indonesian,
+  3: surah003Indonesian,
+  4: surah004Indonesian,
+  5: surah005Indonesian,
+  6: surah006Indonesian,
+  7: surah007Indonesian,
+  8: surah008Indonesian,
+  9: surah009Indonesian,
+  10: surah010Indonesian,
+  11: surah011Indonesian,
+  12: surah012Indonesian,
+  13: surah013Indonesian,
+  14: surah014Indonesian,
+  15: surah015Indonesian,
+  16: surah016Indonesian,
+  17: surah017Indonesian,
+  18: surah018Indonesian,
+  19: surah019Indonesian,
+  20: surah020Indonesian,
+  21: surah021Indonesian,
+  22: surah022Indonesian,
+  23: surah023Indonesian,
+  24: surah024Indonesian,
+  25: surah025Indonesian,
+  26: surah026Indonesian,
+  27: surah027Indonesian,
+  28: surah028Indonesian,
+  29: surah029Indonesian,
+  30: surah030Indonesian,
+  31: surah031Indonesian,
+  32: surah032Indonesian,
+  33: surah033Indonesian,
+  34: surah034Indonesian,
+  35: surah035Indonesian,
+  36: surah036Indonesian,
+  37: surah037Indonesian,
+  38: surah038Indonesian,
+  39: surah039Indonesian,
+  40: surah040Indonesian,
+  41: surah041Indonesian,
+  42: surah042Indonesian,
+  43: surah043Indonesian,
+  44: surah044Indonesian,
+  45: surah045Indonesian,
+  46: surah046Indonesian,
+  47: surah047Indonesian,
+  48: surah048Indonesian,
+  49: surah049Indonesian,
+  50: surah050Indonesian,
+  51: surah051Indonesian,
+  52: surah052Indonesian,
+  53: surah053Indonesian,
+  54: surah054Indonesian,
+  55: surah055Indonesian,
+  56: surah056Indonesian,
+  57: surah057Indonesian,
+  58: surah058Indonesian,
+  59: surah059Indonesian,
+  60: surah060Indonesian,
+  61: surah061Indonesian,
+  62: surah062Indonesian,
+  63: surah063Indonesian,
+  64: surah064Indonesian,
+  65: surah065Indonesian,
+  66: surah066Indonesian,
+  67: surah067Indonesian,
+  68: surah068Indonesian,
+  69: surah069Indonesian,
+  70: surah070Indonesian,
+  71: surah071Indonesian,
+  72: surah072Indonesian,
+  73: surah073Indonesian,
+  74: surah074Indonesian,
+  75: surah075Indonesian,
+  76: surah076Indonesian,
+  77: surah077Indonesian,
+  78: surah078Indonesian,
+  79: surah079Indonesian,
+  80: surah080Indonesian,
+  81: surah081Indonesian,
+  82: surah082Indonesian,
+  83: surah083Indonesian,
+  84: surah084Indonesian,
+  85: surah085Indonesian,
+  86: surah086Indonesian,
+  87: surah087Indonesian,
+  88: surah088Indonesian,
+  89: surah089Indonesian,
+  90: surah090Indonesian,
+  91: surah091Indonesian,
+  92: surah092Indonesian,
+  93: surah093Indonesian,
+  94: surah094Indonesian,
+  95: surah095Indonesian,
+  96: surah096Indonesian,
+  97: surah097Indonesian,
+  98: surah098Indonesian,
+  99: surah099Indonesian,
+  100: surah100Indonesian,
+  101: surah101Indonesian,
+  102: surah102Indonesian,
+  103: surah103Indonesian,
+  104: surah104Indonesian,
+  105: surah105Indonesian,
+  106: surah106Indonesian,
+  107: surah107Indonesian,
+  108: surah108Indonesian,
+  109: surah109Indonesian,
+  110: surah110Indonesian,
+  111: surah111Indonesian,
+  112: surah112Indonesian,
+  113: surah113Indonesian,
+  114: surah114Indonesian,
+};
+
+// Note: Metro bundler doesn't support dynamic require() with template literals
+// We need to use static imports for all surah data
+// This limitation is by design in Metro bundler
+
+// Debug: Log static imports (commented out to avoid React rendering issues)
+// console.log('🔍 Static imports loaded:');
+// console.log('ARABIC_DATA keys:', Object.keys(ARABIC_DATA));
+// console.log('TRANSLATION_DATA keys:', Object.keys(TRANSLATION_DATA));
+// console.log('Surah 2 Arabic exists:', !!ARABIC_DATA[2]);
+// console.log('Surah 6 Arabic exists:', !!ARABIC_DATA[6]);
+// console.log('Surah 7 Arabic exists:', !!ARABIC_DATA[7]);
+// console.log('Surah 9 Arabic exists:', !!ARABIC_DATA[9]);
+// console.log('Surah 10 Arabic exists:', !!ARABIC_DATA[10]);
+// if (ARABIC_DATA[2]) {
+//   console.log('Surah 2 Arabic preview:', ARABIC_DATA[2].name, ARABIC_DATA[2].ayat_count, 'ayat');
+// }
+// if (ARABIC_DATA[6]) {
+//   console.log('Surah 6 Arabic preview:', ARABIC_DATA[6].name, ARABIC_DATA[6].ayat_count, 'ayat');
+// }
+// if (TRANSLATION_DATA[6]) {
+//   console.log('Surah 6 Translation preview:', TRANSLATION_DATA[6].ayat_count, 'ayat');
+// }
+
+export async function loadSurahArabic(number: number): Promise<Surah> {
+  // Load from static imports (all surah 1-114 are now imported)
+  if (ARABIC_DATA[number as keyof typeof ARABIC_DATA]) {
+    const data = ARABIC_DATA[number as keyof typeof ARABIC_DATA];
+    return data;
+  }
+
+  // Fallback if surah not found in static data
+  const meta = await loadSurahMetadata();
+  const surahMeta = meta.find((m) => m.number === number);
+
+  if (!surahMeta) {
+    throw new Error(`Surah ${number} not found in metadata`);
+  }
+
+  const ayat = Array.from({ length: surahMeta.ayat_count }, (_, i) => ({
+    number: i + 1,
+    text: `[Surah ${number}, Ayat ${i + 1} - Loading...]`,
+  }));
+
+  return {
+    number,
+    name: surahMeta.name,
+    ayat_count: surahMeta.ayat_count,
+    ayat,
+    source: { dataset: 'loading', version: '1.0' },
+  };
+}
+
+export async function loadSurahTranslation(number: number, lang = 'id'): Promise<any> {
+  // Load from static imports (all surah 1-114 are now imported)
+  if (lang === 'id' && TRANSLATION_DATA[number as keyof typeof TRANSLATION_DATA]) {
+    const data = TRANSLATION_DATA[number as keyof typeof TRANSLATION_DATA];
+    return data;
+  }
+
+  // Fallback if translation not found
+  const meta = await loadSurahMetadata();
+  const surahMeta = meta.find((m) => m.number === number);
+
+  if (!surahMeta) {
+    return { ayat: [] };
+  }
+
+  const ayat = Array.from({ length: surahMeta.ayat_count }, (_, i) => ({
+    number: i + 1,
+    translation: `[Terjemahan Surah ${number}, Ayat ${i + 1} - Loading...]`,
+  }));
+
+  return {
+    number,
+    name: surahMeta.name,
+    ayat_count: surahMeta.ayat_count,
+    ayat,
+    source: { dataset: 'loading', version: '1.0' },
+  };
+}
+
+export async function loadSurahCombined(number: number, lang = 'id'): Promise<Surah> {
+  const cacheKey = `${CACHE_PREFIX}${number}_${lang}`;
+  const cached = await AsyncStorage.getItem(cacheKey);
+  if (cached) {
+    return JSON.parse(cached);
+  }
+
+  const arabic = await loadSurahArabic(number);
+  const translation = await loadSurahTranslation(number, lang);
+
+  if (!arabic) throw new Error('Missing Arabic surah data');
+
+  // Normalize basmalah handling: remove from ayah 1 for all surahs except 1; surah 9 has none
+  const normalizedArabicAyat = stripBasmalahIfPresent(arabic.number, arabic.ayat);
+  const normalizedTranslationAyat = (() => {
+    if (arabic.number === 1) return translation.ayat; // keep Surah 1 as-is
+    if (arabic.number === 9) return translation.ayat; // Surah 9 has no basmalah
+    // If basmalah was stripped from Arabic ayah 1, align translation array length
+    return translation.ayat;
+  })();
+
+  const mergedAyat = normalizedArabicAyat.map((a: any, i: number) => ({
+    number: a.number,
+    text: a.text,
+    translation: normalizedTranslationAyat[i]?.translation || '',
+  }));
+
+  const merged = {
+    number: arabic.number,
+    name: arabic.name,
+    ayat_count: arabic.ayat_count,
+    ayat: mergedAyat,
+    source: {
+      dataset: arabic.source?.dataset || 'dynamic',
+      version: arabic.source?.version || '1.0',
+    },
+  };
+
+  await AsyncStorage.setItem(cacheKey, JSON.stringify(merged));
+  return merged;
+}
+
+export async function clearQuranCache() {
+  const keys = await AsyncStorage.getAllKeys();
+  const filtered = keys.filter((k) => k.startsWith(CACHE_PREFIX));
+  await AsyncStorage.multiRemove(filtered);
+}
+
+export async function loadSurah(number: number): Promise<Surah> {
+  return loadSurahCombined(number, 'id');
+}
+
+export type SurahMetadata = {
+  number: number;
+  name: string;
+  ayat_count: number;
+  juz?: number;
+  revelation_place?: 'makkah' | 'madinah';
+};
+
+export async function loadSurahMetadata(): Promise<SurahMetadata[]> {
+  // Mock data for all 114 surahs
+  // TODO: Load from real metadata file
+  const surahs: SurahMetadata[] = [
+    { number: 1, name: 'Al-Fatihah', ayat_count: 7, juz: 1, revelation_place: 'makkah' },
+    { number: 2, name: 'Al-Baqarah', ayat_count: 286, juz: 1, revelation_place: 'madinah' },
+    { number: 3, name: "Ali 'Imran", ayat_count: 200, juz: 2, revelation_place: 'madinah' },
+    { number: 4, name: 'An-Nisa', ayat_count: 176, juz: 2, revelation_place: 'madinah' },
+    { number: 5, name: "Al-Ma'idah", ayat_count: 120, juz: 3, revelation_place: 'madinah' },
+    { number: 6, name: "Al-An'am", ayat_count: 165, juz: 3, revelation_place: 'makkah' },
+    { number: 7, name: "Al-A'raf", ayat_count: 206, juz: 4, revelation_place: 'makkah' },
+    { number: 8, name: 'Al-Anfal', ayat_count: 75, juz: 4, revelation_place: 'madinah' },
+    { number: 9, name: 'At-Tawbah', ayat_count: 129, juz: 5, revelation_place: 'madinah' },
+    { number: 10, name: 'Yunus', ayat_count: 109, juz: 5, revelation_place: 'makkah' },
+    { number: 11, name: 'Hud', ayat_count: 123, juz: 6, revelation_place: 'makkah' },
+    { number: 12, name: 'Yusuf', ayat_count: 111, juz: 6, revelation_place: 'makkah' },
+    { number: 13, name: "Ar-Ra'd", ayat_count: 43, juz: 7, revelation_place: 'madinah' },
+    { number: 14, name: 'Ibrahim', ayat_count: 52, juz: 7, revelation_place: 'makkah' },
+    { number: 15, name: 'Al-Hijr', ayat_count: 99, juz: 7, revelation_place: 'makkah' },
+    { number: 16, name: 'An-Nahl', ayat_count: 128, juz: 8, revelation_place: 'makkah' },
+    { number: 17, name: 'Al-Isra', ayat_count: 111, juz: 8, revelation_place: 'makkah' },
+    { number: 18, name: 'Al-Kahf', ayat_count: 110, juz: 8, revelation_place: 'makkah' },
+    { number: 19, name: 'Maryam', ayat_count: 98, juz: 9, revelation_place: 'makkah' },
+    { number: 20, name: 'Taha', ayat_count: 135, juz: 9, revelation_place: 'makkah' },
+    { number: 21, name: 'Al-Anbiya', ayat_count: 112, juz: 9, revelation_place: 'makkah' },
+    { number: 22, name: 'Al-Hajj', ayat_count: 78, juz: 10, revelation_place: 'madinah' },
+    { number: 23, name: "Al-Mu'minun", ayat_count: 118, juz: 10, revelation_place: 'makkah' },
+    { number: 24, name: 'An-Nur', ayat_count: 64, juz: 10, revelation_place: 'madinah' },
+    { number: 25, name: 'Al-Furqan', ayat_count: 77, juz: 10, revelation_place: 'makkah' },
+    { number: 26, name: "Ash-Shu'ara", ayat_count: 227, juz: 11, revelation_place: 'makkah' },
+    { number: 27, name: 'An-Naml', ayat_count: 93, juz: 11, revelation_place: 'makkah' },
+    { number: 28, name: 'Al-Qasas', ayat_count: 88, juz: 11, revelation_place: 'makkah' },
+    { number: 29, name: "Al-'Ankabut", ayat_count: 69, juz: 11, revelation_place: 'makkah' },
+    { number: 30, name: 'Ar-Rum', ayat_count: 60, juz: 12, revelation_place: 'makkah' },
+    { number: 31, name: 'Luqman', ayat_count: 34, juz: 12, revelation_place: 'makkah' },
+    { number: 32, name: 'As-Sajdah', ayat_count: 30, juz: 12, revelation_place: 'makkah' },
+    { number: 33, name: 'Al-Ahzab', ayat_count: 73, juz: 12, revelation_place: 'madinah' },
+    { number: 34, name: 'Saba', ayat_count: 54, juz: 12, revelation_place: 'makkah' },
+    { number: 35, name: 'Fatir', ayat_count: 45, juz: 12, revelation_place: 'makkah' },
+    { number: 36, name: 'Ya Sin', ayat_count: 83, juz: 13, revelation_place: 'makkah' },
+    { number: 37, name: 'As-Saffat', ayat_count: 182, juz: 13, revelation_place: 'makkah' },
+    { number: 38, name: 'Sad', ayat_count: 88, juz: 13, revelation_place: 'makkah' },
+    { number: 39, name: 'Az-Zumar', ayat_count: 75, juz: 13, revelation_place: 'makkah' },
+    { number: 40, name: 'Ghafir', ayat_count: 85, juz: 13, revelation_place: 'makkah' },
+    { number: 41, name: 'Fussilat', ayat_count: 54, juz: 14, revelation_place: 'makkah' },
+    { number: 42, name: 'Ash-Shura', ayat_count: 53, juz: 14, revelation_place: 'makkah' },
+    { number: 43, name: 'Az-Zukhruf', ayat_count: 89, juz: 14, revelation_place: 'makkah' },
+    { number: 44, name: 'Ad-Dukhan', ayat_count: 59, juz: 14, revelation_place: 'makkah' },
+    { number: 45, name: 'Al-Jathiyah', ayat_count: 37, juz: 14, revelation_place: 'makkah' },
+    { number: 46, name: 'Al-Ahqaf', ayat_count: 35, juz: 14, revelation_place: 'makkah' },
+    { number: 47, name: 'Muhammad', ayat_count: 38, juz: 14, revelation_place: 'madinah' },
+    { number: 48, name: 'Al-Fath', ayat_count: 29, juz: 14, revelation_place: 'madinah' },
+    { number: 49, name: 'Al-Hujurat', ayat_count: 18, juz: 14, revelation_place: 'madinah' },
+    { number: 50, name: 'Qaf', ayat_count: 45, juz: 15, revelation_place: 'makkah' },
+    { number: 51, name: 'Adh-Dhariyat', ayat_count: 60, juz: 15, revelation_place: 'makkah' },
+    { number: 52, name: 'At-Tur', ayat_count: 49, juz: 15, revelation_place: 'makkah' },
+    { number: 53, name: 'An-Najm', ayat_count: 62, juz: 15, revelation_place: 'makkah' },
+    { number: 54, name: 'Al-Qamar', ayat_count: 55, juz: 15, revelation_place: 'makkah' },
+    { number: 55, name: 'Ar-Rahman', ayat_count: 78, juz: 15, revelation_place: 'madinah' },
+    { number: 56, name: "Al-Waqi'ah", ayat_count: 96, juz: 15, revelation_place: 'makkah' },
+    { number: 57, name: 'Al-Hadid', ayat_count: 29, juz: 15, revelation_place: 'madinah' },
+    { number: 58, name: 'Al-Mujadilah', ayat_count: 22, juz: 15, revelation_place: 'madinah' },
+    { number: 59, name: 'Al-Hashr', ayat_count: 24, juz: 15, revelation_place: 'madinah' },
+    { number: 60, name: 'Al-Mumtahanah', ayat_count: 13, juz: 15, revelation_place: 'madinah' },
+    { number: 61, name: 'As-Saff', ayat_count: 14, juz: 15, revelation_place: 'madinah' },
+    { number: 62, name: "Al-Jumu'ah", ayat_count: 11, juz: 15, revelation_place: 'madinah' },
+    { number: 63, name: 'Al-Munafiqun', ayat_count: 11, juz: 15, revelation_place: 'madinah' },
+    { number: 64, name: 'At-Taghabun', ayat_count: 18, juz: 15, revelation_place: 'madinah' },
+    { number: 65, name: 'At-Talaq', ayat_count: 12, juz: 15, revelation_place: 'madinah' },
+    { number: 66, name: 'At-Tahrim', ayat_count: 12, juz: 15, revelation_place: 'madinah' },
+    { number: 67, name: 'Al-Mulk', ayat_count: 30, juz: 16, revelation_place: 'makkah' },
+    { number: 68, name: 'Al-Qalam', ayat_count: 52, juz: 16, revelation_place: 'makkah' },
+    { number: 69, name: 'Al-Haqqah', ayat_count: 52, juz: 16, revelation_place: 'makkah' },
+    { number: 70, name: "Al-Ma'arij", ayat_count: 44, juz: 16, revelation_place: 'makkah' },
+    { number: 71, name: 'Nuh', ayat_count: 28, juz: 16, revelation_place: 'makkah' },
+    { number: 72, name: 'Al-Jinn', ayat_count: 28, juz: 16, revelation_place: 'makkah' },
+    { number: 73, name: 'Al-Muzzammil', ayat_count: 20, juz: 16, revelation_place: 'makkah' },
+    { number: 74, name: 'Al-Muddaththir', ayat_count: 56, juz: 16, revelation_place: 'makkah' },
+    { number: 75, name: 'Al-Qiyamah', ayat_count: 40, juz: 16, revelation_place: 'makkah' },
+    { number: 76, name: 'Al-Insan', ayat_count: 31, juz: 16, revelation_place: 'madinah' },
+    { number: 77, name: 'Al-Mursalat', ayat_count: 50, juz: 16, revelation_place: 'makkah' },
+    { number: 78, name: 'An-Naba', ayat_count: 40, juz: 16, revelation_place: 'makkah' },
+    { number: 79, name: "An-Nazi'at", ayat_count: 46, juz: 16, revelation_place: 'makkah' },
+    { number: 80, name: "'Abasa", ayat_count: 42, juz: 16, revelation_place: 'makkah' },
+    { number: 81, name: 'At-Takwir', ayat_count: 29, juz: 16, revelation_place: 'makkah' },
+    { number: 82, name: 'Al-Infitar', ayat_count: 19, juz: 16, revelation_place: 'makkah' },
+    { number: 83, name: 'Al-Mutaffifin', ayat_count: 36, juz: 16, revelation_place: 'makkah' },
+    { number: 84, name: 'Al-Inshiqaq', ayat_count: 25, juz: 16, revelation_place: 'makkah' },
+    { number: 85, name: 'Al-Buruj', ayat_count: 22, juz: 16, revelation_place: 'makkah' },
+    { number: 86, name: 'At-Tariq', ayat_count: 17, juz: 16, revelation_place: 'makkah' },
+    { number: 87, name: "Al-A'la", ayat_count: 19, juz: 16, revelation_place: 'makkah' },
+    { number: 88, name: 'Al-Ghashiyah', ayat_count: 26, juz: 16, revelation_place: 'makkah' },
+    { number: 89, name: 'Al-Fajr', ayat_count: 30, juz: 16, revelation_place: 'makkah' },
+    { number: 90, name: 'Al-Balad', ayat_count: 20, juz: 16, revelation_place: 'makkah' },
+    { number: 91, name: 'Ash-Shams', ayat_count: 15, juz: 16, revelation_place: 'makkah' },
+    { number: 92, name: 'Al-Layl', ayat_count: 21, juz: 16, revelation_place: 'makkah' },
+    { number: 93, name: 'Ad-Duha', ayat_count: 11, juz: 16, revelation_place: 'makkah' },
+    { number: 94, name: 'Ash-Sharh', ayat_count: 8, juz: 16, revelation_place: 'makkah' },
+    { number: 95, name: 'At-Tin', ayat_count: 8, juz: 16, revelation_place: 'makkah' },
+    { number: 96, name: "Al-'Alaq", ayat_count: 19, juz: 16, revelation_place: 'makkah' },
+    { number: 97, name: 'Al-Qadr', ayat_count: 5, juz: 16, revelation_place: 'makkah' },
+    { number: 98, name: 'Al-Bayyinah', ayat_count: 8, juz: 16, revelation_place: 'madinah' },
+    { number: 99, name: 'Az-Zalzalah', ayat_count: 8, juz: 16, revelation_place: 'madinah' },
+    { number: 100, name: "Al-'Adiyat", ayat_count: 11, juz: 16, revelation_place: 'makkah' },
+    { number: 101, name: "Al-Qari'ah", ayat_count: 11, juz: 16, revelation_place: 'makkah' },
+    { number: 102, name: 'At-Takathur', ayat_count: 8, juz: 16, revelation_place: 'makkah' },
+    { number: 103, name: "Al-'Asr", ayat_count: 3, juz: 16, revelation_place: 'makkah' },
+    { number: 104, name: 'Al-Humazah', ayat_count: 9, juz: 16, revelation_place: 'makkah' },
+    { number: 105, name: 'Al-Fil', ayat_count: 5, juz: 16, revelation_place: 'makkah' },
+    { number: 106, name: 'Quraysh', ayat_count: 4, juz: 16, revelation_place: 'makkah' },
+    { number: 107, name: "Al-Ma'un", ayat_count: 7, juz: 16, revelation_place: 'makkah' },
+    { number: 108, name: 'Al-Kawthar', ayat_count: 3, juz: 16, revelation_place: 'makkah' },
+    { number: 109, name: 'Al-Kafirun', ayat_count: 6, juz: 16, revelation_place: 'makkah' },
+    { number: 110, name: 'An-Nasr', ayat_count: 3, juz: 16, revelation_place: 'madinah' },
+    { number: 111, name: 'Al-Masad', ayat_count: 5, juz: 16, revelation_place: 'makkah' },
+    { number: 112, name: 'Al-Ikhlas', ayat_count: 4, juz: 16, revelation_place: 'makkah' },
+    { number: 113, name: 'Al-Falaq', ayat_count: 5, juz: 16, revelation_place: 'makkah' },
+    { number: 114, name: 'An-Nas', ayat_count: 6, juz: 16, revelation_place: 'makkah' },
+  ];
+
+  return surahs;
+}

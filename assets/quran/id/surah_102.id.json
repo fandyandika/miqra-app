@@ -1,0 +1,43 @@
+{
+  "number": 102,
+  "translation_lang": "id",
+  "ayat_count": 8,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Bermegah-megahan telah melalaikan kamu,"
+    },
+    {
+      "number": 2,
+      "translation": "sampai kamu masuk ke dalam kubur."
+    },
+    {
+      "number": 3,
+      "translation": "Janganlah begitu, kelak kamu akan mengetahui (akibat perbuatanmu itu),"
+    },
+    {
+      "number": 4,
+      "translation": "dan janganlah begitu, kelak kamu akan mengetahui."
+    },
+    {
+      "number": 5,
+      "translation": "Janganlah begitu, jika kamu mengetahui dengan pengetahuan yang yakin,"
+    },
+    {
+      "number": 6,
+      "translation": "niscaya kamu benar-benar akan melihat neraka Jahiim,"
+    },
+    {
+      "number": 7,
+      "translation": "dan sesungguhnya kamu benar-benar akan melihatnya dengan 'ainul yaqin."
+    },
+    {
+      "number": 8,
+      "translation": "kemudian kamu pasti akan ditanyai pada hari itu tentang kenikmatan (yang kamu megah-megahkan di dunia itu)."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "number": 103,
+  "translation_lang": "id",
+  "ayat_count": 3,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Demi masa."
+    },
+    {
+      "number": 2,
+      "translation": "Sesungguhnya manusia itu benar-benar dalam kerugian,"
+    },
+    {
+      "number": 3,
+      "translation": "kecuali orang-orang yang beriman dan mengerjakan amal saleh dan nasehat menasehati supaya mentaati kebenaran dan nasehat menasehati supaya menetapi kesabaran."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

@@ -8,11 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { BlurView } from 'expo-blur';
 import { colors } from '@/theme/colors';
-import FabCatat from '@/components/FabCatat';
 
 // Import screens
 import HomeScreen from '@/screens/home/HomeScreen';
 import ProgressScreen from '@/screens/stats/ProgressScreen';
+import BacaStack from '@/navigation/BacaStack';
 import FamilyScreen from '@/screens/family/FamilyTabScreen';
 import ProfileScreen from '@/features/profile/ProfileScreen';
 
@@ -201,15 +201,11 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const palette = usePalette();
   const queryClient = useQueryClient();
 
-  const hideFab = route.name === 'CatatBacaan';
-
   // Normalize bottom inset: some Android devices report large insets in Expo Go
   const bottomInset = Platform.OS === 'android' ? Math.min(insets.bottom, 6) : insets.bottom;
 
-  // Slightly more compact height and padding to keep content visually centered
-  const tabBarHeight = 68 + bottomInset; // slightly taller
-  const FAB_SIZE = 58;
-  const FAB_MARGIN_TOP = -(FAB_SIZE / 2) - (Platform.OS === 'android' ? 17 : 13); // raise a bit more so it clears the label
+  // Standard height for 5-tab layout
+  const tabBarHeight = 68 + bottomInset;
 
   const Container = Platform.OS === 'ios' ? BlurView : View;
   const containerProps = Platform.OS === 'ios' ? { tint: palette.blurTint, intensity: 28 } : {};
@@ -235,156 +231,62 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 52, // match taller bar
+            justifyContent: 'space-around',
+            height: 52,
             position: 'relative',
           }}
         >
-          {/* Left 2 tabs */}
-          <View style={{ flexDirection: 'row', flex: 1, height: '100%' }}>
-            {state.routes.slice(0, 2).map((r: any, i: number) => {
-              const { options } = descriptors[r.key];
-              const label = options.tabBarLabel || options.title || r.name;
-              const icon = options.tabBarIcon || 'home-variant';
-              const isFocused = state.index === i;
-              const badgeCount =
-                typeof options.tabBarBadge === 'number' ? options.tabBarBadge : undefined;
+          {/* All 5 tabs */}
+          {state.routes.map((r: any, i: number) => {
+            const { options } = descriptors[r.key];
+            const label = options.tabBarLabel || options.title || r.name;
+            const icon = options.tabBarIcon || 'home-variant';
+            const isFocused = state.index === i;
+            const badgeCount =
+              typeof options.tabBarBadge === 'number' ? options.tabBarBadge : undefined;
 
-              const onPress = () => {
-                const evt = navigation.emit({
-                  type: 'tabPress',
-                  target: r.key,
-                  canPreventDefault: true,
-                });
-                if (!isFocused && !evt.defaultPrevented) {
-                  Haptics.selectionAsync().catch(() => {});
-                  navigation.navigate(r.name, r.params);
+            const onPress = () => {
+              const evt = navigation.emit({
+                type: 'tabPress',
+                target: r.key,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !evt.defaultPrevented) {
+                Haptics.selectionAsync().catch(() => {});
+                navigation.navigate(r.name, r.params);
 
-                  // If navigating to Progress, proactively refresh Progress queries
-                  if (r.name === 'Progress') {
-                    try {
-                      const monthKey = new Date().toISOString().slice(0, 7); // yyyy-MM
-                      queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
-                      queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
-                      queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
-                      queryClient.invalidateQueries({ queryKey: ['hasanat'] });
-                      queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
-                      queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
-                      queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
-                      // We don't know selectedPeriod here; refetch all reading-stats
-                      queryClient.refetchQueries({ queryKey: ['reading-stats'] });
-                    } catch {}
-                  }
+                // If navigating to Progress, proactively refresh Progress queries
+                if (r.name === 'Progress') {
+                  try {
+                    const monthKey = new Date().toISOString().slice(0, 7); // yyyy-MM
+                    queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
+                    queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
+                    queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
+                    queryClient.invalidateQueries({ queryKey: ['hasanat'] });
+                    queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
+                    queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
+                    queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
+                    queryClient.refetchQueries({ queryKey: ['reading-stats'] });
+                  } catch {}
                 }
-              };
-              const onLongPress = () => {
-                navigation.emit({ type: 'tabLongPress', target: r.key });
-              };
-              return (
-                <TabItem
-                  key={r.key}
-                  icon={icon}
-                  label={label}
-                  isActive={isFocused}
-                  onPress={onPress}
-                  onLongPress={onLongPress}
-                  badgeCount={badgeCount}
-                  palette={palette}
-                />
-              );
-            })}
-          </View>
-
-          {/* Center FAB area */}
-          <View
-            style={{
-              width: 92,
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-            }}
-          >
-            {!hideFab && (
-              <>
-                <View style={{ marginTop: FAB_MARGIN_TOP }}>
-                  <FabCatat
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-                      navigation.navigate('CatatBacaan');
-                    }}
-                  />
-                </View>
-                <Text
-                  style={{
-                    marginTop: 16, // slightly lower label for readability
-                    fontSize: 12,
-                    fontWeight: '600',
-                    color: palette.neutral,
-                    textAlign: 'center',
-                    includeFontPadding: false,
-                    lineHeight: 12,
-                  }}
-                >
-                  Catat Bacaan
-                </Text>
-              </>
-            )}
-          </View>
-
-          {/* Right 2 tabs */}
-          <View style={{ flexDirection: 'row', flex: 1, height: '100%' }}>
-            {state.routes.slice(2, 4).map((r: any, i: number) => {
-              const routeIndex = 2 + i;
-              const { options } = descriptors[r.key];
-              const label = options.tabBarLabel || options.title || r.name;
-              const icon = options.tabBarIcon || 'home-variant';
-              const isFocused = state.index === routeIndex;
-              const badgeCount =
-                typeof options.tabBarBadge === 'number' ? options.tabBarBadge : undefined;
-
-              const onPress = () => {
-                const evt = navigation.emit({
-                  type: 'tabPress',
-                  target: r.key,
-                  canPreventDefault: true,
-                });
-                if (!isFocused && !evt.defaultPrevented) {
-                  Haptics.selectionAsync().catch(() => {});
-                  navigation.navigate(r.name, r.params);
-
-                  // If navigating to Progress, proactively refresh Progress queries
-                  if (r.name === 'Progress') {
-                    try {
-                      const monthKey = new Date().toISOString().slice(0, 7); // yyyy-MM
-                      queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
-                      queryClient.invalidateQueries({ queryKey: ['checkin-data'] });
-                      queryClient.invalidateQueries({ queryKey: ['recent-reading-sessions'] });
-                      queryClient.invalidateQueries({ queryKey: ['hasanat'] });
-                      queryClient.refetchQueries({ queryKey: ['recent-reading-sessions'] });
-                      queryClient.refetchQueries({ queryKey: ['checkin-data', monthKey] });
-                      queryClient.refetchQueries({ queryKey: ['hasanat', 'stats'] });
-                      queryClient.refetchQueries({ queryKey: ['reading-stats'] });
-                    } catch {}
-                  }
-                }
-              };
-              const onLongPress = () => {
-                navigation.emit({ type: 'tabLongPress', target: r.key });
-              };
-              return (
-                <TabItem
-                  key={r.key}
-                  icon={icon}
-                  label={label}
-                  isActive={isFocused}
-                  onPress={onPress}
-                  onLongPress={onLongPress}
-                  badgeCount={badgeCount}
-                  palette={palette}
-                />
-              );
-            })}
-          </View>
+              }
+            };
+            const onLongPress = () => {
+              navigation.emit({ type: 'tabLongPress', target: r.key });
+            };
+            return (
+              <TabItem
+                key={r.key}
+                icon={icon}
+                label={label}
+                isActive={isFocused}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                badgeCount={badgeCount}
+                palette={palette}
+              />
+            );
+          })}
         </View>
       </Container>
     </View>
@@ -416,6 +318,14 @@ export default function BottomTabs() {
         options={{
           tabBarLabel: 'Progress',
           tabBarIcon: 'chart-bar' as any,
+        }}
+      />
+      <Tab.Screen
+        name="BacaTab"
+        component={BacaStack}
+        options={{
+          tabBarLabel: 'Baca',
+          tabBarIcon: 'book' as any,
         }}
       />
       <Tab.Screen

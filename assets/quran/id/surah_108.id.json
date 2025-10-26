@@ -1,0 +1,23 @@
+{
+  "number": 108,
+  "translation_lang": "id",
+  "ayat_count": 3,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Sesungguhnya Kami telah memberikan kepadamu nikmat yang banyak."
+    },
+    {
+      "number": 2,
+      "translation": "Maka dirikanlah shalat karena Tuhanmu; dan berkorbanlah."
+    },
+    {
+      "number": 3,
+      "translation": "Sesungguhnya orang-orang yang membenci kamu dialah yang terputus."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

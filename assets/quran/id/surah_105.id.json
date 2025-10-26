@@ -1,0 +1,31 @@
+{
+  "number": 105,
+  "translation_lang": "id",
+  "ayat_count": 5,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Apakah kamu tidak memperhatikan bagaimana Tuhanmu telah bertindak terhadap tentara bergajah?"
+    },
+    {
+      "number": 2,
+      "translation": "Bukankah Dia telah menjadikan tipu daya mereka (untuk menghancurkan Ka'bah) itu sia-sia?"
+    },
+    {
+      "number": 3,
+      "translation": "dan Dia mengirimkan kapada mereka burung yang berbondong-bondong,"
+    },
+    {
+      "number": 4,
+      "translation": "yang melempari mereka dengan batu (berasal) dari tanah yang terbakar,"
+    },
+    {
+      "number": 5,
+      "translation": "lalu Dia menjadikan mereka seperti daun-daun yang dimakan (ulat)."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

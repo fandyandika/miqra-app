@@ -1,0 +1,31 @@
+{
+  "number": 113,
+  "translation_lang": "id",
+  "ayat_count": 5,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Katakanlah: \"Aku berlindung kepada Tuhan Yang Menguasai subuh,"
+    },
+    {
+      "number": 2,
+      "translation": "dari kejahatan makhluk-Nya,"
+    },
+    {
+      "number": 3,
+      "translation": "dan dari kejahatan malam apabila telah gelap gulita,"
+    },
+    {
+      "number": 4,
+      "translation": "dan dari kejahatan wanita-wanita tukang sihir yang menghembus pada buhul-buhul,"
+    },
+    {
+      "number": 5,
+      "translation": "dan dari kejahatan pendengki bila ia dengki\"."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

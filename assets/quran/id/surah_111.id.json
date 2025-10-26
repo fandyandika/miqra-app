@@ -1,0 +1,31 @@
+{
+  "number": 111,
+  "translation_lang": "id",
+  "ayat_count": 5,
+  "ayat": [
+    {
+      "number": 1,
+      "translation": "Binasalah kedua tangan Abu Lahab dan sesungguhnya dia akan binasa."
+    },
+    {
+      "number": 2,
+      "translation": "Tidaklah berfaedah kepadanya harta bendanya dan apa yang ia usahakan."
+    },
+    {
+      "number": 3,
+      "translation": "Kelak dia akan masuk ke dalam api yang bergejolak."
+    },
+    {
+      "number": 4,
+      "translation": "Dan (begitu pula) istrinya, pembawa kayu bakar."
+    },
+    {
+      "number": 5,
+      "translation": "Yang di lehernya ada tali dari sabut."
+    }
+  ],
+  "source": {
+    "dataset": "tanzil_id",
+    "version": "v1.1"
+  }
+}

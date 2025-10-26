@@ -16,15 +16,24 @@ config.resolver.alias = {
 // Ensure proper module resolution
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
-// Add transformer options for better Android compatibility
+// Configure SVG transformer
+const { transformer, resolver } = require('react-native-svg-transformer');
+
 config.transformer = {
   ...config.transformer,
+  babelTransformerPath: require.resolve('react-native-svg-transformer'),
   minifierConfig: {
     keep_fnames: true,
     mangle: {
       keep_fnames: true,
     },
   },
+};
+
+config.resolver = {
+  ...config.resolver,
+  assetExts: config.resolver.assetExts.filter((ext) => ext !== 'svg'),
+  sourceExts: [...config.resolver.sourceExts, 'svg'],
 };
 
 module.exports = withNativeWind(config, { input: './global.css' });
