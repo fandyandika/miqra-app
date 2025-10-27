@@ -154,6 +154,11 @@ export default function App() {
     'Me Quran': require('./assets/fonts/me_quran-Regular.ttf'),
     'AmiriQuran-Regular': require('./assets/fonts/AmiriQuran-Regular.ttf'),
     'LPMQ-Isep-Misbah': require('./assets/fonts/LPMQ-Isep-Misbah.ttf'),
+    'Me-Quran-Volt-2': require('./assets/fonts/me_quran_volt_newmet2.ttf'),
+    'DigitalKhatt-V2': require('./assets/fonts/DigitalKhattV2.otf'),
+    'PDMS-Saleem': require('./assets/fonts/_PDMS_Saleem_QuranFont Regular.ttf'),
+    IndopakNastaleeq: require('./assets/fonts/indopaknastaleeqfont2.ttf'),
+    'KFGQPC-Nastaleeq': require('./assets/fonts/KFGQPCNastaleeq-Regular.ttf'),
   });
 
   useEffect(() => {

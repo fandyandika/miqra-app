@@ -1,0 +1,32 @@
+{
+  "number": 111,
+  "name": "Al-Masad",
+  "script": "IndoPak-Nastaleeq",
+  "ayat_count": 5,
+  "ayat": [
+    {
+      "number": 1,
+      "text": "تَبَّتْ یَدَاۤ اَبِیْ لَهَبٍ وَّتَبَّ ۟ؕ"
+    },
+    {
+      "number": 2,
+      "text": "مَاۤ اَغْنٰی عَنْهُ مَالُهٗ وَمَا كَسَبَ ۟ؕ"
+    },
+    {
+      "number": 3,
+      "text": "سَیَصْلٰی نَارًا ذَاتَ لَهَبٍ ۟ۚۖ"
+    },
+    {
+      "number": 4,
+      "text": "وَّامْرَاَتُهٗ ؕ حَمَّالَةَ الْحَطَبِ ۟ۚ"
+    },
+    {
+      "number": 5,
+      "text": "فِیْ جِیْدِهَا حَبْلٌ مِّنْ مَّسَدٍ ۟۠"
+    }
+  ],
+  "source": {
+    "dataset": "indopak_nastaleeq_json_uploaded",
+    "version": "v1"
+  }
+}

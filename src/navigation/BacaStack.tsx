@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import BacaScreen from '@/features/baca/BacaScreen';
 import ReaderScreen from '@/features/quran/ReaderScreen';
+import AyahReader from '@/features/baca/components/AyahReader';
 import SurahSelector from '@/features/quran/SurahSelector';
 import LogReadingScreen from '@/features/reading/LogReadingScreen';
 import SearchModal from '@/features/quran/SearchModal';
@@ -10,6 +11,7 @@ import SearchModal from '@/features/quran/SearchModal';
 export type BacaStackParamList = {
   BacaHome: undefined;
   Reader: { surahNumber?: number; ayatNumber?: number } | undefined;
+  AyahReader: { surahNumber?: number; ayatNumber?: number } | undefined;
   SurahSelector: undefined;
   LogReading: undefined;
 };
@@ -25,7 +27,22 @@ export default function BacaStack() {
         component={SurahSelector}
         options={{ title: 'Pilih Surah', presentation: 'card' }}
       />
-      <Stack.Screen name="Reader" component={ReaderScreen} options={{ title: "Qur'an Reader" }} />
+      <Stack.Screen
+        name="AyahReader"
+        component={AyahReader}
+        options={{
+          title: '',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Reader"
+        component={ReaderScreen}
+        options={{
+          title: '',
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="LogReading"
         component={LogReadingScreen}

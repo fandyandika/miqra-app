@@ -1,7 +1,8 @@
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useContinueReading } from './hooks/useContinueReading';
+import { useTodayStats } from './hooks/useTodayStats';
 import { ContinueBanner } from './components/ContinueBanner';
 import { ActionButton } from './components/ActionButton';
 import TodaySummary from './components/TodaySummary';
@@ -11,6 +12,7 @@ import { colors } from '@/theme/colors';
 export default function BacaScreen() {
   const { user } = useAuth();
   const { bookmark } = useContinueReading(user?.id);
+  const { data: todayStats, isLoading } = useTodayStats();
   const navigation = useNavigation<any>();
 
   return (
@@ -22,8 +24,12 @@ export default function BacaScreen() {
       <ActionButton
         icon="📖"
         title="Baca Langsung di Aplikasi"
-        subtitle="Mulai dari surah terakhir atau pilih surah baru"
-        onPress={() => navigation.navigate('Reader')}
+        subtitle="Baca per ayat dengan navigasi mudah"
+        onPress={() => {
+          const startSurah = bookmark?.surah_number || 1;
+          const startAyat = bookmark?.ayat_number || 1;
+          navigation.navigate('AyahReader', { surahNumber: startSurah, ayatNumber: startAyat });
+        }}
         color={colors.primary}
       />
 
@@ -43,7 +49,14 @@ export default function BacaScreen() {
         color={colors.accent}
       />
 
-      <TodaySummary totalAyat={52} totalHasanat={420} />
+      {isLoading ? (
+        <ActivityIndicator style={{ marginVertical: 20 }} />
+      ) : (
+        <TodaySummary
+          totalAyat={todayStats?.totalAyat || 0}
+          totalHasanat={todayStats?.totalHasanat || 0}
+        />
+      )}
     </ScrollView>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,12 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { scheduleDaily, ensureNotifPermission } from '../../lib/notifications';
 import { posthog, EVENTS } from '../../config/posthog';
 import { getTodayDate } from '../../utils/time';
-import {
-  DEFAULT_REMINDER_HOUR,
-  DEFAULT_REMINDER_MINUTE,
-  DEFAULT_AYAT_COUNT,
-  AYAT_COUNT_OPTIONS,
-} from '../../utils/constants';
+import { DEFAULT_REMINDER_HOUR, DEFAULT_REMINDER_MINUTE } from '../../utils/constants';
 import { useCheckin } from '@/hooks/useCheckin';
 import { useSyncStore } from '@/store/syncStore';
 import { useMyFamilies } from '@/hooks/useFamily';
@@ -31,21 +26,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
 export default function HomeScreen() {
-  const {
-    todayCheckin,
-    streak,
-    hasCheckedInToday,
-    isLoading,
-    isSubmitting,
-    submitCheckin,
-    triggerSync,
-  } = useCheckin();
+  const { todayCheckin, streak, hasCheckedInToday, isLoading, triggerSync } = useCheckin();
   const { isSyncing, pendingCount } = useSyncStore();
   const nav = useNavigation<any>();
   const familiesQ = useMyFamilies();
   const queryClient = useQueryClient();
-  const [ayatCount, setAyatCount] = useState(DEFAULT_AYAT_COUNT);
-  const [refreshing, setRefreshing] = useState(false);
 
   // Clear cache on mount to ensure fresh data
   useEffect(() => {
@@ -97,11 +82,9 @@ export default function HomeScreen() {
   });
 
   const onRefresh = async () => {
-    setRefreshing(true);
     // Clear React Query cache for families
     queryClient.invalidateQueries({ queryKey: ['families', 'mine'] });
     await triggerSync();
-    setRefreshing(false);
   };
 
   const handleSetReminder = async () => {
@@ -143,7 +126,7 @@ export default function HomeScreen() {
       contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 56 }}
       refreshControl={
         <RefreshControl
-          refreshing={refreshing}
+          refreshing={isSyncing}
           onRefresh={onRefresh}
           tintColor="#00C896"
           colors={['#00C896']}
@@ -262,52 +245,6 @@ export default function HomeScreen() {
             ? `Alhamdulillah! Sudah ${todayCheckin?.ayat_count} ayat hari ini ✅`
             : "Sudah baca Al-Qur'an hari ini?"}
         </Text>
-
-        {!hasCheckedInToday && (
-          <>
-            <View className="flex-row justify-around mb-4">
-              {(AYAT_COUNT_OPTIONS || []).map((n) => (
-                <Pressable
-                  key={n}
-                  onPress={() => setAyatCount(n)}
-                  className={`px-4 py-2 rounded-lg ${ayatCount === n ? 'bg-primary' : 'bg-background'}`}
-                >
-                  <Text
-                    className={
-                      ayatCount === n ? 'text-white font-medium' : 'text-charcoal font-medium'
-                    }
-                  >
-                    {n} ayat
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
-            <Pressable
-              onPress={() => {
-                if (hasCheckedInToday) {
-                  Alert.alert(
-                    'Sudah Dicatat',
-                    'Kamu sudah mencatat bacaan hari ini. Alhamdulillah! 🌱'
-                  );
-                  return;
-                }
-                submitCheckin(ayatCount);
-                triggerSync();
-                Alert.alert('Alhamdulillah! ✅', `${ayatCount} ayat tercatat.`);
-              }}
-              disabled={isSubmitting}
-              className="bg-primary rounded-xl px-4 py-3 active:opacity-80"
-              style={{ minHeight: 48 }}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text className="text-white text-center font-medium">Catat Bacaan Hari Ini</Text>
-              )}
-            </Pressable>
-          </>
-        )}
 
         <Pressable onPress={handleSetReminder} className="bg-forest rounded-xl px-4 py-3 mt-3">
           <Text className="text-white text-center font-medium">Atur Pengingat Harian</Text>

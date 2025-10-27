@@ -1,0 +1,27 @@
+{
+  "number": 112,
+  "name": "Al-Ikhlas",
+  "ayat_count": 4,
+  "ayat": [
+    {
+      "number": 1,
+      "text": "قُلْ هُوَ اللّٰهُ اَحَدٌۚ"
+    },
+    {
+      "number": 2,
+      "text": "اَللّٰهُ الصَّمَدُۚ"
+    },
+    {
+      "number": 3,
+      "text": "لَمْ يَلِدْ وَلَمْ يُوْلَدْۙ"
+    },
+    {
+      "number": 4,
+      "text": "وَلَمْ يَكُنْ لَّهٗ كُفُوًا اَحَدٌ ࣖ"
+    }
+  ],
+  "source": {
+    "dataset": "arabic_uploaded",
+    "version": "v1"
+  }
+}

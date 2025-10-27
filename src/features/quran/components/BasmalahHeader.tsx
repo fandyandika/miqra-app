@@ -6,13 +6,7 @@ export default function BasmalahHeader() {
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
-        <View style={styles.topLine} />
-        <View style={styles.container}>
-          <View style={styles.line} />
-          <BismillahSvg width={200} height={48} />
-          <View style={styles.line} />
-        </View>
-        <View style={styles.bottomLine} />
+        <BismillahSvg width={200} height={48} />
       </View>
     </View>
   );

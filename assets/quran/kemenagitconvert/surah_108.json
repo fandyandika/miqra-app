@@ -1,0 +1,23 @@
+{
+  "number": 108,
+  "name": "Al-Kawthar",
+  "ayat_count": 3,
+  "ayat": [
+    {
+      "number": 1,
+      "text": "اِنَّآ اَعْطَيْنٰكَ الْكَوْثَرَۗ"
+    },
+    {
+      "number": 2,
+      "text": "فَصَلِّ لِرَبِّكَ وَانْحَرْۗ"
+    },
+    {
+      "number": 3,
+      "text": "اِنَّ شَانِئَكَ هُوَ الْاَبْتَرُ ࣖ"
+    }
+  ],
+  "source": {
+    "dataset": "arabic_uploaded",
+    "version": "v1"
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "version": "1.0",
-  "languages": ["ar", "id"],
-  "surahs": [
-    { "number": 1, "ar": "ar/surah_001.json", "id": "id/surah_001.id.json" },
-    { "number": 2, "ar": "ar/surah_002.json", "id": "id/surah_002.id.json" }
-  ]
-}

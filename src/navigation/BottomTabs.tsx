@@ -210,6 +210,21 @@ function CustomTabBar({ state, descriptors, navigation }: any) {
   const Container = Platform.OS === 'ios' ? BlurView : View;
   const containerProps = Platform.OS === 'ios' ? { tint: palette.blurTint, intensity: 28 } : {};
 
+  // Hide tab bar when Reader screen in BacaTab is focused
+  const shouldHide = (() => {
+    try {
+      const baca = state.routes.find((r: any) => r.name === 'BacaTab');
+      const nested = baca?.state;
+      if (!nested) return false;
+      const currentNested = nested.routes?.[nested.index];
+      return currentNested?.name === 'Reader';
+    } catch {
+      return false;
+    }
+  })();
+
+  if (shouldHide) return null;
+
   return (
     <View
       style={{
