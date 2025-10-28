@@ -550,8 +550,9 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   heroSection: {
-    padding: 24,
-    paddingTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    paddingTop: 70,
     backgroundColor: colors.primary,
   },
   heroTitle: {

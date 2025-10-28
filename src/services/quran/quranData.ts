@@ -660,18 +660,98 @@ export async function loadSurah(number: number): Promise<Surah> {
 export type SurahMetadata = {
   number: number;
   name: string;
+  name_id: string;
+  name_ar: string;
+  name_en: string;
+  name_translation: string; // Translation from Daftar Surat
+  type: string;
   ayat_count: number;
   juz?: number;
   revelation_place?: 'makkah' | 'madinah';
 };
 
 export async function loadSurahMetadata(): Promise<SurahMetadata[]> {
-  // Mock data for all 114 surahs
-  // TODO: Load from real metadata file
+  // Load from daftar-surat.json (has Arabic names with diacritics)
+  try {
+    const daftarSurat = require('../../../assets/quran/kemenagitconvert/daftar-surat.json');
+    const daftarData = daftarSurat.data || [];
+
+    // Also load metadata for type and other info
+    const metadata = require('../../../assets/quran/surah_meta_final.json');
+
+    return daftarData.map((d: any) => {
+      const meta = metadata.find((m: any) => m.number === d.id);
+      return {
+        number: d.id,
+        name: d.surat_name || '',
+        name_id: d.surat_name || '',
+        name_ar: d.surat_text?.trim() || '', // This has diacritics!
+        name_en: meta?.name_en || '',
+        name_translation: d.surat_terjemahan || '',
+        type: meta?.type || '',
+        ayat_count: d.count_ayat,
+        juz: meta?.juz_start,
+        revelation_place: meta?.type === 'Makkiyah' ? 'makkah' : 'madinah',
+      };
+    });
+  } catch (error) {
+    console.log('Failed to load Daftar Surat, using surah_meta_final.json:', error);
+
+    // Fallback to surah_meta_final.json
+    try {
+      const metadata = require('../../../assets/quran/surah_meta_final.json');
+      return metadata.map((s: any) => ({
+        number: s.number,
+        name: s.name_id || s.name_translit || '',
+        name_id: s.name_id || '',
+        name_ar: s.name_ar || '',
+        name_en: s.name_en || '',
+        name_translation: '',
+        type: s.type || '',
+        ayat_count: s.ayat_count,
+        juz: s.juz_start,
+        revelation_place: s.type === 'Makkiyah' ? 'makkah' : 'madinah',
+      }));
+    } catch (error2) {
+      console.log('Failed to load any metadata, using fallback:', error2);
+    }
+  }
+
+  // Fallback mock data
   const surahs: SurahMetadata[] = [
-    { number: 1, name: 'Al-Fatihah', ayat_count: 7, juz: 1, revelation_place: 'makkah' },
-    { number: 2, name: 'Al-Baqarah', ayat_count: 286, juz: 1, revelation_place: 'madinah' },
-    { number: 3, name: "Ali 'Imran", ayat_count: 200, juz: 2, revelation_place: 'madinah' },
+    {
+      number: 1,
+      name: 'Al-Fatihah',
+      name_id: 'Al-Fatihah',
+      name_ar: 'الفاتحة',
+      name_en: 'The Opening',
+      type: 'Makkiyah',
+      ayat_count: 7,
+      juz: 1,
+      revelation_place: 'makkah',
+    },
+    {
+      number: 2,
+      name: 'Al-Baqarah',
+      name_id: 'Al-Baqarah',
+      name_ar: 'البقرة',
+      name_en: 'The Cow',
+      type: 'Madaniyah',
+      ayat_count: 286,
+      juz: 1,
+      revelation_place: 'madinah',
+    },
+    {
+      number: 3,
+      name: "Ali 'Imran",
+      name_id: "Ali 'Imran",
+      name_ar: 'آل عمران',
+      name_en: 'The Family of Imraan',
+      type: 'Madaniyah',
+      ayat_count: 200,
+      juz: 2,
+      revelation_place: 'madinah',
+    },
     { number: 4, name: 'An-Nisa', ayat_count: 176, juz: 2, revelation_place: 'madinah' },
     { number: 5, name: "Al-Ma'idah", ayat_count: 120, juz: 3, revelation_place: 'madinah' },
     { number: 6, name: "Al-An'am", ayat_count: 165, juz: 3, revelation_place: 'makkah' },

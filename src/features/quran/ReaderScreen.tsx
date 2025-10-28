@@ -9,19 +9,33 @@ import { createReadingSession, ReadingSessionInput } from '@/services/reading';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
+import { loadJuzContent, getJuzTitle, AyahWithSurahInfo } from '@/services/quran/juzUtils';
+import { getPageForAyah } from '@/services/quran/pageMap';
+import QuranSurahHeader from './components/QuranSurahHeader';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { user } = useAuth();
-  const { surahNumber: pSurah, ayatNumber: pAyat } = route.params || {};
+  const { surahNumber: pSurah, ayatNumber: pAyat, juzNumber } = route.params || {};
   const [surahNumber, setSurahNumber] = useState<number>(pSurah || 1);
   const [bookmarkAyat, setBookmarkAyat] = useState<number | null>(pAyat ?? null);
   const listRef = useRef<FlatList>(null);
   const [visibleAyat, setVisibleAyat] = useState<number>(1);
+  const [visiblePage, setVisiblePage] = useState<number | null>(null);
   const [pressedAyah, setPressedAyah] = useState<number | null>(null);
   const [isSelectingRange, setIsSelectingRange] = useState(false);
   const [checkedAyat, setCheckedAyat] = useState<Set<number>>(new Set());
+  const [visibleSurahInfo, setVisibleSurahInfo] = useState<{
+    surahNumber: number;
+    surahName: string;
+  } | null>(null);
+
+  // Juz mode state
+  const [isJuzMode] = useState(!!juzNumber);
+  const [juzAyat, setJuzAyat] = useState<AyahWithSurahInfo[]>([]);
+  const [juzTitle, setJuzTitle] = useState<string>('');
+  const [juzLoading, setJuzLoading] = useState(false);
 
   const getArabicNumber = (num: number): string => {
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -56,9 +70,35 @@ export default function ReaderScreen() {
     })();
   }, [pSurah, user?.id]);
 
+  // Load Juz content if in Juz mode
+  useEffect(() => {
+    if (juzNumber && isJuzMode) {
+      setJuzLoading(true);
+      Promise.all([loadJuzContent(juzNumber), getJuzTitle(juzNumber)])
+        .then(([ayat, title]) => {
+          setJuzAyat(ayat);
+          setJuzTitle(title);
+          setJuzLoading(false);
+        })
+        .catch((err) => {
+          console.error('Failed to load Juz:', err);
+          setJuzLoading(false);
+        });
+    }
+  }, [juzNumber, isJuzMode]);
+
   // Auto-scroll to bookmark ayat
   useEffect(() => {
-    if (bookmarkAyat && listRef.current && surah?.ayat) {
+    if (bookmarkAyat && listRef.current && surah?.ayat && !isJuzMode) {
+      setTimeout(() => {
+        try {
+          listRef.current?.scrollToIndex({
+            index: Math.max(0, bookmarkAyat - 1),
+            animated: true,
+          });
+        } catch {}
+      }, 300);
+    } else if (bookmarkAyat && listRef.current && juzAyat.length > 0 && isJuzMode) {
       setTimeout(() => {
         try {
           listRef.current?.scrollToIndex({
@@ -68,13 +108,30 @@ export default function ReaderScreen() {
         } catch {}
       }, 300);
     }
-  }, [bookmarkAyat, surahNumber, surah?.ayat]);
+  }, [bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 30 });
-  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: any[] }) => {
     if (viewableItems && viewableItems.length > 0) {
-      const first = viewableItems[0]?.item?.number;
+      const firstItem = viewableItems[0]?.item as AyahWithSurahInfo | undefined;
+      const first = firstItem?.number;
       if (typeof first === 'number') setVisibleAyat(first);
+      if (isJuzMode) {
+        setVisiblePage(typeof firstItem?.page === 'number' ? firstItem.page : null);
+        if (firstItem?.surahNumber && firstItem?.surahName) {
+          setVisibleSurahInfo({
+            surahNumber: firstItem.surahNumber,
+            surahName: firstItem.surahName,
+          });
+        }
+      } else {
+        // Surah mode: derive page and surah info
+        const p = getPageForAyah(surahNumber, typeof first === 'number' ? first : 1);
+        setVisiblePage(typeof p === 'number' ? p : null);
+        if (surah?.name) {
+          setVisibleSurahInfo({ surahNumber, surahName: surah.name });
+        }
+      }
     }
   });
 
@@ -116,10 +173,34 @@ export default function ReaderScreen() {
     }
   };
 
-  if (loading || !surah) return <ActivityIndicator style={{ marginTop: 40 }} />;
+  // Determine which data to use
+  const displayAyat = isJuzMode ? juzAyat : surah?.ayat || [];
+  const displayTitle = isJuzMode ? juzTitle : surah?.name || '';
 
-  const totalAyat = surah?.ayat_count || surah?.ayat?.length || 0;
+  if (
+    (loading && !isJuzMode) ||
+    juzLoading ||
+    (!surah && !isJuzMode) ||
+    (isJuzMode && juzAyat.length === 0)
+  ) {
+    return <ActivityIndicator style={{ marginTop: 40 }} />;
+  }
+
+  const totalAyat = displayAyat.length;
+  // Use first visible item's page for both Juz and Surah mode
+  const currentPage = visiblePage;
   const progress = totalAyat ? Math.max(0, Math.min(100, (visibleAyat / totalAyat) * 100)) : 0;
+
+  // Build header subtitle
+  const getSubtitle = () => {
+    if (isJuzMode) {
+      const name = visibleSurahInfo?.surahName || '';
+      const hlm = currentPage ?? '-';
+      return name ? `${name} | Hlm. ${hlm}` : `Hlm. ${hlm}`;
+    }
+    const hlm = currentPage ?? '-';
+    return `Hlm. ${hlm}`;
+  };
   const selectedCount = selection.start
     ? selection.end
       ? selection.end - selection.start + 1
@@ -137,10 +218,8 @@ export default function ReaderScreen() {
           <Feather name="arrow-left" size={20} color="#2D3436" />
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>{surah.name}</Text>
-          <Text style={styles.headerSubtitle}>
-            Ayah {visibleAyat} / {totalAyat}
-          </Text>
+          <Text style={styles.headerTitle}>{isJuzMode ? displayTitle : surah?.name || ''}</Text>
+          <Text style={styles.headerSubtitle}>{getSubtitle()}</Text>
         </View>
         <Pressable style={styles.iconButton}>
           <Feather name="bookmark" size={20} color="#2D3436" />
@@ -149,45 +228,85 @@ export default function ReaderScreen() {
       {/* JumpBar and QuickRangeBar removed */}
       <FlatList
         ref={listRef}
-        data={surah.ayat}
-        keyExtractor={(item) => `${item.number}`}
-        ListHeaderComponent={surahNumber !== 1 && surahNumber !== 9 ? <BasmalahHeader /> : null}
-        renderItem={({ item, index }) => (
-          <Pressable
-            onPress={() => handleAyahPress(item.number)}
-            style={[
-              styles.ayahContainer,
-              index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
-              pressedAyah === item.number ? styles.pressed : {},
-              checkedAyat.has(item.number) ? styles.checked : {},
-              selection.start &&
-              item.number >= selection.start &&
-              selection.end &&
-              item.number <= selection.end
-                ? styles.selected
-                : {},
-            ]}
-          >
-            <View style={styles.badgeRow}>
-              {isSelectingRange && (
-                <Feather
-                  name={checkedAyat.has(item.number) ? 'check-circle' : 'circle'}
-                  size={20}
-                  color={checkedAyat.has(item.number) ? '#00C896' : '#E5E5E5'}
-                  style={{ marginTop: 2, marginRight: 4 }}
-                />
+        data={displayAyat}
+        keyExtractor={(item, index) => `${item.number}_${index}`}
+        ListHeaderComponent={
+          !isJuzMode ? (
+            <>
+              <QuranSurahHeader
+                revelation={surahNumber && surahNumber <= 7 ? 'Mekah' : 'Madinah'}
+                surahNumber={surahNumber}
+                surahName={surah?.name || ''}
+                meaning={undefined}
+                totalAyahs={surah?.ayat?.length}
+                surahNameAr={undefined}
+              />
+              {surahNumber !== 1 && surahNumber !== 9 ? <BasmalahHeader /> : null}
+            </>
+          ) : null
+        }
+        renderItem={({ item, index }) => {
+          const ayahItem = item as AyahWithSurahInfo;
+          const shouldShowSurahHeader =
+            isJuzMode && ayahItem.isSurahStart && ayahItem.surahNumber && ayahItem.surahName;
+
+          return (
+            <>
+              {shouldShowSurahHeader && (
+                <>
+                  <QuranSurahHeader
+                    revelation={
+                      ayahItem.surahNumber && ayahItem.surahNumber <= 7 ? 'Mekah' : 'Madinah'
+                    }
+                    surahNumber={ayahItem.surahNumber || 1}
+                    surahName={ayahItem.surahName || ''}
+                    meaning={ayahItem.surahMeaning}
+                    totalAyahs={ayahItem.surahTotalAyahs}
+                    surahNameAr={ayahItem.surahNameAr}
+                  />
+                  {/* Basmalah only for first ayah of surah, except for Al-Fatihah (1) and At-Taubah (9) */}
+                  {ayahItem.isFirstAyahOfSurah &&
+                    ayahItem.surahNumber !== 1 &&
+                    ayahItem.surahNumber !== 9 && <BasmalahHeader />}
+                </>
               )}
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{item.number}</Text>
-              </View>
-              <Text style={styles.arabic}>
-                {item.text}{' '}
-                <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
-              </Text>
-            </View>
-            {showTranslation && <Text style={styles.translation}>{item.translation}</Text>}
-          </Pressable>
-        )}
+              <Pressable
+                onPress={() => handleAyahPress(ayahItem.number)}
+                style={[
+                  styles.ayahContainer,
+                  index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
+                  pressedAyah === item.number ? styles.pressed : {},
+                  checkedAyat.has(item.number) ? styles.checked : {},
+                  selection.start &&
+                  item.number >= selection.start &&
+                  selection.end &&
+                  item.number <= selection.end
+                    ? styles.selected
+                    : {},
+                ]}
+              >
+                <View style={styles.badgeRow}>
+                  {isSelectingRange && (
+                    <Feather
+                      name={checkedAyat.has(item.number) ? 'check-circle' : 'circle'}
+                      size={20}
+                      color={checkedAyat.has(item.number) ? '#00C896' : '#E5E5E5'}
+                      style={{ marginTop: 2, marginRight: 4 }}
+                    />
+                  )}
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{item.number}</Text>
+                  </View>
+                  <Text style={styles.arabic}>
+                    {item.text}{' '}
+                    <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
+                  </Text>
+                </View>
+                {showTranslation && <Text style={styles.translation}>{ayahItem.translation}</Text>}
+              </Pressable>
+            </>
+          );
+        }}
         onViewableItemsChanged={onViewableItemsChanged.current}
         viewabilityConfig={viewConfigRef.current}
       />
@@ -336,7 +455,7 @@ export default function ReaderScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF8F0' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   progressTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
   progressFill: { height: '100%', backgroundColor: '#00C896' },
   topBar: {
@@ -344,7 +463,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 50,
+    paddingBottom: 12,
     backgroundColor: '#FFF8F0',
   },
   iconButton: { padding: 8 },

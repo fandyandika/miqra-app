@@ -324,7 +324,7 @@ export default function BottomTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: 'home-variant' as any,
+          tabBarIcon: 'home-outline' as any,
         }}
       />
       <Tab.Screen
@@ -332,7 +332,7 @@ export default function BottomTabs() {
         component={ProgressScreen}
         options={{
           tabBarLabel: 'Progress',
-          tabBarIcon: 'chart-bar' as any,
+          tabBarIcon: 'trending-up' as any,
         }}
       />
       <Tab.Screen
@@ -340,15 +340,15 @@ export default function BottomTabs() {
         component={BacaStack}
         options={{
           tabBarLabel: 'Baca',
-          tabBarIcon: 'book' as any,
+          tabBarIcon: 'book-open-variant' as any,
         }}
       />
       <Tab.Screen
         name="Family"
         component={FamilyScreen}
         options={{
-          tabBarLabel: 'Family',
-          tabBarIcon: 'account-group' as any,
+          tabBarLabel: 'Circle',
+          tabBarIcon: 'chat-outline' as any,
         }}
       />
       <Tab.Screen
@@ -356,7 +356,7 @@ export default function BottomTabs() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: 'account-circle' as any,
+          tabBarIcon: 'account-outline' as any,
         }}
       />
     </Tab.Navigator>

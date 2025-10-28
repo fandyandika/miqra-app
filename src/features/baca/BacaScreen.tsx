@@ -23,7 +23,7 @@ export default function BacaScreen() {
 
       <ActionButton
         icon="📖"
-        title="Baca Langsung di Aplikasi"
+        title="Baca per Ayat (Focus)"
         subtitle="Baca per ayat dengan navigasi mudah"
         onPress={() => {
           const startSurah = bookmark?.surah_number || 1;
@@ -35,8 +35,8 @@ export default function BacaScreen() {
 
       <ActionButton
         icon="🧭"
-        title="Pilih Surah"
-        subtitle="Jelajahi 114 surah"
+        title="Baca Qur'an"
+        subtitle="Surah • Juz • Bookmark"
         onPress={() => navigation.navigate('SurahSelector')}
         color={colors.secondary}
       />
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text.primary,
     marginHorizontal: 16,
-    marginTop: 24,
+    marginTop: 50,
     marginBottom: 12,
   },
 });

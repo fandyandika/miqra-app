@@ -6,18 +6,23 @@ export default function BasmalahHeader() {
   return (
     <View style={styles.wrap}>
       <View style={styles.card}>
-        <BismillahSvg width={200} height={48} />
+        <BismillahSvg width={240} height={60} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: 16 },
+  wrap: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
   card: {
-    backgroundColor: '#FAF5F0',
+    backgroundColor: '#FFFFFF',
     borderRadius: 0,
     paddingHorizontal: 20,
+    paddingTop: 0,
+    paddingBottom: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

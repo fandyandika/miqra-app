@@ -245,7 +245,7 @@ function Celebration({
 
 const st = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: 16 },
+  content: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 70 },
   center: {
     flex: 1,
     alignItems: 'center',

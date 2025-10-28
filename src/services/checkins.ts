@@ -157,35 +157,63 @@ function calculateStreakManually(checkinsData: any[]) {
     .map((c) => c.date);
   const uniqueDates: string[] = Array.from(new Set(sorted));
 
-  let currentStreak = 1; // First day always counts as streak 1
-  let longestStreak = 1;
+  console.log(
+    '[calculateStreakManually] Evaluating',
+    uniqueDates.length,
+    'unique days:',
+    uniqueDates
+  );
+
   const lastDateStr = uniqueDates[uniqueDates.length - 1];
   const lastDate = new Date(lastDateStr);
 
-  console.log('[calculateStreakManually] Evaluating', uniqueDates.length, 'unique days');
+  // Calculate current streak: count backwards from the last date
+  let currentStreak = 1;
+  let longestStreak = 1;
+  let tempStreak = 1;
 
-  // Walk backwards over unique dates to count consecutive days
+  // For all dates, track the longest streak
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const currDate = new Date(uniqueDates[i]);
+    const prevDate = new Date(uniqueDates[i - 1]);
+    const dayDiff = (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (dayDiff === 1) {
+      tempStreak++;
+      if (tempStreak > longestStreak) longestStreak = tempStreak;
+    } else {
+      tempStreak = 1;
+    }
+  }
+
+  // For current streak: count backwards from last date
   for (let i = uniqueDates.length - 2; i >= 0; i--) {
-    const currentDate = new Date(uniqueDates[i]);
-    const prevDate = new Date(uniqueDates[i + 1]);
-    const dayDiff = (prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24);
+    const currDate = new Date(uniqueDates[i + 1]);
+    const prevDate = new Date(uniqueDates[i]);
+    const dayDiff = (currDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    console.log(
+      `[calculateStreakManually] Comparing ${uniqueDates[i]} vs ${uniqueDates[i + 1]}, diff: ${dayDiff} days`
+    );
 
     if (dayDiff === 1) {
       currentStreak++;
-    } else if (dayDiff > 1) {
-      if (currentStreak > longestStreak) longestStreak = currentStreak;
-      currentStreak = 1;
+      console.log(`[calculateStreakManually] Consecutive, streak now: ${currentStreak}`);
+    } else {
+      console.log(
+        `[calculateStreakManually] Gap detected (${dayDiff} days), breaking streak at ${currentStreak}`
+      );
+      break;
     }
-    // if dayDiff === 0 (same day due to duplicates), already removed by uniqueDates
   }
-
-  if (currentStreak > longestStreak) longestStreak = currentStreak;
 
   const result = {
     current: currentStreak,
     longest: longestStreak,
     last_date: lastDate.toISOString().split('T')[0],
   };
+
+  console.log('[calculateStreakManually] Final result:', result);
 
   return result;
 }

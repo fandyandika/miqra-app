@@ -123,7 +123,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       className="flex-1 bg-background"
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 56 }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 70 }}
       refreshControl={
         <RefreshControl
           refreshing={isSyncing}
@@ -184,52 +184,6 @@ export default function HomeScreen() {
         </View>
       )}
 
-      <View className="mt-4">
-        <View className="flex-row">
-          <Pressable
-            onPress={() => nav.navigate('CreateFamily')}
-            className="bg-primary rounded-xl px-4 py-3 mr-2"
-          >
-            <Text className="text-white font-medium">Buat Keluarga</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => nav.navigate('JoinFamily')}
-            className="bg-forest rounded-xl px-4 py-3"
-          >
-            <Text className="text-white font-medium">Gabung</Text>
-          </Pressable>
-        </View>
-
-        {familiesQ.isLoading ? (
-          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
-            <ActivityIndicator color="#00C896" />
-            <Text className="text-gray-600 text-center mt-2">Memuat keluarga...</Text>
-          </View>
-        ) : familiesQ.error ? (
-          <View className="mt-4 p-4 bg-red-100 rounded-xl">
-            <Text className="text-red-800">Error: {familiesQ.error.message}</Text>
-          </View>
-        ) : familiesQ.data && familiesQ.data.length > 0 ? (
-          <View className="mt-4">
-            <Text className="text-charcoal font-medium mb-2">Keluargaku</Text>
-            {(familiesQ.data || []).map((f: any) => (
-              <Pressable
-                key={f.id || Math.random()}
-                onPress={() => nav.navigate('FamilyDashboard', { familyId: f.id })}
-                className="bg-surface rounded-xl px-4 py-3 mb-2 border border-border"
-              >
-                <Text className="text-charcoal">{f.name || 'Unknown Family'}</Text>
-                <Text className="text-text-secondary text-xs mt-1">{f.role || 'member'}</Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : (
-          <View className="mt-4 p-4 bg-gray-100 rounded-xl">
-            <Text className="text-gray-600 text-center">Belum ada keluarga</Text>
-          </View>
-        )}
-      </View>
-
       {streak && streak.current && (
         <View className="mt-4 flex-row items-center">
           <Text className="text-4xl">🔥</Text>
@@ -238,24 +192,6 @@ export default function HomeScreen() {
           </Text>
         </View>
       )}
-
-      <View className="mt-6 p-4 rounded-xl bg-surface">
-        <Text className="text-base text-charcoal mb-3">
-          {hasCheckedInToday
-            ? `Alhamdulillah! Sudah ${todayCheckin?.ayat_count} ayat hari ini ✅`
-            : "Sudah baca Al-Qur'an hari ini?"}
-        </Text>
-
-        <Pressable onPress={handleSetReminder} className="bg-forest rounded-xl px-4 py-3 mt-3">
-          <Text className="text-white text-center font-medium">Atur Pengingat Harian</Text>
-        </Pressable>
-      </View>
-
-      <View className="mt-4 p-4 rounded-xl bg-sand">
-        <Text className="text-sm text-text-secondary">
-          💡 Tip: Progres kamu tersimpan offline. Akan tersinkron saat online.
-        </Text>
-      </View>
     </ScrollView>
   );
 }

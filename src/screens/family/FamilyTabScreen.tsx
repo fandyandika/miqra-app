@@ -37,17 +37,17 @@ export default function FamilyTabScreen() {
   if (!familiesQ.data || familiesQ.data.length === 0) {
     console.log('[FamilyTab] No families data:', familiesQ.data);
     return (
-      <View className="flex-1 bg-background px-5 pt-14">
-        <Header title="Keluarga" subtitle="Baca bersama keluarga" />
+      <View className="flex-1 bg-background px-5 pt-20 pb-4">
+        <Header title="Circle" subtitle="Komunitas bacaanmu" />
         <View className="items-center justify-center flex-1 -mt-20">
           <Text className="text-6xl mb-4">👨‍👩‍👧‍👦</Text>
-          <Text className="text-lg text-charcoal font-medium mb-2">Belum Ada Keluarga</Text>
+          <Text className="text-lg text-charcoal font-medium mb-2">Belum Ada Circle</Text>
           <Text className="text-text-secondary text-center mb-6">
             Buat keluarga baru atau gabung dengan kode undangan
           </Text>
-          <Button title="Buat Keluarga" onPress={() => nav.navigate('CreateFamily')} />
+          <Button title="Buat Circle" onPress={() => nav.navigate('CreateFamily')} />
           <Button
-            title="Gabung Keluarga"
+            title="Gabung Circle"
             variant="secondary"
             onPress={() => nav.navigate('JoinFamily')}
             style={{ marginTop: 12 }}
@@ -60,8 +60,8 @@ export default function FamilyTabScreen() {
   console.log('[FamilyTab] Families data:', familiesQ.data);
 
   return (
-    <View className="flex-1 bg-background px-5 pt-14">
-      <Header title="Keluarga" subtitle="Keluargaku" />
+    <View className="flex-1 bg-background px-5 pt-20 pb-4">
+      <Header title="Circle" subtitle="Komunitasku" />
       <FlatList
         data={familiesQ.data}
         keyExtractor={(item: any) => item.id}
@@ -86,7 +86,7 @@ export default function FamilyTabScreen() {
       />
       <View className="flex-row gap-2 pb-4">
         <Button
-          title="Buat Keluarga Baru"
+          title="Buat Circle Baru"
           variant="ghost"
           onPress={() => nav.navigate('CreateFamily')}
           style={{ flex: 1 }}

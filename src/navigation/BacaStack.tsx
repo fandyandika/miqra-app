@@ -10,7 +10,7 @@ import SearchModal from '@/features/quran/SearchModal';
 
 export type BacaStackParamList = {
   BacaHome: undefined;
-  Reader: { surahNumber?: number; ayatNumber?: number } | undefined;
+  Reader: { surahNumber?: number; ayatNumber?: number; juzNumber?: number } | undefined;
   AyahReader: { surahNumber?: number; ayatNumber?: number } | undefined;
   SurahSelector: undefined;
   LogReading: undefined;
@@ -25,7 +25,7 @@ export default function BacaStack() {
       <Stack.Screen
         name="SurahSelector"
         component={SurahSelector}
-        options={{ title: 'Pilih Surah', presentation: 'card' }}
+        options={{ title: '', headerShown: false }}
       />
       <Stack.Screen
         name="AyahReader"

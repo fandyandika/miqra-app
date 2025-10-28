@@ -303,7 +303,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
-  content: { padding: 16 },
+  content: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 70 },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
