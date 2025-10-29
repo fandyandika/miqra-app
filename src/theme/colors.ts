@@ -1,6 +1,6 @@
 export const colors = {
   // Design tokens for Miqra
-  primary: '#00C896', // Fresh Green
+  primary: '#10b981', // Fresh Green
   primarySoft: '#8DE4C7', // Soft Green
   neutral: '#9E9E9E', // Gray
   barBg: '#FFFFFF', // Tab bar background

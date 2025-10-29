@@ -48,7 +48,6 @@ export default function FamilyTabScreen() {
           <Button title="Buat Circle" onPress={() => nav.navigate('CreateFamily')} />
           <Button
             title="Gabung Circle"
-            variant="secondary"
             onPress={() => nav.navigate('JoinFamily')}
             style={{ marginTop: 12 }}
           />
@@ -69,8 +68,8 @@ export default function FamilyTabScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#00C896"
-            colors={['#00C896']}
+            tintColor="#10b981"
+            colors={['#10b981']}
           />
         }
         renderItem={({ item }) => (
@@ -91,12 +90,7 @@ export default function FamilyTabScreen() {
           onPress={() => nav.navigate('CreateFamily')}
           style={{ flex: 1 }}
         />
-        <Button
-          title="Gabung"
-          variant="secondary"
-          onPress={() => nav.navigate('JoinFamily')}
-          style={{ flex: 1 }}
-        />
+        <Button title="Gabung" onPress={() => nav.navigate('JoinFamily')} style={{ flex: 1 }} />
       </View>
     </View>
   );

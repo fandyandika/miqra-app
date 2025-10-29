@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   periodButtonActive: {
-    backgroundColor: '#00C896',
+    backgroundColor: '#10b981',
   },
   periodButtonText: {
     fontSize: 12,

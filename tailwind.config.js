@@ -7,7 +7,7 @@ module.exports = {
     extend: {
       colors: {
         // Brand
-        primary: '#00C896',
+        primary: '#10b981',
         secondary: '#FF8A65',
         accent: '#FFB627',
 

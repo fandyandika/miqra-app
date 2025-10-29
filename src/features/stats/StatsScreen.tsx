@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   periodButtonActive: {
-    backgroundColor: '#00C896', // Exact brand green
+    backgroundColor: '#10b981', // Exact brand green
   },
   periodButtonText: {
     fontSize: 13,

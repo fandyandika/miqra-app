@@ -33,10 +33,10 @@ export default function PrimaryFab({ onPress }: Props) {
           width: 64,
           height: 64,
           borderRadius: 32,
-          backgroundColor: '#00C896',
+          backgroundColor: '#10b981',
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#00C896',
+          shadowColor: '#10b981',
           shadowOpacity: 0.4,
           shadowRadius: 16,
           shadowOffset: { width: 0, height: 8 },
@@ -64,7 +64,7 @@ export default function PrimaryFab({ onPress }: Props) {
       {/* Label dengan font yang sama seperti tab lainnya */}
       <Text
         style={{
-          color: '#00C896',
+          color: '#10b981',
           fontSize: 12,
           fontWeight: '600',
           marginTop: 6,

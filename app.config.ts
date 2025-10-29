@@ -10,7 +10,7 @@ export default {
     assetBundlePatterns: ['**/*'],
     splash: {
       image: './assets/splash/logo.png',
-      backgroundColor: '#00c896',
+      backgroundColor: '#10b981',
       resizeMode: 'contain',
     },
     ios: { supportsTablet: true, bundleIdentifier: 'com.miqra.miqra' },

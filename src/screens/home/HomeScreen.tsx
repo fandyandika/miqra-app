@@ -115,7 +115,7 @@ export default function HomeScreen() {
   if (isLoading) {
     return (
       <View className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator size="large" color="#00C896" />
+        <ActivityIndicator size="large" color="#10b981" />
       </View>
     );
   }
@@ -128,8 +128,8 @@ export default function HomeScreen() {
         <RefreshControl
           refreshing={isSyncing}
           onRefresh={onRefresh}
-          tintColor="#00C896"
-          colors={['#00C896']}
+          tintColor="#10b981"
+          colors={['#10b981']}
         />
       }
     >
@@ -171,7 +171,7 @@ export default function HomeScreen() {
         <View className="mt-2 flex-row items-center">
           {isSyncing ? (
             <>
-              <ActivityIndicator size="small" color="#00C896" />
+              <ActivityIndicator size="small" color="#10b981" />
               <Text className="text-sm text-text-secondary ml-2">Menyinkronkan...</Text>
             </>
           ) : (

@@ -676,7 +676,7 @@ export default function SurahSelector() {
                   }
                 }}
               >
-                <Feather name="edit-2" size={20} color="#00C896" />
+                <Feather name="edit-2" size={20} color="#10b981" />
                 <Text style={styles.menuOptionText}>Rename</Text>
               </Pressable>
 
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF', // Same as ReaderScreen
   },
   topBar: {
-    backgroundColor: '#00C896', // Brand green
+    backgroundColor: '#10b981', // Brand green
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -752,7 +752,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#00C896', // Brand green
+    backgroundColor: '#10b981', // Brand green
     borderBottomWidth: 0,
   },
   tab: {
@@ -1055,7 +1055,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalCancel: { backgroundColor: '#6C757D' },
-  modalConfirm: { backgroundColor: '#00C896' },
+  modalConfirm: { backgroundColor: '#10b981' },
   modalBtnText: { color: '#FFFFFF', fontWeight: '600' },
   // New back button styles
   backButton: {

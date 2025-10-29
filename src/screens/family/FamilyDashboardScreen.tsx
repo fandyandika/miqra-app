@@ -129,7 +129,7 @@ export default function FamilyDashboardScreen() {
       {/* House Light Visualization */}
       {statsLoading ? (
         <View className="items-center mb-6 p-6 bg-gray-50 rounded-xl">
-          <ActivityIndicator color="#00C896" size="large" />
+          <ActivityIndicator color="#10b981" size="large" />
           <Text className="text-gray-600 mt-3">Memuat data keluarga...</Text>
         </View>
       ) : statsError ? (
@@ -183,7 +183,7 @@ export default function FamilyDashboardScreen() {
 
       {membersQ.isLoading ? (
         <View className="mt-4 p-6 bg-gradient-to-r from-blue-50 to-green-50 rounded-xl">
-          <ActivityIndicator color="#00C896" size="large" />
+          <ActivityIndicator color="#10b981" size="large" />
           <Text className="text-gray-600 text-center mt-3 font-medium">
             Memuat anggota keluarga...
           </Text>

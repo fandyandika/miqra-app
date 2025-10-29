@@ -75,7 +75,7 @@ export default function CustomSplashScreen({ onAnimationComplete }: SplashScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#00c896',
+    backgroundColor: '#10b981',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -36,7 +36,7 @@ import {
   getBookmarkFolders,
   createEmptyFolder,
 } from '@/services/quran/favoriteBookmarks';
-import { loadSurahTranslation } from '@/services/quran/quranData';
+import { loadSurahTranslation, loadSurahMetadata } from '@/services/quran/quranData';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -58,6 +58,7 @@ export default function ReaderScreen() {
   const [selectedHasanat, setSelectedHasanat] = useState<number>(0);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
   const [translation, setTranslation] = useState<any>(null);
+  const [surahMeaning, setSurahMeaning] = useState<string | undefined>(undefined);
   const [showFolderModal, setShowFolderModal] = useState<boolean>(false);
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
@@ -207,19 +208,24 @@ export default function ReaderScreen() {
     })();
   }, [pSurah, user?.id]);
 
-  // Load translation when surah changes
+  // Load translation and metadata when surah changes
   useEffect(() => {
     (async () => {
-      if (surahNumber) {
+      if (surahNumber && !isJuzMode) {
         try {
-          const translationData = await loadSurahTranslation(surahNumber, 'id');
+          const [translationData, metadataList] = await Promise.all([
+            loadSurahTranslation(surahNumber, 'id'),
+            loadSurahMetadata(),
+          ]);
           setTranslation(translationData);
+          const surahMeta = metadataList.find((m) => m.number === surahNumber);
+          setSurahMeaning(surahMeta?.name_translation || undefined);
         } catch (error) {
-          console.error('Error loading translation:', error);
+          console.error('Error loading translation or metadata:', error);
         }
       }
     })();
-  }, [surahNumber]);
+  }, [surahNumber, isJuzMode]);
 
   // Load folders when component mounts
   useEffect(() => {
@@ -484,7 +490,7 @@ export default function ReaderScreen() {
                 revelation={surahNumber && surahNumber <= 7 ? 'Mekah' : 'Madinah'}
                 surahNumber={surahNumber}
                 surahName={surah?.name || ''}
-                meaning={undefined}
+                meaning={surahMeaning}
                 totalAyahs={surah?.ayat?.length}
                 surahNameAr={undefined}
               />
@@ -537,12 +543,12 @@ export default function ReaderScreen() {
                     <Feather
                       name={checkedAyat.has(item.number) ? 'check-circle' : 'circle'}
                       size={20}
-                      color={checkedAyat.has(item.number) ? '#00C896' : '#E5E5E5'}
+                      color={checkedAyat.has(item.number) ? '#10b981' : '#E5E5E5'}
                       style={{ marginTop: 2, marginRight: 4 }}
                     />
                   )}
                   <View style={styles.badge}>
-                    <LogoAyat1 width={25} height={25} />
+                    <LogoAyat1 width={28} height={28} />
                     <Text style={styles.badgeText}>{item.number}</Text>
                   </View>
                   <Text style={styles.arabic}>
@@ -735,8 +741,8 @@ export default function ReaderScreen() {
                 setCheckedAyat(new Set());
               }}
             >
-              <Feather name="check-circle" size={20} color="#00C896" />
-              <Text style={[styles.actionOptionText, { color: '#00C896' }]}>Catat Bacaan</Text>
+              <Feather name="check-circle" size={20} color="#10b981" />
+              <Text style={[styles.actionOptionText, { color: '#10b981' }]}>Catat Bacaan</Text>
             </Pressable>
           </View>
         </Pressable>
@@ -827,7 +833,7 @@ export default function ReaderScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   progressTrack: { height: 4, backgroundColor: 'rgba(255,255,255,0.5)' },
-  progressFill: { height: '100%', backgroundColor: '#00C896' },
+  progressFill: { height: '100%', backgroundColor: '#10b981' },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -866,8 +872,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   badge: {
-    width: 25,
-    height: 25,
+    width: 28,
+    height: 28,
     borderRadius: 16,
     backgroundColor: 'transparent',
     alignItems: 'center',
@@ -878,7 +884,7 @@ const styles = StyleSheet.create({
   badgeText: {
     position: 'absolute',
     color: '#2D3436',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '700',
   },
   arabic: {
@@ -900,7 +906,7 @@ const styles = StyleSheet.create({
 
   translation: {
     fontSize: 16,
-    color: '#795c40',
+    color: '#2D3436',
     marginTop: -5,
     marginLeft: 8,
     textAlign: 'left',
@@ -934,12 +940,12 @@ const styles = StyleSheet.create({
   floatingButtons: { flexDirection: 'row', gap: 12 },
   primaryBtn: {
     flex: 1,
-    backgroundColor: '#00C896',
+    backgroundColor: '#10b981',
     borderRadius: 8,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#00C896',
+    shadowColor: '#10b981',
     shadowOpacity: 0.2,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
@@ -1131,7 +1137,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6C757D',
   },
   createInputButton: {
-    backgroundColor: '#00C896',
+    backgroundColor: '#10b981',
   },
   cancelInputButtonText: {
     fontSize: 16,

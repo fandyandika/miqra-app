@@ -54,11 +54,31 @@ export default function LoginScreen() {
         value={password}
         onChangeText={setPassword}
       />
-      <Pressable onPress={doSignIn} className="bg-primary rounded-xl px-4 py-3 mt-4">
-        <Text className="text-white text-center font-medium">Masuk</Text>
+      <Pressable
+        onPress={doSignIn}
+        style={{
+          backgroundColor: '#10b981',
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          marginTop: 16,
+        }}
+      >
+        <Text style={{ color: '#FFFFFF', textAlign: 'center', fontWeight: '600' }}>Masuk</Text>
       </Pressable>
-      <Pressable onPress={doSignUp} className="bg-forest rounded-xl px-4 py-3 mt-3">
-        <Text className="text-white text-center font-medium">Daftar</Text>
+      <Pressable
+        onPress={doSignUp}
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: 12,
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          marginTop: 12,
+          borderWidth: 1,
+          borderColor: '#10b981',
+        }}
+      >
+        <Text style={{ color: '#10b981', textAlign: 'center', fontWeight: '600' }}>Daftar</Text>
       </Pressable>
 
       <View className="mt-6 p-4 bg-blue-50 rounded-xl">

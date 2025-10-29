@@ -32,8 +32,8 @@ export default function FamilyScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor="#00C896"
-            colors={['#00C896']}
+            tintColor="#10b981"
+            colors={['#10b981']}
           />
         }
         renderItem={({ item }) => (

@@ -36,7 +36,7 @@ export default function QuranSurahHeader({
           <Text style={styles.surahNumberName}>
             {surahNumber}. {surahName}
           </Text>
-          {meaning && <Text style={styles.meaning}>({meaning})</Text>}
+          {meaning && <Text style={styles.meaning}>{meaning}</Text>}
         </View>
 
         {/* Right Badge - Total Ayat */}
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   ornament: {
     width: 6,
     height: 60,
-    backgroundColor: '#F2D5B5',
+    backgroundColor: '#ff8a65',
     opacity: 0.4,
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
@@ -80,42 +80,44 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#FFF8F0',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E8D5C4',
+    backgroundColor: '#ff8a65',
+    borderWidth: 1,
+    borderColor: '#ffffff',
+    borderRadius: 12,
   },
   badge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: '#E8D5C4',
+    backgroundColor: '#fff8f0',
     borderWidth: 1,
-    borderColor: '#F2D5B5',
+    borderColor: '#ffffff',
   },
   badgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#8B6F47',
+    color: '#2D3436',
   },
   centerSection: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 12,
+    flexDirection: 'column',
   },
   surahNumberName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5C4E3A',
+    color: '#ffffff',
     textAlign: 'center',
-    marginBottom: 2,
+    marginBottom: 0,
   },
   meaning: {
     fontSize: 11,
-    color: '#8B6F47',
+    color: '#ffffff',
     fontStyle: 'italic',
     textAlign: 'center',
+    opacity: 0.9,
   },
   revelationBadge: {},
   ayatBadge: {},

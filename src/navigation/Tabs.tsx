@@ -40,7 +40,7 @@ export default function Tabs() {
             route && typeof route === 'object' && route.name ? route.name : 'unknown';
           return {
             headerShown: false,
-            tabBarActiveTintColor: '#00C896',
+            tabBarActiveTintColor: '#10b981',
             tabBarStyle: {
               height: 70,
               paddingBottom: Platform.select({ ios: 20, android: 12 }),
