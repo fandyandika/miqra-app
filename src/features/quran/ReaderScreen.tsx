@@ -24,7 +24,7 @@ import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
 import { loadJuzContent, getJuzTitle, AyahWithSurahInfo } from '@/services/quran/juzUtils';
 import { showSuccessToast, showErrorToast } from '@/utils/toast';
 import { getPageForAyah } from '@/services/quran/pageMap';
-import { getJuzNumber } from '@/services/quran/quranHelpers';
+import { getJuzNumber, getPageNumber } from '@/services/quran/quranHelpers';
 import { calculateSelectionHasanat } from '@/services/hasanatUtils';
 import QuranSurahHeader from './components/QuranSurahHeader';
 import { markAsLastRead } from '@/services/quran/bookmarkService';
@@ -32,11 +32,10 @@ import LogoAyat1 from '../../../assets/nomorayat/logoayat1.svg';
 import {
   addBookmark,
   isAyatBookmarked,
-  createFolderAndMoveBookmark,
   getBookmarkFolders,
   createEmptyFolder,
 } from '@/services/quran/favoriteBookmarks';
-import { loadSurahTranslation, loadSurahMetadata } from '@/services/quran/quranData';
+import { loadSurahTranslation, loadSurahMetadata, type Ayah } from '@/services/quran/quranData';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -55,9 +54,9 @@ export default function ReaderScreen() {
     surahNumber: number;
     surahName: string;
   } | null>(null);
-  const [selectedHasanat, setSelectedHasanat] = useState<number>(0);
+  const [, setSelectedHasanat] = useState<number>(0);
   const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
-  const [translation, setTranslation] = useState<any>(null);
+  const [translation, setTranslation] = useState<{ ayat: Ayah[] } | null>(null);
   const [surahMeaning, setSurahMeaning] = useState<string | undefined>(undefined);
   const [showFolderModal, setShowFolderModal] = useState<boolean>(false);
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
@@ -121,7 +120,7 @@ export default function ReaderScreen() {
     }
   };
 
-  const { surah, loading, selection, selectAyah, resetSelection, showTranslation } = useQuranReader(
+  const { surah, loading, selection, resetSelection, showTranslation } = useQuranReader(
     surahNumber,
     'id'
   );
@@ -175,7 +174,7 @@ export default function ReaderScreen() {
     } else {
       setSelectedHasanat(0);
     }
-  }, [selection.start, selection.end, surah, checkedAyat, isSelectingRange, surahNumber]);
+  }, [selection, surah, checkedAyat, isSelectingRange, surahNumber]);
 
   // Check bookmark status when pressedAyah changes
   useEffect(() => {
@@ -273,29 +272,31 @@ export default function ReaderScreen() {
   }, [bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 30 });
-  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: any[] }) => {
-    if (viewableItems && viewableItems.length > 0) {
-      const firstItem = viewableItems[0]?.item as AyahWithSurahInfo | undefined;
-      const first = firstItem?.number;
-      if (typeof first === 'number') setVisibleAyat(first);
-      if (isJuzMode) {
-        setVisiblePage(typeof firstItem?.page === 'number' ? firstItem.page : null);
-        if (firstItem?.surahNumber && firstItem?.surahName) {
-          setVisibleSurahInfo({
-            surahNumber: firstItem.surahNumber,
-            surahName: firstItem.surahName,
-          });
-        }
-      } else {
-        // Surah mode: derive page and surah info
-        const p = getPageForAyah(surahNumber, typeof first === 'number' ? first : 1);
-        setVisiblePage(typeof p === 'number' ? p : null);
-        if (surah?.name) {
-          setVisibleSurahInfo({ surahNumber, surahName: surah.name });
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: { item: AyahWithSurahInfo }[] }) => {
+      if (viewableItems && viewableItems.length > 0) {
+        const firstItem = viewableItems[0]?.item as AyahWithSurahInfo | undefined;
+        const first = firstItem?.number;
+        if (typeof first === 'number') setVisibleAyat(first);
+        if (isJuzMode) {
+          setVisiblePage(typeof firstItem?.page === 'number' ? firstItem.page : null);
+          if (firstItem?.surahNumber && firstItem?.surahName) {
+            setVisibleSurahInfo({
+              surahNumber: firstItem.surahNumber,
+              surahName: firstItem.surahName,
+            });
+          }
+        } else {
+          // Surah mode: derive page and surah info
+          const p = getPageForAyah(surahNumber, typeof first === 'number' ? first : 1);
+          setVisiblePage(typeof p === 'number' ? p : null);
+          if (surah?.name) {
+            setVisibleSurahInfo({ surahNumber, surahName: surah.name });
+          }
         }
       }
     }
-  });
+  );
 
   const scrollToAyat = (ayat: number) => {
     try {
@@ -464,7 +465,14 @@ export default function ReaderScreen() {
       </View>
 
       <View style={styles.topBar}>
-        <Pressable onPress={() => (navigation as any)?.goBack?.()} style={styles.iconButton}>
+        <Pressable
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            }
+          }}
+          style={styles.iconButton}
+        >
           <Feather name="arrow-left" size={20} color="#2D3436" />
         </Pressable>
         <View style={{ flex: 1, alignItems: 'center' }}>
@@ -548,7 +556,7 @@ export default function ReaderScreen() {
                     />
                   )}
                   <View style={styles.badge}>
-                    <LogoAyat1 width={28} height={28} />
+                    <LogoAyat1 width={38} height={38} />
                     <Text style={styles.badgeText}>{item.number}</Text>
                   </View>
                   <Text style={styles.arabic}>
@@ -662,9 +670,9 @@ export default function ReaderScreen() {
               style={styles.actionOption}
               onPress={async () => {
                 if (pressedAyah && surah) {
-                  const ayahData = surah.ayat.find((a) => a.number === pressedAyah);
+                  const ayahData = surah.ayat.find((a: Ayah) => a.number === pressedAyah);
                   const translationData = translation?.ayat?.find(
-                    (a: any) => a.number === pressedAyah
+                    (a: Ayah) => a.number === pressedAyah
                   );
 
                   if (ayahData) {
@@ -692,9 +700,6 @@ export default function ReaderScreen() {
               style={styles.actionOption}
               onPress={async () => {
                 if (pressedAyah && surah) {
-                  const currentSurah =
-                    isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
-
                   if (isBookmarked) {
                     Alert.alert('Sudah di Bookmark', 'Ayat ini sudah tersimpan di bookmark');
                     setPressedAyah(null);
@@ -872,8 +877,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   badge: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: 16,
     backgroundColor: 'transparent',
     alignItems: 'center',

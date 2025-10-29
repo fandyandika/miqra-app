@@ -249,7 +249,24 @@ export default function SurahSelector() {
         </Pressable>
       </View>
 
-      {/* Search Input - Removed as requested */}
+      {/* Search Input */}
+      {activeTab === 'surah' && (
+        <View style={styles.searchContainer}>
+          <Feather name="search" size={20} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Cari surah (nama, nomor, atau arti)..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#9CA3AF"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery('')}>
+              <Feather name="x" size={20} color="#9CA3AF" />
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {/* Content based on active tab */}
       {activeTab === 'bookmark' ? (
@@ -789,7 +806,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFF',
   },
   listContentContainer: {
-    paddingVertical: 12,
+    paddingTop: 4,
+    paddingBottom: 12,
   },
   row: {
     flexDirection: 'row',
@@ -854,7 +872,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     marginHorizontal: 16,
-    marginVertical: 12,
+    marginTop: 8,
+    marginBottom: 0,
     borderWidth: 1,
     borderColor: '#E5E7EB',
     gap: 12,
