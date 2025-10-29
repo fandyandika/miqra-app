@@ -16,6 +16,7 @@ import {
   sendMilestoneNotification,
   sendFamilyActivityNotification,
 } from '@/services/notifications';
+import { calculateSelectionHasanat } from '@/services/hasanatUtils';
 
 export type ReadingSessionInput = {
   surah_number: number;
@@ -163,6 +164,13 @@ export async function createReadingSession(
     throw new Error('Tidak bisa mencatat bacaan untuk tanggal yang akan datang');
   }
 
+  // Calculate accurate hasanat from letter_counts before inserting
+  const hasanatData = await calculateSelectionHasanat(
+    input.surah_number,
+    input.ayat_start,
+    input.ayat_end
+  );
+
   const payload = {
     user_id: user.id,
     surah_number: input.surah_number,
@@ -171,6 +179,8 @@ export async function createReadingSession(
     date: inputDate,
     session_time: input.session_time ?? new Date().toISOString(),
     notes: input.notes ?? null,
+    letter_count: hasanatData.totalLetters,
+    hasanat_earned: hasanatData.totalHasanat,
   };
 
   // Insert session

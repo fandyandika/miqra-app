@@ -31,6 +31,7 @@ import SettingsScreen from '@/features/profile/SettingsScreen';
 import ReminderSettingsScreen from '@/features/settings/ReminderSettingsScreen';
 import StatsScreen from '@/features/stats/StatsScreen';
 import HasanatScreen from '@/screens/hasanat/HasanatScreen';
+import Toast from 'react-native-toast-message';
 
 const Stack = createNativeStackNavigator();
 
@@ -164,9 +165,6 @@ export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Hide native splash first
-        await SplashScreen.hideAsync();
-
         // Initialize app data
         await initLocal();
         posthog?.capture(EVENTS.APP_OPEN);
@@ -181,6 +179,11 @@ export default function App() {
     };
 
     initializeApp();
+  }, []);
+
+  // Ensure native splash is kept until we're ready to show UI
+  useEffect(() => {
+    SplashScreen.preventAutoHideAsync().catch(() => {});
   }, []);
 
   // Wait for fonts to load
@@ -200,6 +203,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppContent />
+      <Toast />
     </QueryClientProvider>
   );
 }

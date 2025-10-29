@@ -9,7 +9,6 @@ module.exports = function(api) {
           unstable_transformProfile: "hermes-stable",
         },
       }],
-      "nativewind/babel",
     ],
     plugins: [
       [
@@ -24,12 +23,5 @@ module.exports = function(api) {
       ],
       "react-native-reanimated/plugin",
     ],
-    env: {
-      production: {
-        plugins: [
-          "transform-remove-console",
-        ],
-      },
-    },
   };
 };

@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { format, subDays } from 'date-fns';
-import countsJson from '@/data/letter-counts.json';
+import countsJson from '@/data/letter-counts-precise.json';
 
 const MAP: Record<string, number> = (countsJson as any).data || {};
 const HASANAT_PER_LETTER = 10;

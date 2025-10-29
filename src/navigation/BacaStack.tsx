@@ -7,6 +7,7 @@ import AyahReader from '@/features/baca/components/AyahReader';
 import SurahSelector from '@/features/quran/SurahSelector';
 import LogReadingScreen from '@/features/reading/LogReadingScreen';
 import SearchModal from '@/features/quran/SearchModal';
+import LastReadScreen from '@/screens/LastReadScreen';
 
 export type BacaStackParamList = {
   BacaHome: undefined;
@@ -14,6 +15,7 @@ export type BacaStackParamList = {
   AyahReader: { surahNumber?: number; ayatNumber?: number } | undefined;
   SurahSelector: undefined;
   LogReading: undefined;
+  LastRead: undefined;
 };
 
 const Stack = createNativeStackNavigator<BacaStackParamList>();
@@ -52,6 +54,11 @@ export default function BacaStack() {
         name="Search"
         component={SearchModal}
         options={{ title: 'Cari', presentation: 'modal' }}
+      />
+      <Stack.Screen
+        name="LastRead"
+        component={LastReadScreen}
+        options={{ title: 'Terakhir Baca', headerShown: false }}
       />
     </Stack.Navigator>
   );

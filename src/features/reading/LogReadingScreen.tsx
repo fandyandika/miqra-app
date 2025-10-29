@@ -57,12 +57,13 @@ export default function LogReadingScreen() {
 
       // Show hasanat alert if enabled
       if (settings?.hasanat_visible) {
-        const ayatCount = range.end - range.start + 1;
-        const { hasanat } = previewHasanatForRange(surah, range.start, range.end);
+        // Use data from database instead of state to avoid stale closure
+        const ayatCount = (data.ayat_end as number) - (data.ayat_start as number) + 1;
+        const hasanat = data.hasanat_earned || 0;
 
         Alert.alert(
           'Alhamdulillah! ✅',
-          `Catatan tersimpan.\n\n📖 ${ayatCount} ayat\n🌙 +${hasanat.toLocaleString('id-ID')} hasanat`,
+          `Catatan tersimpan.\n\n📖 ${ayatCount} ayat\n🌙 +${Number(hasanat).toLocaleString('id-ID')} hasanat`,
           [{ text: 'OK' }]
         );
       } else {

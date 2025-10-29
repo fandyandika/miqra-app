@@ -1,5 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Alert,
+  Modal,
+  ScrollView,
+  TextInput,
+} from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
 import { useQuranReader } from './useQuranReader';
 import { colors } from '@/theme/colors';
@@ -10,8 +22,21 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
 import { loadJuzContent, getJuzTitle, AyahWithSurahInfo } from '@/services/quran/juzUtils';
+import { showSuccessToast, showErrorToast } from '@/utils/toast';
 import { getPageForAyah } from '@/services/quran/pageMap';
+import { getJuzNumber } from '@/services/quran/quranHelpers';
+import { calculateSelectionHasanat } from '@/services/hasanatUtils';
 import QuranSurahHeader from './components/QuranSurahHeader';
+import { markAsLastRead } from '@/services/quran/bookmarkService';
+import LogoAyat1 from '../../../assets/nomorayat/logoayat1.svg';
+import {
+  addBookmark,
+  isAyatBookmarked,
+  createFolderAndMoveBookmark,
+  getBookmarkFolders,
+  createEmptyFolder,
+} from '@/services/quran/favoriteBookmarks';
+import { loadSurahTranslation } from '@/services/quran/quranData';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -30,6 +55,13 @@ export default function ReaderScreen() {
     surahNumber: number;
     surahName: string;
   } | null>(null);
+  const [selectedHasanat, setSelectedHasanat] = useState<number>(0);
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(false);
+  const [translation, setTranslation] = useState<any>(null);
+  const [showFolderModal, setShowFolderModal] = useState<boolean>(false);
+  const [availableFolders, setAvailableFolders] = useState<string[]>([]);
+  const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
+  const [newFolderName, setNewFolderName] = useState<string>('');
 
   // Juz mode state
   const [isJuzMode] = useState(!!juzNumber);
@@ -46,10 +78,115 @@ export default function ReaderScreen() {
       .join('');
   };
 
+  // Load available folders
+  const loadFolders = async () => {
+    try {
+      const folders = await getBookmarkFolders();
+      const folderNames = folders.map((f) => f.name);
+      setAvailableFolders(folderNames);
+    } catch (error) {
+      console.error('Error loading folders:', error);
+    }
+  };
+
+  // Handle bookmark selection
+  const handleBookmarkSelection = (folderName: string) => {
+    if (pressedAyah && surah) {
+      const currentSurah =
+        isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
+      const currentJuz = isJuzMode ? juzNumber : getJuzNumber(currentSurah, pressedAyah);
+
+      addBookmark(currentSurah, pressedAyah, folderName, undefined, currentJuz);
+      setPressedAyah(null);
+      setShowFolderModal(false);
+    }
+  };
+
+  // Handle create new folder
+  const handleCreateNewFolder = () => {
+    setShowCreateFolderModal(true);
+    setNewFolderName('');
+  };
+
+  // Handle create folder with input
+  const handleCreateFolderSubmit = async () => {
+    if (newFolderName.trim()) {
+      const success = await createEmptyFolder(newFolderName.trim());
+      if (success) {
+        loadFolders();
+        setShowCreateFolderModal(false);
+        setNewFolderName('');
+      }
+    }
+  };
+
   const { surah, loading, selection, selectAyah, resetSelection, showTranslation } = useQuranReader(
     surahNumber,
     'id'
   );
+
+  // Calculate hasanat for current selection (supports both tap selection and checkbox selection)
+  useEffect(() => {
+    console.log('[ReaderScreen] Selection state:', selection);
+    console.log('[ReaderScreen] Checked ayat:', Array.from(checkedAyat));
+
+    if (isSelectingRange && checkedAyat.size > 0) {
+      // Use checkbox selection
+      const sortedAyat = Array.from(checkedAyat).sort((a, b) => a - b);
+      const rangeStart = sortedAyat[0];
+      const rangeEnd = sortedAyat[sortedAyat.length - 1];
+
+      console.log('[ReaderScreen] Using checkbox selection:', {
+        surah: surahNumber,
+        start: rangeStart,
+        end: rangeEnd,
+        checkedCount: checkedAyat.size,
+      });
+
+      calculateSelectionHasanat(surahNumber, rangeStart, rangeEnd)
+        .then((data) => {
+          console.log('[ReaderScreen] Hasanat calculated (checkbox):', data);
+          setSelectedHasanat(data.totalHasanat);
+        })
+        .catch((error) => {
+          console.error('[ReaderScreen] Error calculating hasanat (checkbox):', error);
+          setSelectedHasanat(0);
+        });
+    } else if (selection.start && surah) {
+      // Use tap selection
+      const rangeStart = selection.start;
+      const rangeEnd = selection.end ?? selection.start;
+      console.log('[ReaderScreen] Using tap selection:', {
+        surah: surah.number,
+        start: rangeStart,
+        end: rangeEnd,
+        selectionState: selection,
+      });
+      calculateSelectionHasanat(surah.number, rangeStart, rangeEnd)
+        .then((data) => {
+          console.log('[ReaderScreen] Hasanat calculated (tap):', data);
+          setSelectedHasanat(data.totalHasanat);
+        })
+        .catch((error) => {
+          console.error('[ReaderScreen] Error calculating hasanat (tap):', error);
+          setSelectedHasanat(0);
+        });
+    } else {
+      setSelectedHasanat(0);
+    }
+  }, [selection.start, selection.end, surah, checkedAyat, isSelectingRange, surahNumber]);
+
+  // Check bookmark status when pressedAyah changes
+  useEffect(() => {
+    if (pressedAyah && surah) {
+      const currentSurah =
+        isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
+
+      isAyatBookmarked(currentSurah, pressedAyah)
+        .then(setIsBookmarked)
+        .catch(() => setIsBookmarked(false));
+    }
+  }, [pressedAyah, surah, surahNumber, isJuzMode, visibleSurahInfo]);
 
   // Load bookmark if no params provided
   useEffect(() => {
@@ -69,6 +206,25 @@ export default function ReaderScreen() {
       }
     })();
   }, [pSurah, user?.id]);
+
+  // Load translation when surah changes
+  useEffect(() => {
+    (async () => {
+      if (surahNumber) {
+        try {
+          const translationData = await loadSurahTranslation(surahNumber, 'id');
+          setTranslation(translationData);
+        } catch (error) {
+          console.error('Error loading translation:', error);
+        }
+      }
+    })();
+  }, [surahNumber]);
+
+  // Load folders when component mounts
+  useEffect(() => {
+    loadFolders();
+  }, []);
 
   // Load Juz content if in Juz mode
   useEffect(() => {
@@ -142,30 +298,110 @@ export default function ReaderScreen() {
   };
 
   const logMutation = useMutation({
-    mutationFn: (input: ReadingSessionInput) => createReadingSession(input),
-    onSuccess: () => resetSelection(),
+    mutationFn: (input: ReadingSessionInput) => {
+      console.log('[ReaderScreen] Creating reading session with input:', input);
+      return createReadingSession(input);
+    },
+    onSuccess: (data) => {
+      console.log('[ReaderScreen] Reading session created successfully:', data);
+      const ayatCount = (data.ayat_end as number) - (data.ayat_start as number) + 1;
+      const hasanat = data.hasanat_earned || 0;
+      console.log('[ReaderScreen] Showing toast with:', { ayatCount, hasanat });
+      showSuccessToast(
+        'Bacaan Tersimpan! 🎉',
+        `${ayatCount} ayat • ${Number(hasanat).toLocaleString('id-ID')} hasanat`
+      );
+
+      // Reset all selection states
+      resetSelection();
+      setIsSelectingRange(false);
+      setCheckedAyat(new Set());
+      setSelectedHasanat(0);
+    },
+    onError: (error) => {
+      console.error('[ReaderScreen] Save error:', error);
+      showErrorToast('Gagal Menyimpan', 'Coba lagi beberapa saat');
+    },
   });
 
   const handleLog = async () => {
-    if (!selection.start || !selection.end || !surah) return;
+    if (!surah) return;
+
+    let ayatStart: number;
+    let ayatEnd: number;
+
+    if (isSelectingRange && checkedAyat.size > 0) {
+      // Use checkbox selection
+      const sortedAyat = Array.from(checkedAyat).sort((a, b) => a - b);
+      ayatStart = sortedAyat[0];
+      ayatEnd = sortedAyat[sortedAyat.length - 1];
+
+      console.log('[ReaderScreen] handleLog using checkbox selection:', {
+        surah: surah.number,
+        start: ayatStart,
+        end: ayatEnd,
+        checkedCount: checkedAyat.size,
+      });
+    } else if (selection.start) {
+      // Use tap selection
+      ayatStart = selection.start;
+      ayatEnd = selection.end ?? selection.start;
+
+      console.log('[ReaderScreen] handleLog using tap selection:', {
+        surah: surah.number,
+        start: ayatStart,
+        end: ayatEnd,
+        selectionState: selection,
+      });
+    } else {
+      console.log('[ReaderScreen] handleLog: No selection available');
+      return;
+    }
 
     logMutation.mutate({
       surah_number: surah.number,
-      ayat_start: selection.start,
-      ayat_end: selection.end,
+      ayat_start: ayatStart,
+      ayat_end: ayatEnd,
     });
   };
 
   const handleAyahPress = (number: number) => {
     if (isSelectingRange) {
-      // Toggle check/uncheck ayat
       setCheckedAyat((prev) => {
         const newSet = new Set(prev);
+
         if (newSet.has(number)) {
+          // If clicking on already selected ayat, remove it
+          console.log('[ReaderScreen] Removing ayat:', number);
           newSet.delete(number);
-        } else {
+        } else if (newSet.size === 0) {
+          // First selection - just add the ayat
+          console.log('[ReaderScreen] First selection:', number);
           newSet.add(number);
+        } else {
+          // Auto-range selection: select all ayat between first and current
+          const sortedAyat = Array.from(newSet).sort((a, b) => a - b);
+          const firstAyat = sortedAyat[0];
+          const lastAyat = sortedAyat[sortedAyat.length - 1];
+
+          // Determine range
+          const startAyat = Math.min(firstAyat, number);
+          const endAyat = Math.max(lastAyat, number);
+
+          console.log('[ReaderScreen] Auto-range selection:', {
+            clicked: number,
+            existing: Array.from(newSet),
+            range: `${startAyat}-${endAyat}`,
+            totalAyat: endAyat - startAyat + 1,
+          });
+
+          // Add all ayat in the range
+          for (let ayah = startAyat; ayah <= endAyat; ayah++) {
+            newSet.add(ayah);
+          }
         }
+
+        console.log('[ReaderScreen] New selection:', Array.from(newSet));
         return newSet;
       });
     } else {
@@ -201,11 +437,19 @@ export default function ReaderScreen() {
     const hlm = currentPage ?? '-';
     return `Hlm. ${hlm}`;
   };
-  const selectedCount = selection.start
-    ? selection.end
-      ? selection.end - selection.start + 1
-      : 1
-    : 0;
+  const selectedCount = isSelectingRange
+    ? checkedAyat.size
+    : selection.start
+      ? (selection.end ? selection.end : selection.start) - selection.start + 1
+      : 0;
+
+  console.log('[ReaderScreen] Selected count calculation:', {
+    selection,
+    checkedAyat: Array.from(checkedAyat),
+    isSelectingRange,
+    selectedCount,
+    hasEnd: !!selection.end,
+  });
 
   return (
     <View style={styles.container}>
@@ -230,6 +474,9 @@ export default function ReaderScreen() {
         ref={listRef}
         data={displayAyat}
         keyExtractor={(item, index) => `${item.number}_${index}`}
+        contentContainerStyle={{
+          paddingBottom: isSelectingRange || selectedCount > 0 ? 120 : 20,
+        }}
         ListHeaderComponent={
           !isJuzMode ? (
             <>
@@ -295,6 +542,7 @@ export default function ReaderScreen() {
                     />
                   )}
                   <View style={styles.badge}>
+                    <LogoAyat1 width={25} height={25} />
                     <Text style={styles.badgeText}>{item.number}</Text>
                   </View>
                   <Text style={styles.arabic}>
@@ -316,31 +564,35 @@ export default function ReaderScreen() {
             <View style={{ alignItems: 'center', marginBottom: 12 }}>
               <Text style={styles.floatingTitle}>
                 {isSelectingRange
-                  ? `${checkedAyat.size} ayat dipilih`
+                  ? `${checkedAyat.size} ayat dipilih${checkedAyat.size > 1 ? ' (range)' : ''}`
                   : `${selectedCount} ayat selesai! 🎉`}
               </Text>
-              {!isSelectingRange && selectedCount > 0 && (
-                <Text style={styles.floatingSubtitle}>
-                  <Text style={{ color: '#FFB627', fontWeight: '600' }}>{selectedCount * 10}+</Text>{' '}
-                  hasanat hari ini!
+              {isSelectingRange && (
+                <Text
+                  style={[styles.floatingSubtitle, { fontSize: 12, marginTop: 4, opacity: 0.7 }]}
+                >
+                  Tap ayat untuk range selection
                 </Text>
               )}
             </View>
             <View
               style={[
                 styles.floatingButtons,
-                isSelectingRange && { flexDirection: 'column', gap: 8 },
+                isSelectingRange && { flexDirection: 'column', gap: 12 },
               ]}
             >
               {isSelectingRange ? (
                 <>
                   <Pressable
-                    style={[styles.outlineBtn, { flexDirection: 'row', justifyContent: 'center' }]}
+                    style={[
+                      styles.outlineBtn,
+                      { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+                    ]}
                     onPress={() => {
                       setCheckedAyat(new Set());
                     }}
                   >
-                    <Feather name="x-circle" size={20} color="#2D3436" />
+                    <Feather name="x" size={16} color="#6B7280" />
                     <Text style={styles.outlineBtnText}>Clear</Text>
                   </Pressable>
                   <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -358,17 +610,8 @@ export default function ReaderScreen() {
                       disabled={checkedAyat.size === 0}
                       onPress={() => {
                         if (checkedAyat.size > 0) {
-                          const sorted = Array.from(checkedAyat).sort((a, b) => a - b);
-                          const start = sorted[0];
-                          const end = sorted[sorted.length - 1];
-
-                          // Set selection (auto-range)
-                          selectAyah(start);
-                          selectAyah(end);
-
-                          // Close selection mode
-                          setCheckedAyat(new Set());
-                          setIsSelectingRange(false);
+                          // Directly call handleLog with checkbox selection
+                          handleLog();
                         }
                       }}
                     >
@@ -411,8 +654,29 @@ export default function ReaderScreen() {
             <Text style={styles.actionModalTitle}>Ayat {pressedAyah}</Text>
             <Pressable
               style={styles.actionOption}
-              onPress={() => {
-                /* Salin ayat */
+              onPress={async () => {
+                if (pressedAyah && surah) {
+                  const ayahData = surah.ayat.find((a) => a.number === pressedAyah);
+                  const translationData = translation?.ayat?.find(
+                    (a: any) => a.number === pressedAyah
+                  );
+
+                  if (ayahData) {
+                    let textToCopy = ayahData.text;
+
+                    // Add translation if available
+                    if (translationData?.translation) {
+                      textToCopy += `\n\n${translationData.translation}`;
+                    }
+
+                    await Clipboard.setStringAsync(textToCopy);
+                    showSuccessToast(
+                      'Ayat & Terjemahan Disalin',
+                      `Surah ${surah.number} ayat ${pressedAyah}`
+                    );
+                    setPressedAyah(null);
+                  }
+                }
               }}
             >
               <Feather name="copy" size={20} color="#2D3436" />
@@ -420,17 +684,44 @@ export default function ReaderScreen() {
             </Pressable>
             <Pressable
               style={styles.actionOption}
-              onPress={() => {
-                /* Tambah bookmark */
+              onPress={async () => {
+                if (pressedAyah && surah) {
+                  const currentSurah =
+                    isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
+
+                  if (isBookmarked) {
+                    Alert.alert('Sudah di Bookmark', 'Ayat ini sudah tersimpan di bookmark');
+                    setPressedAyah(null);
+                    return;
+                  }
+
+                  setShowFolderModal(true);
+                }
               }}
             >
               <Feather name="bookmark" size={20} color="#2D3436" />
-              <Text style={styles.actionOptionText}>Tambah ke Bookmark</Text>
+              <Text style={styles.actionOptionText}>
+                {isBookmarked ? 'Sudah di Bookmark' : 'Tambah ke Bookmark'}
+              </Text>
             </Pressable>
             <Pressable
               style={styles.actionOption}
-              onPress={() => {
-                /* Tandai terakhir baca */
+              onPress={async () => {
+                if (pressedAyah && surah) {
+                  const surahName =
+                    isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahName : surah.name;
+                  const currentSurah =
+                    isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
+
+                  await markAsLastRead(
+                    currentSurah,
+                    pressedAyah,
+                    surahName,
+                    getJuzNumber(currentSurah, pressedAyah),
+                    getPageNumber(currentSurah, pressedAyah)
+                  );
+                  setPressedAyah(null);
+                }
               }}
             >
               <Feather name="flag" size={20} color="#2D3436" />
@@ -450,6 +741,85 @@ export default function ReaderScreen() {
           </View>
         </Pressable>
       )}
+
+      {/* Folder Selection Modal */}
+      <Modal
+        visible={showFolderModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowFolderModal(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowFolderModal(false)}>
+          <Pressable style={styles.folderModal} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.folderModalTitle}>Pilih Folder Bookmark</Text>
+
+            {/* Create New Folder Button */}
+            <Pressable style={styles.createFolderButton} onPress={handleCreateNewFolder}>
+              <Feather name="folder-plus" size={20} color="#2D3436" />
+              <Text style={styles.createFolderText}>Buat Folder Baru</Text>
+            </Pressable>
+
+            {/* Existing Folders */}
+            <ScrollView style={styles.folderList} showsVerticalScrollIndicator={false}>
+              {availableFolders.map((folderName, index) => (
+                <Pressable
+                  key={index}
+                  style={styles.folderItem}
+                  onPress={() => handleBookmarkSelection(folderName)}
+                >
+                  <Feather name="folder" size={20} color="#2D3436" />
+                  <Text style={styles.folderText}>{folderName}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            {/* Cancel Button */}
+            <Pressable style={styles.cancelButton} onPress={() => setShowFolderModal(false)}>
+              <Text style={styles.cancelButtonText}>Batal</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Create Folder Input Modal */}
+      <Modal
+        visible={showCreateFolderModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowCreateFolderModal(false)}
+      >
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowCreateFolderModal(false)}>
+          <Pressable style={styles.inputModal} onPress={(e) => e.stopPropagation()}>
+            <Text style={styles.inputModalTitle}>Buat Folder Baru</Text>
+
+            <TextInput
+              style={styles.folderInput}
+              placeholder="Masukkan nama folder..."
+              value={newFolderName}
+              onChangeText={setNewFolderName}
+              autoFocus={true}
+              returnKeyType="done"
+              onSubmitEditing={handleCreateFolderSubmit}
+            />
+
+            <View style={styles.inputModalButtons}>
+              <Pressable
+                style={[styles.inputModalButton, styles.cancelInputButton]}
+                onPress={() => setShowCreateFolderModal(false)}
+              >
+                <Text style={styles.cancelInputButtonText}>Batal</Text>
+              </Pressable>
+
+              <Pressable
+                style={[styles.inputModalButton, styles.createInputButton]}
+                onPress={handleCreateFolderSubmit}
+              >
+                <Text style={styles.createInputButtonText}>Buat</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -499,12 +869,18 @@ const styles = StyleSheet.create({
     width: 25,
     height: 25,
     borderRadius: 16,
-    backgroundColor: '#2d3436',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    position: 'relative',
   },
-  badgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  badgeText: {
+    position: 'absolute',
+    color: '#2D3436',
+    fontSize: 10,
+    fontWeight: '700',
+  },
   arabic: {
     fontSize: 25,
     lineHeight: 56,
@@ -537,43 +913,50 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    bottom: 24,
+    bottom: 16,
     alignItems: 'center',
   },
   floatingCard: {
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.05)',
   },
-  floatingTitle: { color: '#2D3436', fontWeight: '600', fontSize: 18, marginBottom: 4 },
-  floatingSubtitle: { color: '#636E72', fontSize: 14 },
+  floatingTitle: { color: '#111827', fontWeight: '600', fontSize: 17, marginBottom: 4 },
+  floatingSubtitle: { color: '#6B7280', fontSize: 13 },
   floatingButtons: { flexDirection: 'row', gap: 12 },
   primaryBtn: {
     flex: 1,
     backgroundColor: '#00C896',
-    borderRadius: 12,
-    height: 48,
+    borderRadius: 8,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#00C896',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  primaryBtnText: { color: '#fff', fontWeight: '600' },
+  primaryBtnText: { color: '#FFFFFF', fontWeight: '600', fontSize: 15 },
   outlineBtn: {
     flex: 1,
-    borderWidth: 2,
-    borderColor: '#E5E5E5',
-    borderRadius: 12,
-    height: 48,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
   },
-  outlineBtnText: { color: '#2D3436', fontWeight: '600' },
+  outlineBtnText: { color: '#374151', fontWeight: '500', fontSize: 14 },
   toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -632,5 +1015,132 @@ const styles = StyleSheet.create({
   actionOptionText: {
     fontSize: 16,
     color: '#2D3436',
+  },
+  // Folder Modal Styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  folderModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+  folderModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#2D3436',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  createFolderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+  },
+  createFolderText: {
+    fontSize: 16,
+    color: '#2D3436',
+    marginLeft: 12,
+    fontWeight: '500',
+  },
+  folderList: {
+    maxHeight: 300,
+    marginBottom: 16,
+  },
+  folderItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  folderText: {
+    fontSize: 16,
+    color: '#2D3436',
+    marginLeft: 12,
+  },
+  cancelButton: {
+    backgroundColor: '#6C757D',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  // Input Modal Styles
+  inputModal: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 24,
+    width: '85%',
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
+  },
+  inputModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#2D3436',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  folderInput: {
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    fontSize: 16,
+    color: '#2D3436',
+    backgroundColor: '#F8F9FA',
+    marginBottom: 24,
+  },
+  inputModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  inputModalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelInputButton: {
+    backgroundColor: '#6C757D',
+  },
+  createInputButton: {
+    backgroundColor: '#00C896',
+  },
+  cancelInputButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  createInputButtonText: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
 });

@@ -1,5 +1,8 @@
 /**
- * Seed letter_counts table from src/data/letter-counts.json
+ * Seed letter_counts table from src/data/letter-counts-precise.json
+ *
+ * NOTE: This table is now optional. The app uses JSON client-side for calculations.
+ * This script is for reference or if you want to keep the table for historical data.
  *
  * Run:
  * 1) npm i -D ts-node
@@ -22,12 +25,12 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-type JsonShape = { data: Record<string, number> };
+type JsonShape = { data: Record<string, number>; meta?: any };
 
 async function main() {
-  console.log('🌱 Starting letter_counts seed...');
+  console.log('🌱 Starting letter_counts seed from precise data...');
 
-  const p = path.resolve(process.cwd(), 'src/data/letter-counts.json');
+  const p = path.resolve(process.cwd(), 'src/data/letter-counts-precise.json');
 
   if (!fs.existsSync(p)) {
     console.error(`❌ File not found: ${p}`);
@@ -36,6 +39,15 @@ async function main() {
 
   const raw = fs.readFileSync(p, 'utf-8');
   const json: JsonShape = JSON.parse(raw);
+
+  // Log meta info if available
+  if (json.meta) {
+    console.log('📄 JSON Meta:', {
+      version: json.meta.version,
+      method: json.meta.method,
+      total_ayahs: json.meta.total_ayahs,
+    });
+  }
 
   const rows = Object.entries(json.data).map(([key, letters]) => {
     const [surahStr, ayahStr] = key.split(':');

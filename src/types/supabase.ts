@@ -263,6 +263,12 @@ export type Database = {
           family_nudge_enabled: boolean | null;
           hasanat_visible: boolean | null;
           join_leaderboard: boolean | null;
+          // Bookmark / Last Read Position
+          last_read_surah: number | null;
+          last_read_ayat: number | null;
+          last_read_juz: number | null;
+          last_read_page: number | null;
+          last_read_at: string | null;
           milestone_celebration_enabled: boolean | null;
           reminder_time: string | null;
           share_with_family: boolean | null;
@@ -278,6 +284,12 @@ export type Database = {
           family_nudge_enabled?: boolean | null;
           hasanat_visible?: boolean | null;
           join_leaderboard?: boolean | null;
+          // Bookmark / Last Read Position
+          last_read_surah?: number | null;
+          last_read_ayat?: number | null;
+          last_read_juz?: number | null;
+          last_read_page?: number | null;
+          last_read_at?: string | null;
           milestone_celebration_enabled?: boolean | null;
           reminder_time?: string | null;
           share_with_family?: boolean | null;
@@ -293,12 +305,51 @@ export type Database = {
           family_nudge_enabled?: boolean | null;
           hasanat_visible?: boolean | null;
           join_leaderboard?: boolean | null;
+          // Bookmark / Last Read Position
+          last_read_surah?: number | null;
+          last_read_ayat?: number | null;
+          last_read_juz?: number | null;
+          last_read_page?: number | null;
+          last_read_at?: string | null;
           milestone_celebration_enabled?: boolean | null;
           reminder_time?: string | null;
           share_with_family?: boolean | null;
           streak_warning_enabled?: boolean | null;
           theme?: string | null;
           updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      favorite_bookmarks: {
+        Row: {
+          ayat_number: number;
+          created_at: string;
+          folder_name: string;
+          id: string;
+          notes: string | null;
+          surah_number: number;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          ayat_number: number;
+          created_at?: string;
+          folder_name?: string;
+          id?: string;
+          notes?: string | null;
+          surah_number: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          ayat_number?: number;
+          created_at?: string;
+          folder_name?: string;
+          id?: string;
+          notes?: string | null;
+          surah_number?: number;
+          updated_at?: string;
           user_id?: string;
         };
         Relationships: [];
