@@ -18,6 +18,7 @@ import {
   createEmptyFolder,
   renameFolder,
 } from '@/services/quran/favoriteBookmarks';
+import PagerView from 'react-native-pager-view';
 
 type Tab = 'surah' | 'juz' | 'bookmark';
 
@@ -53,6 +54,9 @@ export default function SurahSelector() {
   const navigation = useNavigation<any>();
   const [surahs, setSurahs] = React.useState<any[]>([]);
   const [activeTab, setActiveTab] = React.useState<Tab>('surah');
+  const pagerRef = React.useRef<PagerView>(null);
+  const tabToIndex = (t: Tab) => (t === 'surah' ? 0 : t === 'juz' ? 1 : 2);
+  const indexToTab = (i: number): Tab => (i === 0 ? 'surah' : i === 1 ? 'juz' : 'bookmark');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [sortType, setSortType] = React.useState<
     'newest' | 'oldest' | 'name-az' | 'name-za' | 'item-az'
@@ -225,21 +229,30 @@ export default function SurahSelector() {
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <Pressable
-          onPress={() => setActiveTab('surah')}
+          onPress={() => {
+            setActiveTab('surah');
+            pagerRef.current?.setPage(0);
+          }}
           style={[styles.tab, activeTab === 'surah' && styles.tabActive]}
         >
           <Text style={[styles.tabText, activeTab === 'surah' && styles.tabTextActive]}>SURAH</Text>
           {activeTab === 'surah' && <View style={styles.tabIndicator} />}
         </Pressable>
         <Pressable
-          onPress={() => setActiveTab('juz')}
+          onPress={() => {
+            setActiveTab('juz');
+            pagerRef.current?.setPage(1);
+          }}
           style={[styles.tab, activeTab === 'juz' && styles.tabActive]}
         >
           <Text style={[styles.tabText, activeTab === 'juz' && styles.tabTextActive]}>JUZ</Text>
           {activeTab === 'juz' && <View style={styles.tabIndicator} />}
         </Pressable>
         <Pressable
-          onPress={() => setActiveTab('bookmark')}
+          onPress={() => {
+            setActiveTab('bookmark');
+            pagerRef.current?.setPage(2);
+          }}
           style={[styles.tab, activeTab === 'bookmark' && styles.tabActive]}
         >
           <Text style={[styles.tabText, activeTab === 'bookmark' && styles.tabTextActive]}>
@@ -268,9 +281,100 @@ export default function SurahSelector() {
         </View>
       )}
 
-      {/* Content based on active tab */}
-      {activeTab === 'bookmark' ? (
-        <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 10 }}>
+      {/* Swipeable content */}
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={0}
+        offscreenPageLimit={2}
+        onPageSelected={(e: any) => {
+          const i = e.nativeEvent.position;
+          const next = indexToTab(i);
+          if (next !== activeTab) setActiveTab(next);
+        }}
+      >
+        {/* Surah Page */}
+        <View key="surah">
+          <FlatList
+            data={filteredSurah}
+            keyExtractor={(item) => String(item.number)}
+            renderItem={({ item }) => (
+              <>
+                <Pressable style={styles.row} onPress={() => openSurah(item.number)}>
+                  <View style={styles.badge}>
+                    <LogoAyat1 width={40} height={40} />
+                    <Text style={styles.badgeText}>{item.number}</Text>
+                  </View>
+                  <View style={styles.surahInfo}>
+                    <View style={styles.surahNameRow}>
+                      <Text style={styles.surahName}>{item.name_id}</Text>
+                      {item.name_translation && (
+                        <Text style={styles.surahTranslation}>{`(${item.name_translation})`}</Text>
+                      )}
+                    </View>
+                    <Text style={styles.surahMeta}>
+                      {getTypeLabel(item.type)} | {item.ayat_count} AYAT
+                    </Text>
+                  </View>
+                  <Feather
+                    name="chevron-right"
+                    size={24}
+                    color={colors.primary}
+                    style={styles.arrowIcon}
+                  />
+                </Pressable>
+                <View style={styles.separator} />
+              </>
+            )}
+            style={styles.listContent}
+            contentContainerStyle={styles.listContentContainer}
+            initialNumToRender={12}
+            maxToRenderPerBatch={12}
+            windowSize={10}
+            removeClippedSubviews
+          />
+        </View>
+
+        {/* Juz Page */}
+        <View key="juz">
+          <FlatList
+            data={juzData}
+            keyExtractor={(item) => String(item.number)}
+            renderItem={({ item }) => (
+              <>
+                <Pressable style={styles.row} onPress={() => openJuz(item)}>
+                  <View style={styles.badge}>
+                    <LogoAyat1 width={40} height={40} />
+                    <Text style={styles.badgeText}>{item.number}</Text>
+                  </View>
+                  <View style={styles.surahInfo}>
+                    <Text style={styles.surahName}>Juz {item.number}</Text>
+                    <Text style={styles.surahMeta}>
+                      MULAI DARI : {item.surahName.toUpperCase()} ({item.surahNumber}) AYAT{' '}
+                      {item.ayat}
+                    </Text>
+                  </View>
+                  <Feather
+                    name="chevron-right"
+                    size={24}
+                    color={colors.primary}
+                    style={styles.arrowIcon}
+                  />
+                </Pressable>
+                <View style={styles.separator} />
+              </>
+            )}
+            style={styles.listContent}
+            contentContainerStyle={styles.listContentContainer}
+            initialNumToRender={12}
+            maxToRenderPerBatch={12}
+            windowSize={10}
+            removeClippedSubviews
+          />
+        </View>
+
+        {/* Bookmark Page */}
+        <View key="bookmark" style={{ flex: 1, paddingHorizontal: 16, paddingTop: 10 }}>
           <View style={styles.bookmarkHeader}>
             <Pressable
               style={styles.sortButton}
@@ -480,6 +584,10 @@ export default function SurahSelector() {
                 </View>
               )}
               showsVerticalScrollIndicator={false}
+              initialNumToRender={8}
+              maxToRenderPerBatch={8}
+              windowSize={10}
+              removeClippedSubviews
             />
           ) : (
             <View style={{ alignItems: 'center', paddingVertical: 32 }}>
@@ -493,83 +601,7 @@ export default function SurahSelector() {
             </View>
           )}
         </View>
-      ) : (
-        <FlatList
-          data={activeTab === 'juz' ? juzData : filteredSurah}
-          keyExtractor={(item) => String(activeTab === 'juz' ? item.number : item.number)}
-          renderItem={({ item }) => {
-            if (activeTab === 'juz') {
-              // Render Juz list
-              return (
-                <>
-                  <Pressable style={styles.row} onPress={() => openJuz(item)}>
-                    {/* Symbol Ayat Badge */}
-                    <View style={styles.badge}>
-                      <LogoAyat1 width={40} height={40} />
-                      <Text style={styles.badgeText}>{item.number}</Text>
-                    </View>
-
-                    {/* Juz Info */}
-                    <View style={styles.surahInfo}>
-                      <Text style={styles.surahName}>Juz {item.number}</Text>
-                      <Text style={styles.surahMeta}>
-                        MULAI DARI : {item.surahName.toUpperCase()} ({item.surahNumber}) AYAT{' '}
-                        {item.ayat}
-                      </Text>
-                    </View>
-
-                    {/* Navigation Arrow */}
-                    <Feather
-                      name="chevron-right"
-                      size={24}
-                      color={colors.primary}
-                      style={styles.arrowIcon}
-                    />
-                  </Pressable>
-                  <View style={styles.separator} />
-                </>
-              );
-            }
-
-            // Render Surah list
-            return (
-              <>
-                <Pressable style={styles.row} onPress={() => openSurah(item.number)}>
-                  {/* Symbol Ayat Badge */}
-                  <View style={styles.badge}>
-                    <LogoAyat1 width={40} height={40} />
-                    <Text style={styles.badgeText}>{item.number}</Text>
-                  </View>
-
-                  {/* Surah Info */}
-                  <View style={styles.surahInfo}>
-                    <View style={styles.surahNameRow}>
-                      <Text style={styles.surahName}>{item.name_id}</Text>
-                      {item.name_translation && (
-                        <Text style={styles.surahTranslation}>{`(${item.name_translation})`}</Text>
-                      )}
-                    </View>
-                    <Text style={styles.surahMeta}>
-                      {getTypeLabel(item.type)} | {item.ayat_count} AYAT
-                    </Text>
-                  </View>
-
-                  {/* Navigation Arrow */}
-                  <Feather
-                    name="chevron-right"
-                    size={24}
-                    color={colors.primary}
-                    style={styles.arrowIcon}
-                  />
-                </Pressable>
-                <View style={styles.separator} />
-              </>
-            );
-          }}
-          style={styles.listContent}
-          contentContainerStyle={styles.listContentContainer}
-        />
-      )}
+      </PagerView>
 
       {/* Create Folder Modal */}
       <Modal
@@ -779,7 +811,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   tabActive: {
-    backgroundColor: '#0FA37F',
+    backgroundColor: '#10b981',
   },
   tabText: {
     fontSize: 12,
@@ -790,6 +822,7 @@ const styles = StyleSheet.create({
   tabTextActive: {
     opacity: 1,
     fontWeight: '700',
+    color: '#FFFFFF',
   },
   tabIndicator: {
     position: 'absolute',
@@ -797,7 +830,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     height: 3,
-    backgroundColor: '#C6F7E2',
+    backgroundColor: '#ffb627',
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
   },

@@ -109,7 +109,7 @@ export default function LastReadScreen() {
 
       {/* Reading History */}
       <View style={styles.historySection}>
-        <Text style={styles.historyTitle}>Riwayat Tandai Bacaan</Text>
+        <Text style={styles.historyTitle}>Riwayat Tandai Bacaan ✍️</Text>
         {history && history.length > 0 ? (
           <FlatList
             data={history}
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   header: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#10b981',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -240,10 +240,11 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   historyTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 12,
+    marginBottom: 8,
+    letterSpacing: 0.2,
   },
   historyItem: {
     paddingVertical: 8,
