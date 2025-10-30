@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
   Pressable,
   StyleSheet,
@@ -11,6 +10,8 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
+import { Dimensions } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
 import { useQuranReader } from './useQuranReader';
@@ -21,8 +22,9 @@ import { createReadingSession, ReadingSessionInput } from '@/services/reading';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '@/lib/supabase';
 import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
+import JumpToSurahModal from '@/features/quran/components/JumpToSurahModal';
 import { loadJuzContent, getJuzTitle, AyahWithSurahInfo } from '@/services/quran/juzUtils';
-import { showSuccessToast, showErrorToast } from '@/utils/toast';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/utils/toast';
 import { getPageForAyah } from '@/services/quran/pageMap';
 import { getJuzNumber, getPageNumber } from '@/services/quran/quranHelpers';
 import { calculateSelectionHasanat } from '@/services/hasanatUtils';
@@ -35,7 +37,8 @@ import {
   getBookmarkFolders,
   createEmptyFolder,
 } from '@/services/quran/favoriteBookmarks';
-import { loadSurahTranslation, loadSurahMetadata, type Ayah } from '@/services/quran/quranData';
+import { loadSurahTranslation, loadSurahMetadata, type Ayah, type SurahMetadata } from '@/services/quran/quranData';
+import { buildLayoutExact, canMeasureText, type Item as LayoutItem } from '@/features/quran/layout/measureAyatLayout';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -44,8 +47,9 @@ export default function ReaderScreen() {
   const { surahNumber: pSurah, ayatNumber: pAyat, juzNumber } = route.params || {};
   const [surahNumber, setSurahNumber] = useState<number>(pSurah || 1);
   const [bookmarkAyat, setBookmarkAyat] = useState<number | null>(pAyat ?? null);
-  const listRef = useRef<FlatList>(null);
+  const listRef = useRef<FlashList<any>>(null);
   const [visibleAyat, setVisibleAyat] = useState<number>(1);
+  const [highlightedAyat, setHighlightedAyat] = useState<number | null>(null);
   const [visiblePage, setVisiblePage] = useState<number | null>(null);
   const [pressedAyah, setPressedAyah] = useState<number | null>(null);
   const [isSelectingRange, setIsSelectingRange] = useState(false);
@@ -62,12 +66,18 @@ export default function ReaderScreen() {
   const [availableFolders, setAvailableFolders] = useState<string[]>([]);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>('');
+  const [showJumpModal, setShowJumpModal] = useState<boolean>(false);
+  const [surahList, setSurahList] = useState<SurahMetadata[]>([]);
+  const [pendingAyat, setPendingAyat] = useState<number | null>(null);
 
   // Juz mode state
   const [isJuzMode] = useState(!!juzNumber);
   const [juzAyat, setJuzAyat] = useState<AyahWithSurahInfo[]>([]);
   const [juzTitle, setJuzTitle] = useState<string>('');
   const [juzLoading, setJuzLoading] = useState(false);
+  const [headerH, setHeaderH] = useState(0);
+  const [layout, setLayout] = useState<{ lengths: number[]; offsets: number[]; indexMap: Record<string, number> } | null>(null);
+  const [layoutReady, setLayoutReady] = useState(false);
 
   const getArabicNumber = (num: number): string => {
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -207,6 +217,18 @@ export default function ReaderScreen() {
     })();
   }, [pSurah, user?.id]);
 
+  // Sync local state with route params for cross-surah jumps
+  useEffect(() => {
+    const params: any = route?.params || {};
+    if (typeof params.surahNumber === 'number' && params.surahNumber !== surahNumber) {
+      setSurahNumber(params.surahNumber);
+    }
+    if (typeof params.ayatNumber === 'number') {
+      setBookmarkAyat(params.ayatNumber);
+      setPendingAyat(params.ayatNumber);
+    }
+  }, [route?.params]);
+
   // Load translation and metadata when surah changes
   useEffect(() => {
     (async () => {
@@ -231,6 +253,18 @@ export default function ReaderScreen() {
     loadFolders();
   }, []);
 
+  // Load surah metadata for jump modal
+  useEffect(() => {
+    (async () => {
+      try {
+        const meta = await loadSurahMetadata();
+        setSurahList(meta);
+      } catch (e) {
+        console.error('Failed to load surah metadata:', e);
+      }
+    })();
+  }, []);
+
   // Load Juz content if in Juz mode
   useEffect(() => {
     if (juzNumber && isJuzMode) {
@@ -248,28 +282,43 @@ export default function ReaderScreen() {
     }
   }, [juzNumber, isJuzMode]);
 
-  // Auto-scroll to bookmark ayat
+  // Scroll after navigation when ayatNumber provided
   useEffect(() => {
+    const params: any = route?.params || {};
+    const targetAyat: number | undefined = params?.ayatNumber || params?.ayat;
+    if (targetAyat && ((isJuzMode ? juzAyat.length : surah?.ayat?.length) || 0) > 0) {
+      setTimeout(() => {
+        scrollToAyat(targetAyat, params?.surahNumber);
+      }, 500);
+    }
+  }, [route?.params, surah?.ayat?.length, juzAyat.length, isJuzMode]);
+
+  // Auto-scroll after load (pending ayat or bookmark)
+  useEffect(() => {
+    if (pendingAyat && listRef.current && ((isJuzMode ? juzAyat.length : surah?.ayat?.length) || 0) > 0) {
+      const target = pendingAyat;
+      setTimeout(() => {
+        try {
+          scrollToAyat(target);
+        } catch {}
+      }, 400);
+      setPendingAyat(null);
+      return;
+    }
     if (bookmarkAyat && listRef.current && surah?.ayat && !isJuzMode) {
       setTimeout(() => {
         try {
-          listRef.current?.scrollToIndex({
-            index: Math.max(0, bookmarkAyat - 1),
-            animated: true,
-          });
+          scrollToAyat(bookmarkAyat);
         } catch {}
       }, 300);
     } else if (bookmarkAyat && listRef.current && juzAyat.length > 0 && isJuzMode) {
       setTimeout(() => {
         try {
-          listRef.current?.scrollToIndex({
-            index: Math.max(0, bookmarkAyat - 1),
-            animated: true,
-          });
+          scrollToAyat(bookmarkAyat);
         } catch {}
       }, 300);
     }
-  }, [bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
+  }, [pendingAyat, bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
 
   const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 30 });
   const onViewableItemsChanged = useRef(
@@ -298,10 +347,41 @@ export default function ReaderScreen() {
     }
   );
 
-  const scrollToAyat = (ayat: number) => {
+  const scrollToAyat = (ayatNumber: number, targetSurahNumber?: number) => {
+    if (!listRef.current) return;
+    const list = (isJuzMode ? juzAyat : surah?.ayat) || [];
+    const sNum = isJuzMode ? (targetSurahNumber ?? visibleSurahInfo?.surahNumber ?? surahNumber) : surahNumber;
+    let idx: number | undefined = undefined;
+    if (layout?.indexMap) {
+      const mapped = layout.indexMap[`${sNum}:${ayatNumber}`];
+      if (typeof mapped === 'number') idx = mapped;
+    }
+    if (idx === undefined) {
+      const found = list.findIndex((a: any) => (isJuzMode ? a.surahNumber === sNum && a.number === ayatNumber : a.number === ayatNumber));
+      if (found >= 0) idx = found;
+    }
+    if (typeof idx !== 'number' || idx < 0) return;
     try {
-      listRef.current?.scrollToIndex({ index: Math.max(0, ayat - 1), animated: true });
+      listRef.current.scrollToIndex({ index: idx, animated: true, viewPosition: 0.2 });
     } catch {}
+    setHighlightedAyat(ayatNumber);
+    setTimeout(() => setHighlightedAyat(null), 3000);
+  };
+
+  const handleJump = (surah: number, ayat: number) => {
+    const meta = surahList.find((s) => s.number === surah);
+    if (isJuzMode) {
+      navigation.navigate('Reader', { surahNumber: surah, ayatNumber: ayat });
+      showInfoToast(`Membuka ${meta?.name || 'Surah'}`, `Ayat ${ayat}`);
+      return;
+    }
+    if (surah !== surahNumber) {
+      navigation.setParams({ surahNumber: surah, ayatNumber: ayat });
+      showInfoToast(`Membuka ${meta?.name || 'Surah'}`, `Ayat ${ayat}`);
+    } else {
+      scrollToAyat(ayat);
+      showInfoToast('Melompat ke ayat', `${meta?.name || 'Surah'} ayat ${ayat}`);
+    }
   };
 
   const logMutation = useMutation({
@@ -420,14 +500,7 @@ export default function ReaderScreen() {
   const displayAyat = isJuzMode ? juzAyat : surah?.ayat || [];
   const displayTitle = isJuzMode ? juzTitle : surah?.name || '';
 
-  if (
-    (loading && !isJuzMode) ||
-    juzLoading ||
-    (!surah && !isJuzMode) ||
-    (isJuzMode && juzAyat.length === 0)
-  ) {
-    return <ActivityIndicator style={{ marginTop: 40 }} />;
-  }
+  // NOTE: Do not early-return before all hooks above are declared
 
   const totalAyat = displayAyat.length;
   // Use first visible item's page for both Juz and Surah mode
@@ -458,6 +531,74 @@ export default function ReaderScreen() {
     hasEnd: !!selection.end,
   });
 
+  // Header component measured for accurate layout
+  const HeaderComp = useMemo(
+    () => (
+      !isJuzMode ? (
+        <View onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}>
+          <QuranSurahHeader
+            revelation={surahNumber && surahNumber <= 7 ? 'Mekah' : 'Madinah'}
+            surahNumber={surahNumber}
+            surahName={surah?.name || ''}
+            meaning={surahMeaning}
+            totalAyahs={surah?.ayat?.length}
+            surahNameAr={undefined}
+          />
+          {surahNumber !== 1 && surahNumber !== 9 ? <BasmalahHeader /> : null}
+        </View>
+      ) : null
+    ),
+    [isJuzMode, surahNumber, surah?.name, surahMeaning, surah?.ayat?.length]
+  );
+
+  // Build exact layout when data ready
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const items = displayAyat as unknown as LayoutItem[];
+      if (!items || items.length === 0) return;
+      setLayoutReady(false);
+      try {
+        if (!canMeasureText()) {
+          // Native text-measure not available yet (e.g., running in Expo Go). Skip until dev build is used.
+          return;
+        }
+        const screenW = Dimensions.get('window').width;
+        const contentWidth = Math.max(50, screenW - 7 * 2 - 18 * 2);
+        const cacheKey = `${isJuzMode ? 'juz' : 'surah'}-${surahNumber}-${!!showTranslation}`;
+        const res = await buildLayoutExact(items, {
+          isJuzMode,
+          surahNumber,
+          showTranslation: !!showTranslation,
+          width: contentWidth,
+          headerHeight: headerH,
+          arabic: { fontFamily: 'LPMQ-Isep-Misbah', fontSize: 25, lineHeight: 56, allowFontScaling: false },
+          trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
+          row: { padV: 10, padH: 7, borderBottom: 1 },
+          cacheKey,
+        } as any);
+        if (cancelled) return;
+        setLayout(res);
+        setLayoutReady(true);
+      } catch (e) {
+        console.error('buildLayoutExact failed', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [displayAyat, isJuzMode, surahNumber, showTranslation, headerH]);
+
+  // Loading guard (after hooks)
+  if (
+    (loading && !isJuzMode) ||
+    juzLoading ||
+    (!surah && !isJuzMode) ||
+    (isJuzMode && juzAyat.length === 0)
+  ) {
+    return <ActivityIndicator style={{ marginTop: 40 }} />;
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.progressTrack}>
@@ -479,33 +620,28 @@ export default function ReaderScreen() {
           <Text style={styles.headerTitle}>{isJuzMode ? displayTitle : surah?.name || ''}</Text>
           <Text style={styles.headerSubtitle}>{getSubtitle()}</Text>
         </View>
-        <Pressable style={styles.iconButton}>
-          <Feather name="bookmark" size={20} color="#2D3436" />
+        <Pressable style={styles.iconButton} onPress={() => setShowJumpModal(true)}>
+          <Feather name="search" size={20} color="#2D3436" />
         </Pressable>
       </View>
       {/* JumpBar and QuickRangeBar removed */}
-      <FlatList
+      <FlashList
         ref={listRef}
         data={displayAyat}
         keyExtractor={(item, index) => `${item.number}_${index}`}
+        estimatedItemSize={240}
+        getItemType={() => 'ayah'}
+        {...(layout ? {
+          getItemLayout: (_: any, index: number) => ({
+            length: layout.lengths[index] ?? 0,
+            offset: layout.offsets[index] ?? 0,
+            index,
+          }),
+          ListHeaderComponent: HeaderComp,
+        } : { ListHeaderComponent: HeaderComp })}
         contentContainerStyle={{
           paddingBottom: isSelectingRange || selectedCount > 0 ? 120 : 20,
         }}
-        ListHeaderComponent={
-          !isJuzMode ? (
-            <>
-              <QuranSurahHeader
-                revelation={surahNumber && surahNumber <= 7 ? 'Mekah' : 'Madinah'}
-                surahNumber={surahNumber}
-                surahName={surah?.name || ''}
-                meaning={surahMeaning}
-                totalAyahs={surah?.ayat?.length}
-                surahNameAr={undefined}
-              />
-              {surahNumber !== 1 && surahNumber !== 9 ? <BasmalahHeader /> : null}
-            </>
-          ) : null
-        }
         renderItem={({ item, index }) => {
           const ayahItem = item as AyahWithSurahInfo;
           const shouldShowSurahHeader =
@@ -538,6 +674,7 @@ export default function ReaderScreen() {
                   index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
                   pressedAyah === item.number ? styles.pressed : {},
                   checkedAyat.has(item.number) ? styles.checked : {},
+                  highlightedAyat === item.number ? styles.highlighted : {},
                   selection.start &&
                   item.number >= selection.start &&
                   selection.end &&
@@ -555,10 +692,14 @@ export default function ReaderScreen() {
                       style={{ marginTop: 2, marginRight: 4 }}
                     />
                   )}
-                  <View style={styles.badge}>
+                  <Pressable
+                    style={styles.badge}
+                    onPress={() => scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)}
+                    hitSlop={8}
+                  >
                     <LogoAyat1 width={38} height={38} />
                     <Text style={styles.badgeText}>{item.number}</Text>
-                  </View>
+                  </Pressable>
                   <Text style={styles.arabic}>
                     {item.text}{' '}
                     <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
@@ -646,6 +787,29 @@ export default function ReaderScreen() {
                   >
                     <Text style={styles.primaryBtnText}>Lanjut Baca</Text>
                   </Pressable>
+                  {!isJuzMode && selectedCount > 0 && (
+                    <Pressable
+                      style={styles.outlineBtn}
+                      onPress={async () => {
+                        if (!surah) return;
+                        const start = selection.start as number;
+                        const end = (selection.end ?? selection.start) as number;
+                        const lines = surah.ayat
+                          .filter((a) => a.number >= start && a.number <= end)
+                          .map((a) => `${a.text}\n\n${a.translation || ''}\n`)
+                          .join('\n');
+                        const ref = `(QS. ${surah.name}: ${start}${end && end !== start ? `-${end}` : ''})`;
+                        try {
+                          await Clipboard.setStringAsync(`${lines}\n${ref}`);
+                          showSuccessToast('Ayat Disalin! 📋', `${end - start + 1} ayat dari ${surah.name}`);
+                        } catch (err) {
+                          showErrorToast('Gagal Menyalin');
+                        }
+                      }}
+                    >
+                      <Text style={styles.outlineBtnText}>Salin</Text>
+                    </Pressable>
+                  )}
                   <Pressable
                     style={styles.outlineBtn}
                     onPress={() => {
@@ -831,6 +995,14 @@ export default function ReaderScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <JumpToSurahModal
+        visible={showJumpModal}
+        onClose={() => setShowJumpModal(false)}
+        onJump={handleJump}
+        currentSurah={isJuzMode ? visibleSurahInfo?.surahNumber || surahNumber : surahNumber}
+        surahList={surahList.map((s) => ({ number: s.number, name: s.name, ayat_count: s.ayat_count }))}
+      />
     </View>
   );
 }
@@ -968,6 +1140,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   outlineBtnText: { color: '#374151', fontWeight: '500', fontSize: 14 },
+  highlighted: {
+    backgroundColor: colors.primary + '20',
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
   toolbar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
