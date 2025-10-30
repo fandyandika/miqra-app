@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useContinueReading } from '@/features/baca/hooks/useContinueReading';
 import { loadSurahMetadata } from '@/services/quran/quranData';
 import { getJuzStartAyah } from '@/services/quran/pageMap';
+import { getJuzBoundary } from '@/services/quran/juzUtils';
 import { colors } from '@/theme/colors';
 import LogoAyat1 from '../../../assets/nomorayat/logoayat1.svg';
 import { useQuery } from '@tanstack/react-query';
@@ -103,7 +104,7 @@ export default function SurahSelector() {
     navigation.replace('Reader', { surahNumber });
   };
 
-  const openJuz = (juzData: {
+  const openJuz = async (juzData: {
     number: number;
     surahName: string;
     ayat: number;
@@ -115,16 +116,16 @@ export default function SurahSelector() {
       surahs.map((s) => s.name_id)
     );
 
-    // Prefer exact start from page map
-    const exact = getJuzStartAyah(juzData.number);
-    if (exact) {
+    // Prefer exact start using juz boundary (single source of truth)
+    try {
+      const boundary = await getJuzBoundary(juzData.number);
       navigation.navigate('Reader', {
-        surahNumber: exact.surah,
-        ayahNumber: exact.ayah,
+        surahNumber: boundary.startSurah,
+        ayahNumber: boundary.startAyah,
         juzNumber: juzData.number,
       });
       return;
-    }
+    } catch {}
 
     // Fallback to juz.json mapping and metadata name match
     const targetSurahNumber = juzData.surahNumber

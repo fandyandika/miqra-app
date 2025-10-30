@@ -85,6 +85,8 @@ export default function ReaderScreen() {
   const [juzTitle, setJuzTitle] = useState<string>('');
   const [juzLoading, setJuzLoading] = useState(false);
   const [headerH, setHeaderH] = useState(0);
+  const startKeyRef = useRef<string | null>(null);
+  const reattemptScrollRef = useRef<boolean>(true);
   const [layout, setLayout] = useState<{
     lengths: number[];
     offsets: number[];
@@ -133,7 +135,8 @@ export default function ReaderScreen() {
   const headerJuz = useMemo(() => {
     if (isJuzMode) return null;
     try {
-      return getJuzNumber(surahNumber, 1);
+      const j = getJuzForAyah(surahNumber, 1);
+      return typeof j === 'number' ? j : null;
     } catch {
       return null;
     }
@@ -164,7 +167,7 @@ export default function ReaderScreen() {
     if (pressedAyah && surah) {
       const currentSurah =
         isJuzMode && visibleSurahInfo ? visibleSurahInfo.surahNumber : surahNumber;
-      const currentJuz = isJuzMode ? juzNumber : getJuzNumber(currentSurah, pressedAyah);
+      const currentJuz = isJuzMode ? juzNumber : getJuzForAyah(currentSurah, pressedAyah);
 
       addBookmark(currentSurah, pressedAyah, folderName, undefined, currentJuz);
       setPressedAyah(null);
@@ -333,6 +336,16 @@ export default function ReaderScreen() {
         .then(([ayat, title]) => {
           setJuzAyat(ayat);
           setJuzTitle(title);
+          // Reset bookmark auto-scroll context in Juz mode to avoid jumping to another surah
+          setBookmarkAyat(null);
+          // Initialize start key for enforcing first item visibility (e.g., 1:1)
+          if (Array.isArray(ayat) && ayat.length > 0) {
+            const first = ayat[0];
+            startKeyRef.current = `${first.surahNumber}:${first.number}`;
+            reattemptScrollRef.current = true;
+          } else {
+            startKeyRef.current = null;
+          }
           setJuzLoading(false);
         })
         .catch((err) => {
@@ -342,18 +355,28 @@ export default function ReaderScreen() {
     }
   }, [juzNumber, isJuzMode]);
 
-  // Ensure Juz starts at its true boundary (e.g., Juz 1 from Al-Fatihah)
+  // Ensure Juz starts at its true boundary (e.g., Juz 1 from Al-Fatihah) and subtitle reflects it immediately
   useEffect(() => {
-    if (isJuzMode && juzAyat.length > 0) {
-      const params: any = route?.params || {};
-      const hasExplicitTarget = typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
-      if (!hasExplicitTarget) {
+    if (!isJuzMode || juzAyat.length === 0) return;
+    const params: any = route?.params || {};
+    const hasExplicitTarget = typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+    const first = juzAyat[0];
+    if (first) {
+      if (first.surahNumber && first.surahName) {
+        setVisibleSurahInfo({ surahNumber: first.surahNumber, surahName: first.surahName });
+      }
+      setVisiblePage(typeof first.page === 'number' ? first.page : null);
+      setVisibleAyat(typeof first.number === 'number' ? first.number : 1);
+    }
+    if (!hasExplicitTarget) {
+      const raf = requestAnimationFrame(() => {
         try {
           listRef.current?.scrollToIndex({ index: 0, animated: false, viewPosition: 0 });
         } catch {}
-      }
+      });
+      return () => cancelAnimationFrame(raf);
     }
-  }, [isJuzMode, juzAyat.length]);
+  }, [isJuzMode, juzAyat, route?.params?.juzNumber]);
 
   // Scroll after navigation when ayatNumber provided
   useEffect(() => {
@@ -388,16 +411,13 @@ export default function ReaderScreen() {
           scrollToAyat(bookmarkAyat);
         } catch {}
       }, 300);
-    } else if (bookmarkAyat && listRef.current && juzAyat.length > 0 && isJuzMode) {
-      setTimeout(() => {
-        try {
-          scrollToAyat(bookmarkAyat);
-        } catch {}
-      }, 300);
+    } else if (isJuzMode) {
+      // In Juz mode, avoid auto-scrolling to bookmarkAyat to prevent jumping to wrong surah
+      // Let initial focus logic keep us at the Juz start unless an explicit target is set
     }
   }, [pendingAyat, bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
 
-  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 30 });
+  const viewConfigRef = useRef({ viewAreaCoveragePercentThreshold: 1 });
   const onViewableItemsChanged = useRef(
     ({ viewableItems }: { viewableItems: { item: AyahWithSurahInfo }[] }) => {
       if (viewableItems && viewableItems.length > 0) {
@@ -405,6 +425,18 @@ export default function ReaderScreen() {
         const first = firstItem?.number;
         if (typeof first === 'number') setVisibleAyat(first);
         if (isJuzMode) {
+          // Enforce Juz start visibility once if initial item not matching boundary
+          const key = firstItem && firstItem.surahNumber ? `${firstItem.surahNumber}:${firstItem.number}` : null;
+          if (reattemptScrollRef.current && startKeyRef.current && key && key !== startKeyRef.current) {
+            try {
+              listRef.current?.scrollToIndex({ index: 0, animated: false, viewPosition: 0 });
+            } catch {}
+            reattemptScrollRef.current = false;
+            return;
+          }
+          if (key && startKeyRef.current && key === startKeyRef.current) {
+            reattemptScrollRef.current = false;
+          }
           setVisiblePage(typeof firstItem?.page === 'number' ? firstItem.page : null);
           if (firstItem?.surahNumber && firstItem?.surahName) {
             setVisibleSurahInfo({
@@ -452,7 +484,7 @@ export default function ReaderScreen() {
   const handleJump = (surah: number, ayat: number) => {
     const meta = surahList.find((s) => s.number === surah);
     if (isJuzMode) {
-      const targetJuz = getJuzNumber(surah, ayat);
+      const targetJuz = getJuzForAyah(surah, ayat) || 1;
       navigation.push('Reader', {
         juzNumber: targetJuz,
         surahNumber: surah,
@@ -664,7 +696,7 @@ export default function ReaderScreen() {
         }
         const screenW = Dimensions.get('window').width;
         const contentWidth = Math.max(50, screenW - 7 * 2 - 18 * 2);
-        const cacheKey = `${isJuzMode ? 'juz' : 'surah'}-${surahNumber}-${!!showTranslation}`;
+        const cacheKey = `${isJuzMode ? `juz-${juzNumber}` : `surah-${surahNumber}`}-${!!showTranslation}`;
         const res = await buildLayoutExact(items, {
           isJuzMode,
           surahNumber,
@@ -1100,8 +1132,8 @@ export default function ReaderScreen() {
                     currentSurah,
                     pressedAyah,
                     surahName,
-                    getJuzNumber(currentSurah, pressedAyah),
-                    getPageNumber(currentSurah, pressedAyah)
+                    getJuzForAyah(currentSurah, pressedAyah),
+                    getPageForAyah(currentSurah, pressedAyah)
                   );
                   setPressedAyah(null);
                 }
