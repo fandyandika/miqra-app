@@ -99,6 +99,7 @@ export default function ReaderScreen() {
     indexMap: Record<string, number>;
   } | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
+  const initialBookmarkAppliedRef = useRef<boolean>(false);
 
   // Helpers for header navigation (prev/current/next)
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
@@ -120,20 +121,18 @@ export default function ReaderScreen() {
     // Quran UX: "sebelum" (previous numerically) on the RIGHT
     const { prev } = getPrevNext();
     if (!isJuzMode) {
-      if (prev !== surahNumber) navigation.setParams({ surahNumber: prev, ayatNumber: 1 });
+      if (prev !== surahNumber) navigation.setParams({ surahNumber: prev });
     } else {
-      if (prev !== juzNumber)
-        navigation.push('Reader', { juzNumber: prev, surahNumber, ayatNumber: 1 });
+      if (prev !== juzNumber) navigation.push('Reader', { juzNumber: prev, surahNumber });
     }
   };
   const handleNext = () => {
     // Quran UX: "sesudah" (next numerically) on the LEFT
     const { next } = getPrevNext();
     if (!isJuzMode) {
-      if (next !== surahNumber) navigation.setParams({ surahNumber: next, ayatNumber: 1 });
+      if (next !== surahNumber) navigation.setParams({ surahNumber: next });
     } else {
-      if (next !== juzNumber)
-        navigation.push('Reader', { juzNumber: next, surahNumber, ayatNumber: 1 });
+      if (next !== juzNumber) navigation.push('Reader', { juzNumber: next, surahNumber });
     }
   };
 
@@ -425,12 +424,14 @@ export default function ReaderScreen() {
       setPendingAyat(null);
       return;
     }
-    if (bookmarkAyat && listRef.current && surah?.ayat && !isJuzMode) {
+    // Apply bookmark scroll only once on initial mount (Surah mode), not on every Surah change
+    if (bookmarkAyat && listRef.current && surah?.ayat && !isJuzMode && !initialBookmarkAppliedRef.current) {
       setTimeout(() => {
         try {
           scrollToAyat(bookmarkAyat);
         } catch {}
       }, 300);
+      initialBookmarkAppliedRef.current = true;
     } else if (isJuzMode) {
       // In Juz mode, avoid auto-scrolling to bookmarkAyat to prevent jumping to wrong surah
       // Let initial focus logic keep us at the Juz start unless an explicit target is set
@@ -658,9 +659,12 @@ export default function ReaderScreen() {
     if (isJuzMode) {
       const sNum = visibleSurahInfo?.surahNumber || surahNumber;
       const aNum = visibleAyat || 1;
-      const j = getJuzForAyah(sNum, aNum);
       const p = getPageForAyah(sNum, aNum);
-      return `Juz ${j ?? '-'} | Hlm. ${typeof p === 'number' ? p : '-'}`;
+      const sName = visibleSurahInfo?.surahName;
+      if (sName && sNum) {
+        return `${sNum}. ${sName} | Hlm. ${typeof p === 'number' ? p : '-'}`;
+      }
+      return `Hlm. ${typeof p === 'number' ? p : '-'}`;
     }
     const sNum = surahNumber;
     const aNum = visibleAyat || 1;
@@ -849,7 +853,7 @@ export default function ReaderScreen() {
                       >
                         {isJuzMode
                           ? `Juz ${getPrevNext().next}`
-                          : getSurahNameByNum(getPrevNext().next)}
+                          : `${getPrevNext().next}. ${getSurahNameByNum(getPrevNext().next)}`}
                       </Text>
                     </Pressable>
                   )}
@@ -863,7 +867,7 @@ export default function ReaderScreen() {
                       >
                         {isJuzMode
                           ? `Juz ${getPrevNext().prev}`
-                          : getSurahNameByNum(getPrevNext().prev)}
+                          : `${getPrevNext().prev}. ${getSurahNameByNum(getPrevNext().prev)}`}
                       </Text>
                     </Pressable>
                   )}
@@ -895,40 +899,24 @@ export default function ReaderScreen() {
           if (i === 0) {
             const { next } = getPrevNext();
             if (!isJuzMode) {
-              navigation.setParams({ surahNumber: next, ayatNumber: 1 });
+              navigation.setParams({ surahNumber: next });
             } else {
-              navigation.replace('Reader', { juzNumber: next, surahNumber, ayatNumber: 1 });
+              navigation.replace('Reader', { juzNumber: next, surahNumber });
             }
             requestAnimationFrame(() => pagerRef.current?.setPageWithoutAnimation(1));
           } else if (i === 2) {
             const { prev } = getPrevNext();
             if (!isJuzMode) {
-              navigation.setParams({ surahNumber: prev, ayatNumber: 1 });
+              navigation.setParams({ surahNumber: prev });
             } else {
-              navigation.replace('Reader', { juzNumber: prev, surahNumber, ayatNumber: 1 });
+              navigation.replace('Reader', { juzNumber: prev, surahNumber });
             }
             requestAnimationFrame(() => pagerRef.current?.setPageWithoutAnimation(1));
           }
         }}
       >
-        {/* Prev preview */}
-        <View key="prev" style={{ flex: 1, backgroundColor: '#FFF8F0' }}>
-          <View style={{ paddingTop: 24, paddingHorizontal: 16 }}>
-            <Text style={{ color: '#2D3436', fontSize: 15, fontWeight: '700', textAlign: 'center' }} numberOfLines={1}>
-              {isJuzMode ? `Juz ${getPrevNext().prev}` : getSurahNameByNum(getPrevNext().prev)}
-            </Text>
-            <Text style={{ color: '#636E72', fontSize: 12, textAlign: 'center', marginTop: 2 }} numberOfLines={1}>
-              {isJuzMode
-                ? (() => {
-                    const s = juzPrevStart?.surah;
-                    const name = s ? surahList.find((m) => m.number === s)?.name : undefined;
-                    return name ? `${name}` : '';
-                  })()
-                : 'Geser untuk membuka'}
-            </Text>
-            <View style={{ height: 3, width: 36, backgroundColor: '#C6F7E2', borderRadius: 2, alignSelf: 'center', marginTop: 6 }} />
-          </View>
-        </View>
+        {/* Prev preview - plain */}
+        <View key="prev" style={{ flex: 1, backgroundColor: '#FFF8F0' }} />
 
         {/* Current content (existing FlashList) */}
         <View key="current" style={{ flex: 1 }}>
@@ -1026,24 +1014,8 @@ export default function ReaderScreen() {
           />
         </View>
 
-        {/* Next preview */}
-        <View key="next" style={{ flex: 1, backgroundColor: '#FFF8F0' }}>
-          <View style={{ paddingTop: 24, paddingHorizontal: 16 }}>
-            <Text style={{ color: '#2D3436', fontSize: 15, fontWeight: '700', textAlign: 'center' }} numberOfLines={1}>
-              {isJuzMode ? `Juz ${getPrevNext().next}` : getSurahNameByNum(getPrevNext().next)}
-            </Text>
-            <Text style={{ color: '#636E72', fontSize: 12, textAlign: 'center', marginTop: 2 }} numberOfLines={1}>
-              {isJuzMode
-                ? (() => {
-                    const s = juzNextStart?.surah;
-                    const name = s ? surahList.find((m) => m.number === s)?.name : undefined;
-                    return name ? `${name}` : '';
-                  })()
-                : 'Geser untuk membuka'}
-            </Text>
-            <View style={{ height: 3, width: 36, backgroundColor: '#C6F7E2', borderRadius: 2, alignSelf: 'center', marginTop: 6 }} />
-          </View>
-        </View>
+        {/* Next preview - plain */}
+        <View key="next" style={{ flex: 1, backgroundColor: '#FFF8F0' }} />
       </PagerView>
       {(isSelectingRange || selectedCount > 0) && (
         <View style={styles.floatingContainer}>
