@@ -9,6 +9,7 @@ import {
   Modal,
   ScrollView,
   TextInput,
+  AccessibilityInfo,
 } from 'react-native';
 import { Dimensions } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
@@ -25,8 +26,7 @@ import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
 import JumpToSurahModal from '@/features/quran/components/JumpToSurahModal';
 import { loadJuzContent, getJuzTitle, AyahWithSurahInfo } from '@/services/quran/juzUtils';
 import { showSuccessToast, showErrorToast, showInfoToast } from '@/utils/toast';
-import { getPageForAyah } from '@/services/quran/pageMap';
-import { getJuzNumber, getPageNumber } from '@/services/quran/quranHelpers';
+import { getPageForAyah, getJuzForAyah } from '@/services/quran/pageMap';
 import { calculateSelectionHasanat } from '@/services/hasanatUtils';
 import QuranSurahHeader from './components/QuranSurahHeader';
 import { markAsLastRead } from '@/services/quran/bookmarkService';
@@ -342,6 +342,19 @@ export default function ReaderScreen() {
     }
   }, [juzNumber, isJuzMode]);
 
+  // Ensure Juz starts at its true boundary (e.g., Juz 1 from Al-Fatihah)
+  useEffect(() => {
+    if (isJuzMode && juzAyat.length > 0) {
+      const params: any = route?.params || {};
+      const hasExplicitTarget = typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+      if (!hasExplicitTarget) {
+        try {
+          listRef.current?.scrollToIndex({ index: 0, animated: false, viewPosition: 0 });
+        } catch {}
+      }
+    }
+  }, [isJuzMode, juzAyat.length]);
+
   // Scroll after navigation when ayatNumber provided
   useEffect(() => {
     const params: any = route?.params || {};
@@ -576,12 +589,8 @@ export default function ReaderScreen() {
   // NOTE: Do not early-return before all hooks above are declared
 
   const totalAyat = displayAyat.length;
-  // Compute accurate page from the first visible ayat
-  const currentPage = useMemo(() => {
-    const sNum = isJuzMode ? (visibleSurahInfo?.surahNumber ?? surahNumber) : surahNumber;
-    const aNum = visibleAyat || 1;
-    return getPageNumber(sNum, aNum);
-  }, [isJuzMode, visibleSurahInfo?.surahNumber, surahNumber, visibleAyat]);
+  // Current page derived from visible list item
+  const currentPage = visiblePage;
   const progress = totalAyat ? Math.max(0, Math.min(100, (visibleAyat / totalAyat) * 100)) : 0;
 
   // Build header subtitle
@@ -594,9 +603,20 @@ export default function ReaderScreen() {
     }
     const sNum = visibleSurahInfo?.surahNumber || surahNumber;
     const aNum = visibleAyat || 1;
-    const j = getJuzNumber(sNum, aNum);
-    return `Juz ${j} | Hlm. ${hlm}`;
+    const j = getJuzForAyah(sNum, aNum);
+    return `Juz ${j ?? '-'} | Hlm. ${hlm}`;
   };
+
+  // Announce subtitle changes for screen readers (Surah & Juz mode)
+  useEffect(() => {
+    const subtitleText = getSubtitle();
+    if (subtitleText && typeof subtitleText === 'string') {
+      try {
+        AccessibilityInfo.announceForAccessibility(subtitleText);
+      } catch {}
+    }
+    // Depend on values affecting subtitle content
+  }, [isJuzMode, visiblePage, visibleSurahInfo?.surahName, visibleSurahInfo?.surahNumber, surahNumber, visibleAyat]);
   const selectedCount = isSelectingRange
     ? checkedAyat.size
     : selection.start
@@ -695,8 +715,11 @@ export default function ReaderScreen() {
       <View style={styles.topBar}>
         <Pressable
           onPress={() => {
-            if (navigation.canGoBack()) {
-              navigation.goBack();
+            // Always go back to SurahSelector menu instead of history chain
+            try {
+              navigation.replace('SurahSelector');
+            } catch {
+              if (navigation.canGoBack()) navigation.goBack();
             }
           }}
           style={[
@@ -749,6 +772,9 @@ export default function ReaderScreen() {
                   styles.headerSubtitle,
                   { position: 'absolute', bottom: -18, textAlign: 'center', width: '100%' },
                 ]}
+                accessibilityRole="text"
+                accessible={true}
+                accessibilityLabel={getSubtitle()}
                 numberOfLines={1}
               >
                 {getSubtitle()}

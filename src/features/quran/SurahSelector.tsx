@@ -118,7 +118,7 @@ export default function SurahSelector() {
     // Prefer exact start from page map
     const exact = getJuzStartAyah(juzData.number);
     if (exact) {
-      navigation.replace('Reader', {
+      navigation.navigate('Reader', {
         surahNumber: exact.surah,
         ayahNumber: exact.ayah,
         juzNumber: juzData.number,
@@ -136,7 +136,7 @@ export default function SurahSelector() {
       return;
     }
 
-    navigation.replace('Reader', {
+    navigation.navigate('Reader', {
       surahNumber: targetSurahNumber,
       ayahNumber: juzData.ayat,
       juzNumber: juzData.number,
