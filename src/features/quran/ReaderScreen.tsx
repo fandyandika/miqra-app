@@ -371,8 +371,13 @@ export default function ReaderScreen() {
   const handleJump = (surah: number, ayat: number) => {
     const meta = surahList.find((s) => s.number === surah);
     if (isJuzMode) {
-      navigation.navigate('Reader', { surahNumber: surah, ayatNumber: ayat });
-      showInfoToast(`Membuka ${meta?.name || 'Surah'}`, `Ayat ${ayat}`);
+      const targetJuz = getJuzNumber(surah, ayat);
+      navigation.push('Reader', {
+        juzNumber: targetJuz,
+        surahNumber: surah,
+        ayatNumber: ayat,
+      });
+      showInfoToast(`Membuka ${meta?.name || 'Surah'}`, `Ayat ${ayat} • Juz ${targetJuz}`);
       return;
     }
     if (surah !== surahNumber) {
