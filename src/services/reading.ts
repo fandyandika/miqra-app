@@ -595,3 +595,17 @@ async function afterSaveSessionHook({
   // 1) Ambil anggota keluarga lain + preferensi mereka (getSettingsByUserId)
   // 2) Kirim via Edge Function ke token mereka.
 }
+
+// Delete a reading session (owned by current user)
+export async function deleteReadingSession(id: string) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('No user');
+  const { error } = await supabase
+    .from('reading_sessions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+  if (error) throw error;
+}

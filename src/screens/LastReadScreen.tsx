@@ -2,15 +2,17 @@ import React from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getBookmark } from '@/services/quran/bookmarkService';
-import { getReadingHistory, getDetailedReadingHistory } from '@/services/quran/readingHistory';
+import { getLastReadHistory, deleteLastReadHistory } from '@/services/quran/lastReadHistory';
+import { deleteReadingSession } from '@/services/reading';
 import { colors } from '@/theme/colors';
 import { loadSurahMetadata } from '@/services/quran/quranData';
 
 export default function LastReadScreen() {
   const navigation = useNavigation<any>();
   const [surahs, setSurahs] = React.useState<any[]>([]);
+  const queryClient = useQueryClient();
 
   const { data: bookmark, isLoading: bookmarkLoading } = useQuery({
     queryKey: ['bookmark'],
@@ -18,8 +20,8 @@ export default function LastReadScreen() {
   });
 
   const { data: history, isLoading: historyLoading } = useQuery({
-    queryKey: ['reading-history'],
-    queryFn: getDetailedReadingHistory,
+    queryKey: ['last-read-history'],
+    queryFn: () => getLastReadHistory(100),
   });
 
   React.useEffect(() => {
@@ -99,7 +101,7 @@ export default function LastReadScreen() {
               </Text>
             </View>
             <View style={styles.currentActions}>
-              <Text style={styles.historyLink}>Lihat Riwayat</Text>
+              <Text style={styles.historyLink}>Mulai Baca</Text>
             </View>
           </Pressable>
         </View>
@@ -107,7 +109,7 @@ export default function LastReadScreen() {
 
       {/* Reading History */}
       <View style={styles.historySection}>
-        <Text style={styles.historyTitle}>Riwayat Bacaan</Text>
+        <Text style={styles.historyTitle}>Riwayat Tandai Bacaan</Text>
         {history && history.length > 0 ? (
           <FlatList
             data={history}
@@ -121,10 +123,30 @@ export default function LastReadScreen() {
                     ayahNumber: item.ayat_number,
                   })
                 }
+                onLongPress={() => {
+                  const title = `Hapus riwayat?`;
+                  const message = `QS. ${getSurahName(item.surah_number)} ${item.surah_number}:${item.ayat_number}`;
+                  // dynamic import to avoid top-level Alert import churn
+                  import('react-native').then(({ Alert }) => {
+                    Alert.alert(title, message, [
+                      { text: 'Batal', style: 'cancel' },
+                      {
+                        text: 'Hapus',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            await deleteLastReadHistory(item.id);
+                            queryClient.invalidateQueries({ queryKey: ['last-read-history'] });
+                          } catch {}
+                        },
+                      },
+                    ]);
+                  });
+                }}
               >
                 <Text style={styles.historyText}>
-                  QS. {getSurahName(item.surah_number)} {item.surah_number}: Ayat {item.ayat_number}{' '}
-                  (Juz: {item.juz || '?'})
+                  QS. {getSurahName(item.surah_number)} {item.surah_number}: Ayat {item.ayat_number}
+                  {item.juz_number ? ` (Juz: ${item.juz_number})` : ''}
                 </Text>
                 <Text style={styles.historyDate}>{formatDate(item.created_at)}</Text>
               </Pressable>
@@ -133,7 +155,7 @@ export default function LastReadScreen() {
           />
         ) : (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>Belum ada riwayat bacaan</Text>
+            <Text style={styles.emptyText}>Belum ada riwayat</Text>
           </View>
         )}
       </View>

@@ -335,7 +335,7 @@ export default function SurahSelector() {
                   </Text>
                 </View>
                 <View style={styles.lastReadActions}>
-                  <Text style={styles.historyLink}>Lihat Riwayat</Text>
+                  <Text style={styles.historyLink}>Riwayat Tandai Bacaan</Text>
                   <Text style={styles.lastReadDateRight}>
                     {bookmark.timestamp
                       ? new Date(bookmark.timestamp).toLocaleDateString('id-ID', {
@@ -435,12 +435,12 @@ export default function SurahSelector() {
                                     { text: 'Batal', style: 'cancel' },
                                     {
                                       text: 'Pindah',
-                                      onPress: (folderName) => {
-                                        if (folderName?.trim()) {
+                                      onPress: (folderName?: string) => {
+                                        if ((folderName || '').trim()) {
                                           createFolderAndMoveBookmark(
                                             bookmark.surah_number,
                                             bookmark.ayat_number,
-                                            folderName.trim(),
+                                            (folderName || '').trim(),
                                             bookmark.notes
                                           );
                                         }

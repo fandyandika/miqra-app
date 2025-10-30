@@ -92,6 +92,21 @@ export async function markAsLastRead(
   });
 
   if (success) {
+    // Log to last_read_history (best-effort)
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user?.id) {
+        await supabase.from('last_read_history').insert({
+          user_id: user.id,
+          surah_number: surahNumber,
+          ayat_number: ayatNumber,
+          juz_number: juzNumber ?? null,
+          page_number: pageNumber ?? null,
+        });
+      }
+    } catch {}
     showSuccessToast('Posisi Tersimpan 📍', `${surahName} ayat ${ayatNumber}`);
   } else {
     showErrorToast('Gagal Menyimpan', 'Coba lagi beberapa saat');

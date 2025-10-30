@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { queryClient } from '@/lib/queryClient';
+import { getJuzNumber, getPageNumber } from '@/services/quran/quranHelpers';
 
 export interface ReadingHistory {
   id: string;
@@ -57,26 +58,33 @@ export async function getDetailedReadingHistory(): Promise<ReadingHistory[]> {
     } = await supabase.auth.getUser();
     if (!user) return [];
 
+    // Align columns with createReadingSession payload
     const { data, error } = await supabase
       .from('reading_sessions')
-      .select('id, surah_number, ayat_start, ayat_end, juz_number, page_number, created_at')
+      .select('id, date, session_time, surah_number, ayat_start, ayat_end')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50);
+      .order('date', { ascending: false })
+      .order('session_time', { ascending: false })
+      .limit(100);
 
-    if (error) return [];
+    if (error || !data) return [];
 
-    return (
-      data?.map((session) => ({
-        id: session.id,
+    return data.map((s: any) => {
+      const ayatNumber = s.ayat_start as number;
+      const juz = getJuzNumber(s.surah_number as number, ayatNumber);
+      const page = getPageNumber(s.surah_number as number, ayatNumber);
+      const createdAt = (s.session_time as string) || (s.date as string);
+
+      return {
+        id: String(s.id),
         user_id: user.id,
-        surah_number: session.surah_number,
-        ayat_number: session.ayat_start,
-        juz: session.juz_number,
-        page: session.page_number,
-        created_at: session.created_at,
-      })) || []
-    );
+        surah_number: s.surah_number as number,
+        ayat_number: ayatNumber,
+        juz,
+        page,
+        created_at: createdAt,
+      } as ReadingHistory;
+    });
   } catch (error) {
     console.error('Error getting detailed reading history:', error);
     return [];
