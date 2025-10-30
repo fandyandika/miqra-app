@@ -37,8 +37,17 @@ import {
   getBookmarkFolders,
   createEmptyFolder,
 } from '@/services/quran/favoriteBookmarks';
-import { loadSurahTranslation, loadSurahMetadata, type Ayah, type SurahMetadata } from '@/services/quran/quranData';
-import { buildLayoutExact, canMeasureText, type Item as LayoutItem } from '@/features/quran/layout/measureAyatLayout';
+import {
+  loadSurahTranslation,
+  loadSurahMetadata,
+  type Ayah,
+  type SurahMetadata,
+} from '@/services/quran/quranData';
+import {
+  buildLayoutExact,
+  canMeasureText,
+  type Item as LayoutItem,
+} from '@/features/quran/layout/measureAyatLayout';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -76,8 +85,59 @@ export default function ReaderScreen() {
   const [juzTitle, setJuzTitle] = useState<string>('');
   const [juzLoading, setJuzLoading] = useState(false);
   const [headerH, setHeaderH] = useState(0);
-  const [layout, setLayout] = useState<{ lengths: number[]; offsets: number[]; indexMap: Record<string, number> } | null>(null);
+  const [layout, setLayout] = useState<{
+    lengths: number[];
+    offsets: number[];
+    indexMap: Record<string, number>;
+  } | null>(null);
   const [layoutReady, setLayoutReady] = useState(false);
+
+  // Helpers for header navigation (prev/current/next)
+  const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+  const getSurahNameByNum = (n: number) =>
+    surahList.find((m) => m.number === n)?.name || `Surah ${n}`;
+  const getPrevNext = () => {
+    if (!isJuzMode) {
+      const prev = clamp(surahNumber - 1, 1, 114);
+      const next = clamp(surahNumber + 1, 1, 114);
+      return { prev, curr: surahNumber, next };
+    } else {
+      const currJ = (juzNumber as number) || 1;
+      const prev = clamp(currJ - 1, 1, 30);
+      const next = clamp(currJ + 1, 1, 30);
+      return { prev, curr: currJ, next };
+    }
+  };
+  const handlePrev = () => {
+    // Quran UX: "sebelum" (previous numerically) on the RIGHT
+    const { prev } = getPrevNext();
+    if (!isJuzMode) {
+      if (prev !== surahNumber) navigation.setParams({ surahNumber: prev, ayatNumber: 1 });
+    } else {
+      if (prev !== juzNumber)
+        navigation.push('Reader', { juzNumber: prev, surahNumber, ayatNumber: 1 });
+    }
+  };
+  const handleNext = () => {
+    // Quran UX: "sesudah" (next numerically) on the LEFT
+    const { next } = getPrevNext();
+    if (!isJuzMode) {
+      if (next !== surahNumber) navigation.setParams({ surahNumber: next, ayatNumber: 1 });
+    } else {
+      if (next !== juzNumber)
+        navigation.push('Reader', { juzNumber: next, surahNumber, ayatNumber: 1 });
+    }
+  };
+
+  // Surah-mode header meta
+  const headerJuz = useMemo(() => {
+    if (isJuzMode) return null;
+    try {
+      return getJuzNumber(surahNumber, 1);
+    } catch {
+      return null;
+    }
+  }, [isJuzMode, surahNumber]);
 
   const getArabicNumber = (num: number): string => {
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -295,7 +355,11 @@ export default function ReaderScreen() {
 
   // Auto-scroll after load (pending ayat or bookmark)
   useEffect(() => {
-    if (pendingAyat && listRef.current && ((isJuzMode ? juzAyat.length : surah?.ayat?.length) || 0) > 0) {
+    if (
+      pendingAyat &&
+      listRef.current &&
+      ((isJuzMode ? juzAyat.length : surah?.ayat?.length) || 0) > 0
+    ) {
       const target = pendingAyat;
       setTimeout(() => {
         try {
@@ -350,14 +414,18 @@ export default function ReaderScreen() {
   const scrollToAyat = (ayatNumber: number, targetSurahNumber?: number) => {
     if (!listRef.current) return;
     const list = (isJuzMode ? juzAyat : surah?.ayat) || [];
-    const sNum = isJuzMode ? (targetSurahNumber ?? visibleSurahInfo?.surahNumber ?? surahNumber) : surahNumber;
+    const sNum = isJuzMode
+      ? (targetSurahNumber ?? visibleSurahInfo?.surahNumber ?? surahNumber)
+      : surahNumber;
     let idx: number | undefined = undefined;
     if (layout?.indexMap) {
       const mapped = layout.indexMap[`${sNum}:${ayatNumber}`];
       if (typeof mapped === 'number') idx = mapped;
     }
     if (idx === undefined) {
-      const found = list.findIndex((a: any) => (isJuzMode ? a.surahNumber === sNum && a.number === ayatNumber : a.number === ayatNumber));
+      const found = list.findIndex((a: any) =>
+        isJuzMode ? a.surahNumber === sNum && a.number === ayatNumber : a.number === ayatNumber
+      );
       if (found >= 0) idx = found;
     }
     if (typeof idx !== 'number' || idx < 0) return;
@@ -508,19 +576,26 @@ export default function ReaderScreen() {
   // NOTE: Do not early-return before all hooks above are declared
 
   const totalAyat = displayAyat.length;
-  // Use first visible item's page for both Juz and Surah mode
-  const currentPage = visiblePage;
+  // Compute accurate page from the first visible ayat
+  const currentPage = useMemo(() => {
+    const sNum = isJuzMode ? (visibleSurahInfo?.surahNumber ?? surahNumber) : surahNumber;
+    const aNum = visibleAyat || 1;
+    return getPageNumber(sNum, aNum);
+  }, [isJuzMode, visibleSurahInfo?.surahNumber, surahNumber, visibleAyat]);
   const progress = totalAyat ? Math.max(0, Math.min(100, (visibleAyat / totalAyat) * 100)) : 0;
 
   // Build header subtitle
   const getSubtitle = () => {
-    if (isJuzMode) {
-      const name = visibleSurahInfo?.surahName || '';
-      const hlm = currentPage ?? '-';
-      return name ? `${name} | Hlm. ${hlm}` : `Hlm. ${hlm}`;
-    }
     const hlm = currentPage ?? '-';
-    return `Hlm. ${hlm}`;
+    if (isJuzMode) {
+      const sName = visibleSurahInfo?.surahName;
+      if (sName) return `${sName} | Hlm. ${hlm}`;
+      return `Hlm. ${hlm}`;
+    }
+    const sNum = visibleSurahInfo?.surahNumber || surahNumber;
+    const aNum = visibleAyat || 1;
+    const j = getJuzNumber(sNum, aNum);
+    return `Juz ${j} | Hlm. ${hlm}`;
   };
   const selectedCount = isSelectingRange
     ? checkedAyat.size
@@ -538,7 +613,7 @@ export default function ReaderScreen() {
 
   // Header component measured for accurate layout
   const HeaderComp = useMemo(
-    () => (
+    () =>
       !isJuzMode ? (
         <View onLayout={(e) => setHeaderH(e.nativeEvent.layout.height)}>
           <QuranSurahHeader
@@ -551,8 +626,7 @@ export default function ReaderScreen() {
           />
           {surahNumber !== 1 && surahNumber !== 9 ? <BasmalahHeader /> : null}
         </View>
-      ) : null
-    ),
+      ) : null,
     [isJuzMode, surahNumber, surah?.name, surahMeaning, surah?.ayat?.length]
   );
 
@@ -577,7 +651,12 @@ export default function ReaderScreen() {
           showTranslation: !!showTranslation,
           width: contentWidth,
           headerHeight: headerH,
-          arabic: { fontFamily: 'LPMQ-Isep-Misbah', fontSize: 25, lineHeight: 56, allowFontScaling: false },
+          arabic: {
+            fontFamily: 'LPMQ-Isep-Misbah',
+            fontSize: 25,
+            lineHeight: 56,
+            allowFontScaling: false,
+          },
           trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
           row: { padV: 10, padH: 7, borderBottom: 1 },
           cacheKey,
@@ -604,6 +683,9 @@ export default function ReaderScreen() {
     return <ActivityIndicator style={{ marginTop: 40 }} />;
   }
 
+  const atFirst = !isJuzMode ? surahNumber === 1 : ((juzNumber as number) || 1) === 1;
+  const atLast = !isJuzMode ? surahNumber === 114 : ((juzNumber as number) || 1) === 30;
+
   return (
     <View style={styles.container}>
       <View style={styles.progressTrack}>
@@ -617,15 +699,90 @@ export default function ReaderScreen() {
               navigation.goBack();
             }
           }}
-          style={styles.iconButton}
+          style={[
+            styles.iconButton,
+            { paddingLeft: 0, paddingRight: 6, marginRight: 2, marginLeft: -5 },
+          ]}
+          hitSlop={6}
         >
           <Feather name="arrow-left" size={20} color="#2D3436" />
         </Pressable>
-        <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>{isJuzMode ? displayTitle : surah?.name || ''}</Text>
-          <Text style={styles.headerSubtitle}>{getSubtitle()}</Text>
+        <View style={{ flex: 1 }}>
+          <View
+            style={{
+              flex: 1,
+              position: 'relative',
+              height: 44,
+              justifyContent: 'flex-end',
+              paddingHorizontal: 0,
+              marginTop: 6,
+            }}
+          >
+            {/* LEFT shows "sesudah" (next numerically) - bottom-left corner */}
+            {!atLast && (
+              <Pressable
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  bottom: 0,
+                  paddingLeft: 0,
+                  paddingRight: 8,
+                }}
+                onPress={handleNext}
+                hitSlop={6}
+              >
+                <Text style={{ color: '#2D3436', fontSize: 12 }} numberOfLines={1}>
+                  {isJuzMode ? `Juz ${getPrevNext().next}` : getSurahNameByNum(getPrevNext().next)}
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Current name and subtitle */}
+            <View style={{ alignItems: 'center', paddingBottom: 0, position: 'relative' }}>
+              <Text style={{ color: '#2D3436', fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
+                {isJuzMode ? `Juz ${getPrevNext().curr}` : getSurahNameByNum(getPrevNext().curr)}
+              </Text>
+              <Text style={styles.headerSubtitle}>{getSubtitle()}</Text>
+              {/* Small center indicator like SurahSelector (absolute so baseline aligns) */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: -6,
+                  height: 3,
+                  width: 28,
+                  borderRadius: 2,
+                  backgroundColor: '#C6F7E2',
+                  alignSelf: 'center',
+                }}
+              />
+            </View>
+
+            {/* RIGHT shows "sebelum" (previous numerically) - bottom-right corner */}
+            {!atFirst && (
+              <Pressable
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 0,
+                  paddingRight: 0,
+                  paddingLeft: 8,
+                  alignItems: 'flex-end',
+                }}
+                onPress={handlePrev}
+                hitSlop={6}
+              >
+                <Text style={{ color: '#2D3436', fontSize: 12 }} numberOfLines={1}>
+                  {isJuzMode ? `Juz ${getPrevNext().prev}` : getSurahNameByNum(getPrevNext().prev)}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
-        <Pressable style={styles.iconButton} onPress={() => setShowJumpModal(true)}>
+        <Pressable
+          style={[styles.iconButton, { paddingRight: 4, paddingLeft: 6, marginLeft: 2 }]}
+          onPress={() => setShowJumpModal(true)}
+          hitSlop={6}
+        >
           <Feather name="search" size={20} color="#2D3436" />
         </Pressable>
       </View>
@@ -636,14 +793,16 @@ export default function ReaderScreen() {
         keyExtractor={(item, index) => `${item.number}_${index}`}
         estimatedItemSize={240}
         getItemType={() => 'ayah'}
-        {...(layout ? {
-          getItemLayout: (_: any, index: number) => ({
-            length: layout.lengths[index] ?? 0,
-            offset: layout.offsets[index] ?? 0,
-            index,
-          }),
-          ListHeaderComponent: HeaderComp,
-        } : { ListHeaderComponent: HeaderComp })}
+        {...(layout
+          ? {
+              getItemLayout: (_: any, index: number) => ({
+                length: layout.lengths[index] ?? 0,
+                offset: layout.offsets[index] ?? 0,
+                index,
+              }),
+              ListHeaderComponent: HeaderComp,
+            }
+          : { ListHeaderComponent: HeaderComp })}
         contentContainerStyle={{
           paddingBottom: isSelectingRange || selectedCount > 0 ? 120 : 20,
         }}
@@ -699,7 +858,9 @@ export default function ReaderScreen() {
                   )}
                   <Pressable
                     style={styles.badge}
-                    onPress={() => scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)}
+                    onPress={() =>
+                      scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)
+                    }
                     hitSlop={8}
                   >
                     <LogoAyat1 width={38} height={38} />
@@ -806,7 +967,10 @@ export default function ReaderScreen() {
                         const ref = `(QS. ${surah.name}: ${start}${end && end !== start ? `-${end}` : ''})`;
                         try {
                           await Clipboard.setStringAsync(`${lines}\n${ref}`);
-                          showSuccessToast('Ayat Disalin! 📋', `${end - start + 1} ayat dari ${surah.name}`);
+                          showSuccessToast(
+                            'Ayat Disalin! 📋',
+                            `${end - start + 1} ayat dari ${surah.name}`
+                          );
                         } catch (err) {
                           showErrorToast('Gagal Menyalin');
                         }
@@ -1006,7 +1170,11 @@ export default function ReaderScreen() {
         onClose={() => setShowJumpModal(false)}
         onJump={handleJump}
         currentSurah={isJuzMode ? visibleSurahInfo?.surahNumber || surahNumber : surahNumber}
-        surahList={surahList.map((s) => ({ number: s.number, name: s.name, ayat_count: s.ayat_count }))}
+        surahList={surahList.map((s) => ({
+          number: s.number,
+          name: s.name,
+          ayat_count: s.ayat_count,
+        }))}
       />
     </View>
   );

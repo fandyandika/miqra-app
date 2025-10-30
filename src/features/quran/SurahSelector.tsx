@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     height: 3,
-    backgroundColor: '#ffb627',
+    backgroundColor: '#d1fae5',
     borderTopLeftRadius: 3,
     borderTopRightRadius: 3,
   },
