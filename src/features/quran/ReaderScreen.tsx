@@ -359,7 +359,8 @@ export default function ReaderScreen() {
   useEffect(() => {
     if (!isJuzMode || juzAyat.length === 0) return;
     const params: any = route?.params || {};
-    const hasExplicitTarget = typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+    const hasExplicitTarget =
+      typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
     const first = juzAyat[0];
     if (first) {
       if (first.surahNumber && first.surahName) {
@@ -426,8 +427,16 @@ export default function ReaderScreen() {
         if (typeof first === 'number') setVisibleAyat(first);
         if (isJuzMode) {
           // Enforce Juz start visibility once if initial item not matching boundary
-          const key = firstItem && firstItem.surahNumber ? `${firstItem.surahNumber}:${firstItem.number}` : null;
-          if (reattemptScrollRef.current && startKeyRef.current && key && key !== startKeyRef.current) {
+          const key =
+            firstItem && firstItem.surahNumber
+              ? `${firstItem.surahNumber}:${firstItem.number}`
+              : null;
+          if (
+            reattemptScrollRef.current &&
+            startKeyRef.current &&
+            key &&
+            key !== startKeyRef.current
+          ) {
             try {
               listRef.current?.scrollToIndex({ index: 0, animated: false, viewPosition: 0 });
             } catch {}
@@ -648,7 +657,14 @@ export default function ReaderScreen() {
       } catch {}
     }
     // Depend on values affecting subtitle content
-  }, [isJuzMode, visiblePage, visibleSurahInfo?.surahName, visibleSurahInfo?.surahNumber, surahNumber, visibleAyat]);
+  }, [
+    isJuzMode,
+    visiblePage,
+    visibleSurahInfo?.surahName,
+    visibleSurahInfo?.surahNumber,
+    surahNumber,
+    visibleAyat,
+  ]);
   const selectedCount = isSelectingRange
     ? checkedAyat.size
     : selection.start
@@ -754,10 +770,7 @@ export default function ReaderScreen() {
               if (navigation.canGoBack()) navigation.goBack();
             }
           }}
-          style={[
-            styles.iconButton,
-            { padding: 6, marginLeft: -6, marginRight: 6, marginTop: -20 },
-          ]}
+          style={[styles.iconButton, { padding: 6, marginLeft: 6, marginRight: 6 }]}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
           <Feather name="arrow-left" size={24} color="#2D3436" />
@@ -766,43 +779,23 @@ export default function ReaderScreen() {
           <View
             style={{
               flex: 1,
-              position: 'relative',
-              height: 40,
-              justifyContent: 'flex-end',
+              justifyContent: 'center',
+              alignItems: 'center',
               paddingHorizontal: 0,
               marginTop: 0,
             }}
           >
-            {/* LEFT shows "sesudah" (next numerically) - bottom-left corner */}
-            {!atLast && (
-              <Pressable
-                style={{
-                  position: 'absolute',
-                  left: -28,
-                  bottom: -18,
-                  paddingLeft: 0,
-                  paddingRight: 0,
-                }}
-                onPress={handleNext}
-                hitSlop={6}
-              >
-                <Text style={{ color: '#2D3436', fontSize: 13 }} numberOfLines={1}>
-                  {isJuzMode ? `Juz ${getPrevNext().next}` : getSurahNameByNum(getPrevNext().next)}
-                </Text>
-              </Pressable>
-            )}
+            {/* Prev/Next labels below subtitle */}
 
-            {/* Current name and subtitle (baseline aligned with corners) */}
-            <View
-              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' }}
-            >
+            {/* Centered title and subtitle */}
+            <View style={{ alignItems: 'center', marginTop: isJuzMode ? 8 : 0 }}>
               <Text style={{ color: '#2D3436', fontSize: 15, fontWeight: '700' }} numberOfLines={1}>
                 {isJuzMode ? `Juz ${getPrevNext().curr}` : getSurahNameByNum(getPrevNext().curr)}
               </Text>
               <Text
                 style={[
                   styles.headerSubtitle,
-                  { position: 'absolute', bottom: -18, textAlign: 'center', width: '100%' },
+                  { textAlign: 'center', width: '100%', marginTop: 2 },
                 ]}
                 accessibilityRole="text"
                 accessible={true}
@@ -811,46 +804,62 @@ export default function ReaderScreen() {
               >
                 {getSubtitle()}
               </Text>
-              {/* Small center indicator like SurahSelector (absolute so baseline aligns) */}
+              {/* Small center indicator like SurahSelector */}
               <View
                 style={{
-                  position: 'absolute',
-                  bottom: -25,
                   height: 3,
                   width: 36,
                   borderRadius: 2,
                   backgroundColor: '#C6F7E2',
                   alignSelf: 'center',
+                  marginTop: 4,
                 }}
               />
-            </View>
 
-            {/* RIGHT shows "sebelum" (previous numerically) - bottom-right corner */}
-            {!atFirst && (
-              <Pressable
+              <View
                 style={{
-                  position: 'absolute',
-                  right: -28,
-                  bottom: -18,
-                  paddingRight: 0,
-                  paddingLeft: 8,
-                  alignItems: 'flex-end',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                  paddingHorizontal: 16,
+                  marginTop: 5,
                 }}
-                onPress={handlePrev}
-                hitSlop={6}
               >
-                <Text style={{ color: '#2D3436', fontSize: 13 }} numberOfLines={1}>
-                  {isJuzMode ? `Juz ${getPrevNext().prev}` : getSurahNameByNum(getPrevNext().prev)}
-                </Text>
-              </Pressable>
-            )}
+                <View style={{ minWidth: 60 }}>
+                  {!atLast && (
+                    <Pressable onPress={handleNext} hitSlop={6}>
+                      <Text
+                        style={{ color: '#2D3436', fontSize: 14, fontWeight: '600', marginTop: -2 }}
+                        numberOfLines={1}
+                      >
+                        {isJuzMode
+                          ? `Juz ${getPrevNext().next}`
+                          : getSurahNameByNum(getPrevNext().next)}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+                <View style={{ minWidth: 60, alignItems: 'flex-end' }}>
+                  {!atFirst && (
+                    <Pressable onPress={handlePrev} hitSlop={6}>
+                      <Text
+                        style={{ color: '#2D3436', fontSize: 14, fontWeight: '600', marginTop: -2 }}
+                        numberOfLines={1}
+                      >
+                        {isJuzMode
+                          ? `Juz ${getPrevNext().prev}`
+                          : getSurahNameByNum(getPrevNext().prev)}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            </View>
           </View>
         </View>
         <Pressable
-          style={[
-            styles.iconButton,
-            { padding: 6, marginRight: -6, marginLeft: 6, marginTop: -20 },
-          ]}
+          style={[styles.iconButton, { padding: 6, marginRight: 6, marginLeft: 6 }]}
           onPress={() => setShowJumpModal(true)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
@@ -1260,15 +1269,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 24,
+    paddingTop: 56,
+    paddingBottom: 25,
     backgroundColor: '#FFF8F0',
   },
   iconButton: { padding: 8 },
   headerTitle: { color: '#2D3436', fontWeight: '500' },
-  headerSubtitle: { color: '#636E72', fontSize: 12, marginTop: 2 },
+  headerSubtitle: { color: '#636E72', fontSize: 14, marginTop: 2 },
   ayahContainer: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 7,
     borderBottomColor: '#f1f1f1',
     borderBottomWidth: 1,
