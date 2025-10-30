@@ -701,21 +701,21 @@ export default function ReaderScreen() {
           }}
           style={[
             styles.iconButton,
-            { paddingLeft: 0, paddingRight: 6, marginRight: 2, marginLeft: -5 },
+            { padding: 6, marginLeft: -6, marginRight: 6, marginTop: -20 },
           ]}
-          hitSlop={6}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Feather name="arrow-left" size={20} color="#2D3436" />
+          <Feather name="arrow-left" size={24} color="#2D3436" />
         </Pressable>
         <View style={{ flex: 1 }}>
           <View
             style={{
               flex: 1,
               position: 'relative',
-              height: 44,
+              height: 40,
               justifyContent: 'flex-end',
               paddingHorizontal: 0,
-              marginTop: 6,
+              marginTop: 0,
             }}
           >
             {/* LEFT shows "sesudah" (next numerically) - bottom-left corner */}
@@ -723,33 +723,43 @@ export default function ReaderScreen() {
               <Pressable
                 style={{
                   position: 'absolute',
-                  left: 0,
-                  bottom: 0,
+                  left: -28,
+                  bottom: -18,
                   paddingLeft: 0,
-                  paddingRight: 8,
+                  paddingRight: 0,
                 }}
                 onPress={handleNext}
                 hitSlop={6}
               >
-                <Text style={{ color: '#2D3436', fontSize: 12 }} numberOfLines={1}>
+                <Text style={{ color: '#2D3436', fontSize: 13 }} numberOfLines={1}>
                   {isJuzMode ? `Juz ${getPrevNext().next}` : getSurahNameByNum(getPrevNext().next)}
                 </Text>
               </Pressable>
             )}
 
-            {/* Current name and subtitle */}
-            <View style={{ alignItems: 'center', paddingBottom: 0, position: 'relative' }}>
-              <Text style={{ color: '#2D3436', fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
+            {/* Current name and subtitle (baseline aligned with corners) */}
+            <View
+              style={{ position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' }}
+            >
+              <Text style={{ color: '#2D3436', fontSize: 15, fontWeight: '700' }} numberOfLines={1}>
                 {isJuzMode ? `Juz ${getPrevNext().curr}` : getSurahNameByNum(getPrevNext().curr)}
               </Text>
-              <Text style={styles.headerSubtitle}>{getSubtitle()}</Text>
+              <Text
+                style={[
+                  styles.headerSubtitle,
+                  { position: 'absolute', bottom: -18, textAlign: 'center', width: '100%' },
+                ]}
+                numberOfLines={1}
+              >
+                {getSubtitle()}
+              </Text>
               {/* Small center indicator like SurahSelector (absolute so baseline aligns) */}
               <View
                 style={{
                   position: 'absolute',
-                  bottom: -6,
+                  bottom: -25,
                   height: 3,
-                  width: 28,
+                  width: 36,
                   borderRadius: 2,
                   backgroundColor: '#C6F7E2',
                   alignSelf: 'center',
@@ -762,8 +772,8 @@ export default function ReaderScreen() {
               <Pressable
                 style={{
                   position: 'absolute',
-                  right: 0,
-                  bottom: 0,
+                  right: -28,
+                  bottom: -18,
                   paddingRight: 0,
                   paddingLeft: 8,
                   alignItems: 'flex-end',
@@ -771,7 +781,7 @@ export default function ReaderScreen() {
                 onPress={handlePrev}
                 hitSlop={6}
               >
-                <Text style={{ color: '#2D3436', fontSize: 12 }} numberOfLines={1}>
+                <Text style={{ color: '#2D3436', fontSize: 13 }} numberOfLines={1}>
                   {isJuzMode ? `Juz ${getPrevNext().prev}` : getSurahNameByNum(getPrevNext().prev)}
                 </Text>
               </Pressable>
@@ -779,11 +789,14 @@ export default function ReaderScreen() {
           </View>
         </View>
         <Pressable
-          style={[styles.iconButton, { paddingRight: 4, paddingLeft: 6, marginLeft: 2 }]}
+          style={[
+            styles.iconButton,
+            { padding: 6, marginRight: -6, marginLeft: 6, marginTop: -20 },
+          ]}
           onPress={() => setShowJumpModal(true)}
-          hitSlop={6}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Feather name="search" size={20} color="#2D3436" />
+          <Feather name="search" size={24} color="#2D3436" />
         </Pressable>
       </View>
       {/* JumpBar and QuickRangeBar removed */}
@@ -1190,7 +1203,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 50,
-    paddingBottom: 12,
+    paddingBottom: 24,
     backgroundColor: '#FFF8F0',
   },
   iconButton: { padding: 8 },
