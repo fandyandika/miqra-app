@@ -50,6 +50,13 @@ import {
   canMeasureText,
   type Item as LayoutItem,
 } from '@/features/quran/layout/measureAyatLayout';
+import {
+  loadTajweedSync,
+  getAyahTajweedRanges,
+  buildTajweedSegments,
+} from '@/services/quran/tajweed';
+import SettingsModal from './components/SettingsModal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ReaderScreen() {
   const route = useRoute<any>();
@@ -78,8 +85,14 @@ export default function ReaderScreen() {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState<boolean>(false);
   const [newFolderName, setNewFolderName] = useState<string>('');
   const [showJumpModal, setShowJumpModal] = useState<boolean>(false);
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [surahList, setSurahList] = useState<SurahMetadata[]>([]);
   const [pendingAyat, setPendingAyat] = useState<number | null>(null);
+
+  // Settings state
+  const [showTajweed, setShowTajweed] = useState<boolean>(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [showTransliteration, setShowTransliteration] = useState<boolean>(false);
 
   // Juz mode state
   const [isJuzMode] = useState(!!juzNumber);
@@ -213,10 +226,8 @@ export default function ReaderScreen() {
     }
   };
 
-  const { surah, loading, selection, resetSelection, showTranslation } = useQuranReader(
-    surahNumber,
-    'id'
-  );
+  const { surah, loading, selection, resetSelection, showTranslation, setShowTranslation } =
+    useQuranReader(surahNumber, 'id');
 
   // Calculate hasanat for current selection (supports both tap selection and checkbox selection)
   useEffect(() => {
@@ -328,6 +339,8 @@ export default function ReaderScreen() {
           const firstPage = getPageForAyah(surahNumber, 1);
           setVisiblePage(typeof firstPage === 'number' ? firstPage : null);
           setVisibleAyat(1);
+          // Prefetch tajweed for current surah
+          loadTajweedSync(surahNumber);
         } catch (error) {
           console.error('Error loading translation or metadata:', error);
         }
@@ -386,6 +399,33 @@ export default function ReaderScreen() {
     loadFolders();
   }, []);
 
+  // Load settings preferences on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const [tajweed, darkMode, transliteration] = await Promise.all([
+          AsyncStorage.getItem('quran_show_tajweed'),
+          AsyncStorage.getItem('quran_dark_mode'),
+          AsyncStorage.getItem('quran_show_transliteration'),
+        ]);
+        if (tajweed !== null) {
+          const val = JSON.parse(tajweed);
+          setShowTajweed(val);
+        }
+        if (darkMode !== null) {
+          const val = JSON.parse(darkMode);
+          setIsDarkMode(val);
+        }
+        if (transliteration !== null) {
+          const val = JSON.parse(transliteration);
+          setShowTransliteration(val);
+        }
+      } catch (e) {
+        console.error('Failed to load settings:', e);
+      }
+    })();
+  }, []);
+
   // Load surah metadata for jump modal
   useEffect(() => {
     (async () => {
@@ -422,8 +462,12 @@ export default function ReaderScreen() {
             setJuzPrevStart(getJuzStartAyah(prev));
             setJuzNextStart(getJuzStartAyah(next));
             // Prefetch adjacent Juz content into memory cache for instant swipe
-            loadJuzContent(prev).then((data) => (juzPrevCacheRef.current = data)).catch(() => {});
-            loadJuzContent(next).then((data) => (juzNextCacheRef.current = data)).catch(() => {});
+            loadJuzContent(prev)
+              .then((data) => (juzPrevCacheRef.current = data))
+              .catch(() => {});
+            loadJuzContent(next)
+              .then((data) => (juzNextCacheRef.current = data))
+              .catch(() => {});
           } catch {}
           setJuzLoading(false);
         })
@@ -512,7 +556,13 @@ export default function ReaderScreen() {
       return;
     }
     // Apply bookmark scroll only once on initial mount (Surah mode), not on every Surah change
-    if (bookmarkAyat && listRef.current && surah?.ayat && !isJuzMode && !initialBookmarkAppliedRef.current) {
+    if (
+      bookmarkAyat &&
+      listRef.current &&
+      surah?.ayat &&
+      !isJuzMode &&
+      !initialBookmarkAppliedRef.current
+    ) {
       setTimeout(() => {
         try {
           scrollToAyat(bookmarkAyat);
@@ -559,6 +609,9 @@ export default function ReaderScreen() {
               surahNumber: firstItem.surahNumber,
               surahName: firstItem.surahName,
             });
+          }
+          if (firstItem?.surahNumber) {
+            loadTajweedSync(firstItem.surahNumber);
           }
         } else {
           // Surah mode: derive page and surah info
@@ -769,7 +822,13 @@ export default function ReaderScreen() {
       } catch {}
     }
     // Depend on values affecting subtitle content
-  }, [isJuzMode, visibleSurahInfo?.surahName, visibleSurahInfo?.surahNumber, surahNumber, visibleAyat]);
+  }, [
+    isJuzMode,
+    visibleSurahInfo?.surahName,
+    visibleSurahInfo?.surahNumber,
+    surahNumber,
+    visibleAyat,
+  ]);
   const selectedCount = isSelectingRange
     ? checkedAyat.size
     : selection.start
@@ -860,116 +919,99 @@ export default function ReaderScreen() {
   const atLast = !isJuzMode ? surahNumber === 114 : ((juzNumber as number) || 1) === 30;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.containerDark]}>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${progress}%` }]} />
       </View>
 
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, isDarkMode && styles.topBarDark]}>
+        {/* Back Button - Left */}
         <Pressable
           onPress={() => {
-            // Always go back to SurahSelector menu instead of history chain
             try {
               navigation.replace('SurahSelector');
             } catch {
               if (navigation.canGoBack()) navigation.goBack();
             }
           }}
-          style={[styles.iconButton, { padding: 6, marginLeft: 6, marginRight: 6 }]}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          style={[styles.headerIconButton, { marginLeft: -8 }]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Feather name="arrow-left" size={24} color="#2D3436" />
+          <Feather name="arrow-left" size={24} color={isDarkMode ? '#F3F4F6' : '#111827'} />
         </Pressable>
-        <View style={{ flex: 1 }}>
-          <View
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              alignItems: 'center',
-              paddingHorizontal: 0,
-              marginTop: 0,
-            }}
+
+        {/* Title & Subtitle - Absolute Center */}
+        <View style={styles.headerCenterAbsolute}>
+          <Text
+            style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}
+            numberOfLines={1}
           >
-            {/* Prev/Next labels below subtitle */}
+            {isJuzMode
+              ? `Juz ${getPrevNext().curr}`
+              : `${getPrevNext().curr}. ${getSurahNameByNum(getPrevNext().curr)}`}
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, isDarkMode && styles.headerSubtitleDark]}
+            accessibilityRole="text"
+            accessible={true}
+            accessibilityLabel={getSubtitle()}
+            numberOfLines={1}
+          >
+            {getSubtitle()}
+          </Text>
+        </View>
 
-            {/* Centered title and subtitle */}
-            <View style={{ alignItems: 'center', marginTop: isJuzMode ? 8 : 0 }}>
-              <Text style={{ color: '#2D3436', fontSize: 15, fontWeight: '700' }} numberOfLines={1}>
-                {isJuzMode ? `Juz ${getPrevNext().curr}` : getSurahNameByNum(getPrevNext().curr)}
-              </Text>
-              <Text
-                style={[
-                  styles.headerSubtitle,
-                  { textAlign: 'center', width: '100%', marginTop: 2 },
-                ]}
-                accessibilityRole="text"
-                accessible={true}
-                accessibilityLabel={getSubtitle()}
-                numberOfLines={1}
-              >
-                {getSubtitle()}
-              </Text>
-              {/* Small center indicator like SurahSelector */}
-              <View
-                style={{
-                  height: 3,
-                  width: 36,
-                  borderRadius: 2,
-                  backgroundColor: '#C6F7E2',
-                  alignSelf: 'center',
-                  marginTop: 4,
-                }}
-              />
+        {/* Action Buttons - Right */}
+        <View style={styles.headerActions}>
+          <Pressable
+            style={[styles.headerIconButton, { marginRight: -4 }]}
+            onPress={() => setShowJumpModal(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="search" size={24} color={isDarkMode ? '#F3F4F6' : '#111827'} />
+          </Pressable>
+          <Pressable
+            style={styles.headerIconButton}
+            onPress={() => setShowSettingsModal(true)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Feather name="more-vertical" size={24} color={isDarkMode ? '#F3F4F6' : '#111827'} />
+          </Pressable>
+        </View>
+      </View>
 
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  width: '100%',
-                  paddingHorizontal: 16,
-                  marginTop: 5,
-                }}
-              >
-                <View style={{ minWidth: 60 }}>
-                  {!atLast && (
-                    <Pressable onPress={handleNext} hitSlop={6}>
-                      <Text
-                        style={{ color: '#2D3436', fontSize: 14, fontWeight: '600', marginTop: -2 }}
-                        numberOfLines={1}
-                      >
-                        {isJuzMode
-                          ? `Juz ${getPrevNext().next}`
-                          : `${getPrevNext().next}. ${getSurahNameByNum(getPrevNext().next)}`}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-                <View style={{ minWidth: 60, alignItems: 'flex-end' }}>
-                  {!atFirst && (
-                    <Pressable onPress={handlePrev} hitSlop={6}>
-                      <Text
-                        style={{ color: '#2D3436', fontSize: 14, fontWeight: '600', marginTop: -2 }}
-                        numberOfLines={1}
-                      >
-                        {isJuzMode
-                          ? `Juz ${getPrevNext().prev}`
-                          : `${getPrevNext().prev}. ${getSurahNameByNum(getPrevNext().prev)}`}
-                      </Text>
-                    </Pressable>
-                  )}
-                </View>
-              </View>
-            </View>
+      {/* Prev/Next Navigation Bar - Below Header */}
+      <View style={[styles.headerNavBar, isDarkMode && styles.headerNavBarDark]}>
+        <View style={styles.headerNavContent}>
+          <View style={styles.headerNavLeft}>
+            {!atLast && (
+              <Pressable onPress={handleNext} style={styles.headerNavButton} hitSlop={8}>
+                <Text
+                  style={[styles.headerNavText, isDarkMode && styles.headerNavTextDark]}
+                  numberOfLines={1}
+                >
+                  {isJuzMode
+                    ? `Juz ${getPrevNext().next}`
+                    : `${getPrevNext().next}. ${getSurahNameByNum(getPrevNext().next)}`}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+          <View style={styles.headerNavRight}>
+            {!atFirst && (
+              <Pressable onPress={handlePrev} style={styles.headerNavButton} hitSlop={8}>
+                <Text
+                  style={[styles.headerNavText, isDarkMode && styles.headerNavTextDark]}
+                  numberOfLines={1}
+                >
+                  {isJuzMode
+                    ? `Juz ${getPrevNext().prev}`
+                    : `${getPrevNext().prev}. ${getSurahNameByNum(getPrevNext().prev)}`}
+                </Text>
+              </Pressable>
+            )}
           </View>
         </View>
-        <Pressable
-          style={[styles.iconButton, { padding: 6, marginRight: 6, marginLeft: 6 }]}
-          onPress={() => setShowJumpModal(true)}
-          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-        >
-          <Feather name="search" size={24} color="#2D3436" />
-        </Pressable>
       </View>
       {/* Swipeable pager with peek */}
       <QuranPager
@@ -1033,6 +1075,8 @@ export default function ReaderScreen() {
                       style={[
                         styles.ayahContainer,
                         index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
+                        isDarkMode && index % 2 === 0 && styles.ayahEvenDark,
+                        isDarkMode && index % 2 === 1 && styles.ayahOddDark,
                         pressedAyah === item.number ? styles.pressed : {},
                         checkedAyat.has(item.number) ? styles.checked : {},
                         highlightedAyat === item.number ? styles.highlighted : {},
@@ -1056,19 +1100,62 @@ export default function ReaderScreen() {
                         <Pressable
                           style={styles.badge}
                           onPress={() =>
-                            scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)
+                            scrollToAyat(
+                              ayahItem.number,
+                              isJuzMode ? ayahItem.surahNumber : undefined
+                            )
                           }
                           hitSlop={8}
                         >
                           <LogoAyat1 width={38} height={38} />
                           <Text style={styles.badgeText}>{item.number}</Text>
                         </Pressable>
-                        <Text style={styles.arabic}>
-                          {item.text}{' '}
-                          <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
-                        </Text>
+                        {(() => {
+                          const sNum = isJuzMode
+                            ? ayahItem.surahNumber || visibleSurahInfo?.surahNumber || surahNumber
+                            : surahNumber;
+
+                          // Render with tajweed if enabled
+                          if (showTajweed) {
+                            loadTajweedSync(sNum);
+                            const ranges = getAyahTajweedRanges(sNum, ayahItem.number);
+                            const segs = buildTajweedSegments(ayahItem.text, ranges, isDarkMode);
+                            return (
+                              <Text style={styles.arabic}>
+                                {segs.map((seg, i) => (
+                                  <Text key={i} style={seg.style}>
+                                    {seg.text}
+                                  </Text>
+                                ))}{' '}
+                                <Text style={styles.ayahNumberInline}>
+                                  {getArabicNumber(ayahItem.number)}
+                                </Text>
+                              </Text>
+                            );
+                          }
+                          // Render without tajweed (plain text)
+                          return (
+                            <Text style={styles.arabic}>
+                              {ayahItem.text}{' '}
+                              <Text style={styles.ayahNumberInline}>
+                                {getArabicNumber(ayahItem.number)}
+                              </Text>
+                            </Text>
+                          );
+                        })()}
                       </View>
-                      {showTranslation && <Text style={styles.translation}>{ayahItem.translation}</Text>}
+                      {showTransliteration && ayahItem.transliteration && (
+                        <Text
+                          style={[styles.transliteration, isDarkMode && styles.transliterationDark]}
+                        >
+                          {ayahItem.transliteration}
+                        </Text>
+                      )}
+                      {showTranslation && (
+                        <Text style={[styles.translation, isDarkMode && styles.translationDark]}>
+                          {ayahItem.translation}
+                        </Text>
+                      )}
                     </Pressable>
                   </>
                 );
@@ -1376,6 +1463,19 @@ export default function ReaderScreen() {
           ayat_count: s.ayat_count,
         }))}
       />
+
+      <SettingsModal
+        visible={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+        showTajweed={showTajweed}
+        setShowTajweed={setShowTajweed}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        showTransliteration={showTransliteration}
+        setShowTransliteration={setShowTransliteration}
+        showTranslation={showTranslation}
+        setShowTranslation={setShowTranslation}
+      />
     </View>
   );
 }
@@ -1387,15 +1487,100 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingRight: 2,
+    paddingTop: 36,
+    paddingBottom: 22,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+    minHeight: 88,
+  },
+  headerIconButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  headerCenterAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 46,
+    bottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+  },
+  headerTitle: {
+    color: '#111827',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.3,
+    marginBottom: 2,
+  },
+  headerSubtitle: {
+    color: '#6B7280',
+    fontSize: 13,
+    fontWeight: '400',
+    marginTop: 0,
+    textAlign: 'center',
+    letterSpacing: -0.1,
+  },
+  headerNavBar: {
+    backgroundColor: '#F9FAFB',
+    borderBottomWidth: 1,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    borderBottomColor: '#F3F4F6',
+    paddingVertical: 5,
+    marginTop: -8,
+  },
+  headerNavContent: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 56,
-    paddingBottom: 25,
-    backgroundColor: '#FFF8F0',
+  },
+  headerNavLeft: {
+    flex: 1,
+    alignItems: 'flex-start',
+  },
+  headerNavRight: {
+    flex: 1,
+    alignItems: 'flex-end',
+  },
+  headerNavButton: {
+    alignItems: 'flex-start',
+  },
+  headerNavLabel: {
+    color: '#9CA3AF',
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  headerNavText: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: -0.2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    gap: 2,
+    marginRight: -2,
   },
   iconButton: { padding: 8 },
-  headerTitle: { color: '#2D3436', fontWeight: '500' },
-  headerSubtitle: { color: '#636E72', fontSize: 14, marginTop: 2 },
   ayahContainer: {
     paddingVertical: 12,
     paddingHorizontal: 7,
@@ -1462,6 +1647,51 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingHorizontal: 18,
     paddingRight: 0,
+  },
+  translationDark: {
+    color: '#E5E5E5',
+  },
+  transliteration: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontStyle: 'italic',
+    marginTop: 4,
+    marginLeft: 8,
+    textAlign: 'left',
+    paddingHorizontal: 18,
+    paddingRight: 0,
+  },
+  transliterationDark: {
+    color: '#9CA3AF',
+  },
+  containerDark: {
+    backgroundColor: '#1F2937',
+  },
+  topBarDark: {
+    backgroundColor: '#1F2937',
+    borderBottomColor: '#374151',
+  },
+  headerTitleDark: {
+    color: '#F9FAFB',
+  },
+  headerSubtitleDark: {
+    color: '#D1D5DB',
+  },
+  headerNavBarDark: {
+    backgroundColor: '#111827',
+    borderBottomColor: '#374151',
+  },
+  headerNavLabelDark: {
+    color: '#6B7280',
+  },
+  headerNavTextDark: {
+    color: '#E5E7EB',
+  },
+  ayahEvenDark: {
+    backgroundColor: '#1F2937',
+  },
+  ayahOddDark: {
+    backgroundColor: '#111827',
   },
   number: { fontSize: 12, color: '#9ca3af', marginTop: 8 },
   selected: { backgroundColor: colors.primary + '10' },
