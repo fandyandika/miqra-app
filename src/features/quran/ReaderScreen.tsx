@@ -946,9 +946,7 @@ export default function ReaderScreen() {
             style={[styles.headerTitle, isDarkMode && styles.headerTitleDark]}
             numberOfLines={1}
           >
-            {isJuzMode
-              ? `Juz ${getPrevNext().curr}`
-              : `${getPrevNext().curr}. ${getSurahNameByNum(getPrevNext().curr)}`}
+            {isJuzMode ? `Juz ${getPrevNext().curr}` : `${getSurahNameByNum(getPrevNext().curr)}`}
           </Text>
           <Text
             style={[styles.headerSubtitle, isDarkMode && styles.headerSubtitleDark]}
