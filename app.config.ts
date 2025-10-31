@@ -8,13 +8,25 @@ export default {
     orientation: 'portrait',
     userInterfaceStyle: 'light',
     assetBundlePatterns: ['**/*'],
+    icon: './assets/icons/icon.png',
+    favicon: './assets/icons/favicon.png',
     splash: {
       image: './assets/splash/logo.png',
       backgroundColor: '#10b981',
       resizeMode: 'contain',
     },
-    ios: { supportsTablet: true, bundleIdentifier: 'com.miqra.miqra' },
-    android: { package: 'com.miqra.miqra' },
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: 'com.miqra.miqra',
+      icon: './assets/icons/icon.png',
+    },
+    android: {
+      package: 'com.miqra.miqra',
+      adaptiveIcon: {
+        foregroundImage: './assets/icons/adaptive-icon.png',
+        backgroundColor: '#10b981',
+      },
+    },
     plugins: [
       'expo-notifications',
       'expo-router',

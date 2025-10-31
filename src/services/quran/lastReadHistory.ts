@@ -36,5 +36,3 @@ export async function deleteLastReadHistory(id: string) {
     .eq('user_id', user.id);
   if (error) throw error;
 }
-
-

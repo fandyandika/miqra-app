@@ -22,11 +22,11 @@ export interface AyahWithSurahInfo extends Ayah {
 }
 
 // Load Juz boundaries from JSON source to avoid name mismatches
-type JuzJson = Array<{
+type JuzJson = {
   index: string; // '01'..'30'
   start: { index: string; verse: string; name: string };
   end: { index: string; verse: string; name: string };
-}>;
+}[];
 
 function parseSurahIndex(indexStr: string): number {
   // e.g. '046' -> 46
@@ -44,7 +44,7 @@ function parseVerseNumber(verseKey: string): number {
  * Get Juz boundary information
  */
 export async function getJuzBoundary(juzNumber: number): Promise<JuzBoundary> {
-  const juzList: JuzJson = require('../../../assets/quran/juz.json');
+  const juzList: JuzJson = require('../../../assets/quran/metadata/juz.json');
   const juz = juzList.find((j) => parseInt(j.index, 10) === juzNumber);
   if (!juz) {
     throw new Error(`Juz ${juzNumber} not found`);
@@ -54,13 +54,9 @@ export async function getJuzBoundary(juzNumber: number): Promise<JuzBoundary> {
   const startSurah = parseSurahIndex(juz.start.index);
   const startAyah = parseVerseNumber(juz.start.verse);
 
-  // Determine end point
-  let endSurah: number;
-  let endAyah: number;
-
-  // End is defined in the same JSON entry
-  endSurah = parseSurahIndex(juz.end.index);
-  endAyah = parseVerseNumber(juz.end.verse);
+  // Determine end point - End is defined in the same JSON entry
+  const endSurah = parseSurahIndex(juz.end.index);
+  const endAyah = parseVerseNumber(juz.end.verse);
 
   return {
     juzNumber,

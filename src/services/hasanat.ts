@@ -232,13 +232,13 @@ export async function getHasanatStats(): Promise<HasanatStats> {
  */
 export async function getHasanatLeaderboard(familyId?: string): Promise<{
   personal: HasanatStats;
-  family: Array<{
+  family: {
     user_id: string;
     name: string;
     total_hasanat: number;
     total_letters: number;
     streak_days: number;
-  }>;
+  }[];
 }> {
   const {
     data: { user },

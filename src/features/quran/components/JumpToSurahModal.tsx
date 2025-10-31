@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { colors } from '@/theme/colors';
@@ -8,7 +8,7 @@ interface JumpToSurahModalProps {
   onClose: () => void;
   onJump: (surah: number, ayat: number) => void;
   currentSurah?: number;
-  surahList: Array<{ number: number; name: string; ayat_count: number }>;
+  surahList: { number: number; name: string; ayat_count: number }[];
 }
 
 export default function JumpToSurahModal({
@@ -68,9 +68,17 @@ export default function JumpToSurahModal({
           </View>
 
           <View style={styles.pickerContainer}>
-            <Picker selectedValue={selectedSurah} onValueChange={setSelectedSurah} style={styles.picker}>
+            <Picker
+              selectedValue={selectedSurah}
+              onValueChange={setSelectedSurah}
+              style={styles.picker}
+            >
               {surahList.map((surah) => (
-                <Picker.Item key={surah.number} label={`${surah.number}. ${surah.name}`} value={surah.number} />
+                <Picker.Item
+                  key={surah.number}
+                  label={`${surah.number}. ${surah.name}`}
+                  value={surah.number}
+                />
               ))}
             </Picker>
           </View>
@@ -154,4 +162,3 @@ const styles = StyleSheet.create({
   okButton: { backgroundColor: colors.primary },
   okButtonText: { fontSize: 15, fontWeight: '600', color: '#fff' },
 });
-

@@ -11,7 +11,6 @@ import {
   analyticsKeys,
 } from '@/services/analytics';
 import { getComparativeStatsWithFamiliesDirect } from '@/services/familyAnalyticsDirect';
-import { debugFamilyData } from '@/services/debugFamily';
 import { getSettings } from '@/services/profile';
 import { getCurrentStreak } from '@/services/checkins';
 import { getUserTotalHasanat, getDailyHasanat } from '@/services/hasanat';

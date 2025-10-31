@@ -120,4 +120,3 @@ export default function QuranPager({
 const styles = StyleSheet.create({
   page: { flex: 1 },
 });
-

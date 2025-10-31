@@ -43,7 +43,7 @@ function parseSurahIndex(indexStr: string): number {
   return Number.isFinite(n) ? n : 1;
 }
 
-const juzList: JuzJson = require('../../../assets/quran/juz.json');
+const juzList: JuzJson = require('../../../assets/quran/metadata/juz.json');
 const juzData = juzList.map((j) => ({
   number: parseInt(j.index, 10),
   surahNumber: parseSurahIndex(j.start.index),

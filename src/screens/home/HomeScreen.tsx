@@ -133,7 +133,7 @@ export default function HomeScreen() {
         />
       }
     >
-      <Text className="text-2xl font-semibold text-charcoal">As-salamu alaykum</Text>
+      <Text className="text-2xl font-semibold text-charcoal">Assalamu'alaikum</Text>
 
       {/* TreeView Hero Section */}
       {(() => {

@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { loadSurahCombined } from '@/services/quran/quranData';
+import { useState, useEffect, useCallback } from 'react';
+import { loadSurahCombined, type Surah } from '@/services/quran/quranData';
 import { supabase } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TRANSLATION_TOGGLE_KEY = 'quran_show_translation';
 
 export function useQuranReader(initialSurah = 1, lang = 'id') {
-  const [surah, setSurah] = useState<any>(null);
+  const [surah, setSurah] = useState<Surah | null>(null);
   const [currentAyah, setCurrentAyah] = useState<number>(1);
   const [selection, setSelection] = useState<{ start: number; end: number | null }>({
     start: 0,
@@ -15,6 +15,21 @@ export function useQuranReader(initialSurah = 1, lang = 'id') {
   const [showTranslation, setShowTranslation] = useState(true);
   const [loading, setLoading] = useState(false);
 
+  const load = useCallback(
+    async (number: number) => {
+      setLoading(true);
+      try {
+        const data = await loadSurahCombined(number, lang);
+        setSurah(data);
+      } catch (e) {
+        console.error('Failed to load surah:', e);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [lang]
+  );
+
   // Load translation preference on mount
   useEffect(() => {
     loadTranslationPreference();
@@ -22,7 +37,7 @@ export function useQuranReader(initialSurah = 1, lang = 'id') {
 
   useEffect(() => {
     load(initialSurah);
-  }, [initialSurah]);
+  }, [initialSurah, load]);
 
   async function loadTranslationPreference() {
     try {
@@ -32,18 +47,6 @@ export function useQuranReader(initialSurah = 1, lang = 'id') {
       }
     } catch (error) {
       console.error('Failed to load translation preference:', error);
-    }
-  }
-
-  async function load(number: number) {
-    setLoading(true);
-    try {
-      const data = await loadSurahCombined(number, lang);
-      setSurah(data);
-    } catch (e) {
-      console.error('Failed to load surah:', e);
-    } finally {
-      setLoading(false);
     }
   }
 

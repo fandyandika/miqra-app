@@ -7,7 +7,7 @@ import AyahReader from '@/features/baca/components/AyahReader';
 import SurahSelector from '@/features/quran/SurahSelector';
 import LogReadingScreen from '@/features/reading/LogReadingScreen';
 import SearchModal from '@/features/quran/SearchModal';
-import LastReadScreen from '@/screens/LastReadScreen';
+import LastReadScreen from '@/screens/last-read/LastReadScreen';
 
 export type BacaStackParamList = {
   BacaHome: undefined;

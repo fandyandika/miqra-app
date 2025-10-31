@@ -4,7 +4,6 @@ import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEYS = {
-  TAJWEED: 'quran_show_tajweed',
   DARK_MODE: 'quran_dark_mode',
   TRANSLITERATION: 'quran_show_transliteration',
 };
@@ -12,8 +11,6 @@ const STORAGE_KEYS = {
 interface SettingsModalProps {
   visible: boolean;
   onClose: () => void;
-  showTajweed: boolean;
-  setShowTajweed: (value: boolean) => void;
   isDarkMode: boolean;
   setIsDarkMode: (value: boolean) => void;
   showTransliteration: boolean;
@@ -25,8 +22,6 @@ interface SettingsModalProps {
 export default function SettingsModal({
   visible,
   onClose,
-  showTajweed,
-  setShowTajweed,
   isDarkMode,
   setIsDarkMode,
   showTransliteration,
@@ -34,16 +29,6 @@ export default function SettingsModal({
   showTranslation,
   setShowTranslation,
 }: SettingsModalProps) {
-  const handleToggleTajweed = async (value: boolean) => {
-    setShowTajweed(value);
-    try {
-      await AsyncStorage.setItem(STORAGE_KEYS.TAJWEED, JSON.stringify(value));
-      console.log('Tajweed toggled to:', value);
-    } catch (e) {
-      console.error('Failed to save tajweed preference:', e);
-    }
-  };
-
   const handleToggleDarkMode = async (value: boolean) => {
     setIsDarkMode(value);
     try {
@@ -84,14 +69,6 @@ export default function SettingsModal({
           </View>
 
           <View style={styles.content}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingInfo}>
-                <Text style={styles.settingLabel}>Tajwid</Text>
-                <Text style={styles.settingDesc}>Tampilkan warna tajwid pada teks Arab</Text>
-              </View>
-              <Switch value={showTajweed} onValueChange={handleToggleTajweed} />
-            </View>
-
             <View style={styles.settingRow}>
               <View style={styles.settingInfo}>
                 <Text style={styles.settingLabel}>Mode Gelap</Text>
@@ -174,4 +151,3 @@ const styles = StyleSheet.create({
     color: '#7F8C8D',
   },
 });
-

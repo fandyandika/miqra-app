@@ -1,57 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type Ayah = {
-  number: number;
-  text: string;
-  translation?: string;
-};
-
-export type Surah = {
-  number: number;
-  name: string;
-  ayat_count: number;
-  ayat: Ayah[];
-  source?: { dataset: string; version: string };
-};
-
-const CACHE_PREFIX = 'quran_surah_kemenagitconvert_v1_';
-
-// Remove basmalah from ayah 1 for surahs where it is not counted as an ayah
-function stripBasmalahIfPresent(
-  surahNumber: number,
-  ayat: { number: number; text: string }[]
-): { number: number; text: string }[] {
-  if (!Array.isArray(ayat) || ayat.length === 0) return ayat;
-  // Keep basmalah only for Al-Fatihah (1). At-Tawbah (9) has no basmalah.
-  if (surahNumber === 1 || surahNumber === 9) return ayat;
-  const first = ayat[0];
-  if (!first || typeof first.text !== 'string') return ayat;
-  // Normalize: remove BOM, tatweel, and collapse spaces
-  const raw = first.text || '';
-  const text = raw
-    .replace(/^\uFEFF/, '')
-    .replace(/ـ+/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  // Find the end of basmalah by scanning common endings
-  const endings = ['ٱلرَّحِيمِ', 'ٱلرَّحِيمِ', 'الرَّحِيمِ', 'الرَّحِيمِ', 'الرحيم'];
-  let endIdx = -1;
-  let endToken = '';
-  for (const token of endings) {
-    const idx = text.indexOf(token);
-    if (idx !== -1 && (endIdx === -1 || idx < endIdx)) {
-      endIdx = idx;
-      endToken = token;
-    }
-  }
-  if (endIdx !== -1 && endIdx < 80) {
-    const cleaned = text.slice(endIdx + endToken.length).trim();
-    const updated = { ...first, text: cleaned };
-    return [updated, ...ayat.slice(1)];
-  }
-  return ayat;
-}
-
 // Static imports for surah 1-114 - Using kemenagitconvert data
 import surah001Arabic from '../../../assets/quran/kemenagitconvert/surah_001.json';
 import surah001Indonesian from '../../../assets/quran/id/surah_001.id.json';
@@ -281,6 +229,58 @@ import surah113Arabic from '../../../assets/quran/kemenagitconvert/surah_113.jso
 import surah113Indonesian from '../../../assets/quran/id/surah_113.id.json';
 import surah114Arabic from '../../../assets/quran/kemenagitconvert/surah_114.json';
 import surah114Indonesian from '../../../assets/quran/id/surah_114.id.json';
+
+export type Ayah = {
+  number: number;
+  text: string;
+  translation?: string;
+};
+
+export type Surah = {
+  number: number;
+  name: string;
+  ayat_count: number;
+  ayat: Ayah[];
+  source?: { dataset: string; version: string };
+};
+
+const CACHE_PREFIX = 'quran_surah_kemenagitconvert_v1_';
+
+// Remove basmalah from ayah 1 for surahs where it is not counted as an ayah
+function stripBasmalahIfPresent(
+  surahNumber: number,
+  ayat: { number: number; text: string }[]
+): { number: number; text: string }[] {
+  if (!Array.isArray(ayat) || ayat.length === 0) return ayat;
+  // Keep basmalah only for Al-Fatihah (1). At-Tawbah (9) has no basmalah.
+  if (surahNumber === 1 || surahNumber === 9) return ayat;
+  const first = ayat[0];
+  if (!first || typeof first.text !== 'string') return ayat;
+  // Normalize: remove BOM, tatweel, and collapse spaces
+  const raw = first.text || '';
+  const text = raw
+    .replace(/^\uFEFF/, '')
+    .replace(/ـ+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // Find the end of basmalah by scanning common endings
+  const endings = ['ٱلرَّحِيمِ', 'ٱلرَّحِيمِ', 'الرَّحِيمِ', 'الرَّحِيمِ', 'الرحيم'];
+  let endIdx = -1;
+  let endToken = '';
+  for (const token of endings) {
+    const idx = text.indexOf(token);
+    if (idx !== -1 && (endIdx === -1 || idx < endIdx)) {
+      endIdx = idx;
+      endToken = token;
+    }
+  }
+  if (endIdx !== -1 && endIdx < 80) {
+    const cleaned = text.slice(endIdx + endToken.length).trim();
+    const updated = { ...first, text: cleaned };
+    return [updated, ...ayat.slice(1)];
+  }
+  return ayat;
+}
 
 // Arabic data mapping
 
@@ -677,7 +677,7 @@ export async function loadSurahMetadata(): Promise<SurahMetadata[]> {
     const daftarData = daftarSurat.data || [];
 
     // Also load metadata for type and other info
-    const metadata = require('../../../assets/quran/surah_meta_final.json');
+    const metadata = require('../../../assets/quran/metadata/surah_meta_final.json');
 
     return daftarData.map((d: any) => {
       const meta = metadata.find((m: any) => m.number === d.id);
@@ -699,7 +699,7 @@ export async function loadSurahMetadata(): Promise<SurahMetadata[]> {
 
     // Fallback to surah_meta_final.json
     try {
-      const metadata = require('../../../assets/quran/surah_meta_final.json');
+      const metadata = require('../../../assets/quran/metadata/surah_meta_final.json');
       return metadata.map((s: any) => ({
         number: s.number,
         name: s.name_id || s.name_translit || '',

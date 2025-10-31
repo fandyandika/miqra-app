@@ -50,11 +50,6 @@ import {
   canMeasureText,
   type Item as LayoutItem,
 } from '@/features/quran/layout/measureAyatLayout';
-import {
-  loadTajweedSync,
-  getAyahTajweedRanges,
-  buildTajweedSegments,
-} from '@/services/quran/tajweed';
 import SettingsModal from './components/SettingsModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -90,7 +85,6 @@ export default function ReaderScreen() {
   const [pendingAyat, setPendingAyat] = useState<number | null>(null);
 
   // Settings state
-  const [showTajweed, setShowTajweed] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
   const [showTransliteration, setShowTransliteration] = useState<boolean>(false);
 
@@ -339,8 +333,6 @@ export default function ReaderScreen() {
           const firstPage = getPageForAyah(surahNumber, 1);
           setVisiblePage(typeof firstPage === 'number' ? firstPage : null);
           setVisibleAyat(1);
-          // Prefetch tajweed for current surah
-          loadTajweedSync(surahNumber);
         } catch (error) {
           console.error('Error loading translation or metadata:', error);
         }
@@ -403,15 +395,10 @@ export default function ReaderScreen() {
   useEffect(() => {
     (async () => {
       try {
-        const [tajweed, darkMode, transliteration] = await Promise.all([
-          AsyncStorage.getItem('quran_show_tajweed'),
+        const [darkMode, transliteration] = await Promise.all([
           AsyncStorage.getItem('quran_dark_mode'),
           AsyncStorage.getItem('quran_show_transliteration'),
         ]);
-        if (tajweed !== null) {
-          const val = JSON.parse(tajweed);
-          setShowTajweed(val);
-        }
         if (darkMode !== null) {
           const val = JSON.parse(darkMode);
           setIsDarkMode(val);
@@ -609,9 +596,6 @@ export default function ReaderScreen() {
               surahNumber: firstItem.surahNumber,
               surahName: firstItem.surahName,
             });
-          }
-          if (firstItem?.surahNumber) {
-            loadTajweedSync(firstItem.surahNumber);
           }
         } else {
           // Surah mode: derive page and surah info
@@ -1108,39 +1092,12 @@ export default function ReaderScreen() {
                           <LogoAyat1 width={38} height={38} />
                           <Text style={styles.badgeText}>{item.number}</Text>
                         </Pressable>
-                        {(() => {
-                          const sNum = isJuzMode
-                            ? ayahItem.surahNumber || visibleSurahInfo?.surahNumber || surahNumber
-                            : surahNumber;
-
-                          // Render with tajweed if enabled
-                          if (showTajweed) {
-                            loadTajweedSync(sNum);
-                            const ranges = getAyahTajweedRanges(sNum, ayahItem.number);
-                            const segs = buildTajweedSegments(ayahItem.text, ranges, isDarkMode);
-                            return (
-                              <Text style={styles.arabic}>
-                                {segs.map((seg, i) => (
-                                  <Text key={i} style={seg.style}>
-                                    {seg.text}
-                                  </Text>
-                                ))}{' '}
-                                <Text style={styles.ayahNumberInline}>
-                                  {getArabicNumber(ayahItem.number)}
-                                </Text>
-                              </Text>
-                            );
-                          }
-                          // Render without tajweed (plain text)
-                          return (
-                            <Text style={styles.arabic}>
-                              {ayahItem.text}{' '}
-                              <Text style={styles.ayahNumberInline}>
-                                {getArabicNumber(ayahItem.number)}
-                              </Text>
-                            </Text>
-                          );
-                        })()}
+                        <Text style={styles.arabic}>
+                          {ayahItem.text}{' '}
+                          <Text style={styles.ayahNumberInline}>
+                            {getArabicNumber(ayahItem.number)}
+                          </Text>
+                        </Text>
                       </View>
                       {showTransliteration && ayahItem.transliteration && (
                         <Text
@@ -1465,8 +1422,6 @@ export default function ReaderScreen() {
       <SettingsModal
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
-        showTajweed={showTajweed}
-        setShowTajweed={setShowTajweed}
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
         showTransliteration={showTransliteration}

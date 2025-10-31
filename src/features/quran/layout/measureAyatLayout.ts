@@ -10,7 +10,10 @@ export type Item = {
 
 type Key = string;
 
-const cache = new Map<Key, { lengths: number[]; offsets: number[]; indexMap: Record<string, number> }>();
+const cache = new Map<
+  Key,
+  { lengths: number[]; offsets: number[]; indexMap: Record<string, number> }
+>();
 
 export async function buildLayoutExact(
   items: Item[],
@@ -26,23 +29,33 @@ export async function buildLayoutExact(
     cacheKey: Key;
   }
 ) {
-  const { isJuz, surahNumber, showTranslation, width, headerHeight, arabic, trans, row, cacheKey } = opts;
+  const { isJuz, surahNumber, showTranslation, width, headerHeight, arabic, trans, row, cacheKey } =
+    opts;
 
-  const borderPx = Platform.OS === 'ios' ? row.borderBottom : PixelRatio.roundToNearestPixel(row.borderBottom);
+  const borderPx =
+    Platform.OS === 'ios' ? row.borderBottom : PixelRatio.roundToNearestPixel(row.borderBottom);
 
-  const fullKey = `${cacheKey}|w=${width}|hH=${headerHeight}|a=${arabic.fontSize}-${arabic.lineHeight}|t=${showTranslation ? `${trans.fontSize}-${trans.lineHeight}` : '0'}`;
+  const fullKey = `${cacheKey}|w=${width}|hH=${headerHeight}|a=${arabic.fontSize}-${arabic.lineHeight}|t=${
+    showTranslation ? `${trans.fontSize}-${trans.lineHeight}` : '0'
+  }`;
 
   const cached = cache.get(fullKey);
   if (cached) return cached;
 
   const aHeights = await Promise.all(
-    items.map((it) => RNTextSize.measure({ text: String(it.text ?? ''), width, ...arabic }).then((b) => Math.ceil(b.height)))
+    items.map((it) =>
+      RNTextSize.measure({ text: String(it.text ?? ''), width, ...arabic }).then((b) =>
+        Math.ceil(b.height)
+      )
+    )
   );
 
   const tHeights = showTranslation
     ? await Promise.all(
         items.map((it) =>
-          RNTextSize.measure({ text: String(it.translation ?? ''), width, ...trans }).then((b) => Math.ceil(b.height))
+          RNTextSize.measure({ text: String(it.translation ?? ''), width, ...trans }).then((b) =>
+            Math.ceil(b.height)
+          )
         )
       )
     : items.map(() => 0);
@@ -71,8 +84,6 @@ export async function buildLayoutExact(
 }
 
 export function canMeasureText(): boolean {
-  // @ts-ignore
+  // @ts-expect-error - react-native-text-size has no default export type
   return !!(RNTextSize && (RNTextSize as any).measure);
 }
-
-

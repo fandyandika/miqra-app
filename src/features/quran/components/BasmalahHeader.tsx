@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import BismillahSvg from '@/../assets/Bismillah.svg';
+import BismillahSvg from '@/../assets/icons/Bismillah.svg';
 
 export default function BasmalahHeader() {
   return (

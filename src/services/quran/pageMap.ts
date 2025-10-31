@@ -10,7 +10,7 @@ type PageMapEntry = {
 let loaded = false;
 let ayahKeyToPage: Map<string, number> | null = null;
 let ayahKeyToJuz: Map<string, number> | null = null;
-let pageToAyahRanges: Map<number, Array<{ surah: number; ayah: number }>> | null = null;
+let pageToAyahRanges: Map<number, { surah: number; ayah: number }[]> | null = null;
 
 function makeKey(surah: number, ayah: number): string {
   return `${surah}:${ayah}`;
@@ -18,7 +18,7 @@ function makeKey(surah: number, ayah: number): string {
 
 function ensureLoaded() {
   if (loaded) return;
-  const data: PageMapEntry[] = require('../../../assets/data/page_map.json');
+  const data: PageMapEntry[] = require('../../../assets/quran/metadata/page_map.json');
 
   ayahKeyToPage = new Map();
   ayahKeyToJuz = new Map();
@@ -64,7 +64,7 @@ export function getJuzForAyah(surah: number, ayah: number): number | undefined {
   return typeof juz === 'number' ? juz : undefined;
 }
 
-export function getAyahsForPage(page: number): Array<{ surah: number; ayah: number }> {
+export function getAyahsForPage(page: number): { surah: number; ayah: number }[] {
   ensureLoaded();
   return [...(pageToAyahRanges?.get(page) || [])];
 }

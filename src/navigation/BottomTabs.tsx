@@ -340,14 +340,14 @@ export default function BottomTabs() {
         component={BacaStack}
         options={{
           tabBarLabel: 'Baca',
-          tabBarIcon: 'book-open-variant' as any,
+          tabBarIcon: 'book-open-blank-variant' as any,
         }}
       />
       <Tab.Screen
         name="Family"
         component={FamilyScreen}
         options={{
-          tabBarLabel: 'Circle',
+          tabBarLabel: 'Community',
           tabBarIcon: 'chat-outline' as any,
         }}
       />
