@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { colors } from '@/theme/colors';
 import { useQuery } from '@tanstack/react-query';
 import { getBookmark } from '@/services/quran/bookmarkService';
+import { Feather } from '@expo/vector-icons';
 
 export default function BacaScreen() {
   const { user } = useAuth();
@@ -39,7 +40,7 @@ export default function BacaScreen() {
           }}
         >
           <View style={styles.continueIcon}>
-            <Text style={styles.continueEmoji}>📖</Text>
+            <Feather name="play-circle" size={22} color={colors.primary} />
           </View>
           <View style={styles.continueContent}>
             <Text style={styles.continueLabel}>Lanjutkan Bacaan</Text>
@@ -48,7 +49,7 @@ export default function BacaScreen() {
             </Text>
             {bookmark.juz && <Text style={styles.continueMeta}>Juz {bookmark.juz}</Text>}
           </View>
-          <Text style={styles.continueArrow}>→</Text>
+          <Feather name="chevron-right" size={22} color={colors.primary} />
         </Pressable>
       )}
 
@@ -105,25 +106,22 @@ const styles = StyleSheet.create({
   continueCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary + '15',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: colors.primary + '30',
   },
   continueIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
-  },
-  continueEmoji: {
-    fontSize: 24,
+    marginRight: 16,
   },
   continueContent: {
     flex: 1,
@@ -144,9 +142,5 @@ const styles = StyleSheet.create({
   continueMeta: {
     fontSize: 13,
     color: '#6B7280',
-  },
-  continueArrow: {
-    fontSize: 24,
-    color: colors.primary,
   },
 });

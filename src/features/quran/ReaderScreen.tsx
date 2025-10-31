@@ -53,6 +53,14 @@ import {
 import SettingsModal from './components/SettingsModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Arabic font constants - centralize font settings
+const ARABIC_FONT_CONFIG = {
+  fontFamily: 'LPMQ-Isep-Misbah',
+  fontSize: 26,
+  lineHeight: 60,
+  allowFontScaling: false,
+} as const;
+
 export default function ReaderScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -358,12 +366,7 @@ export default function ReaderScreen() {
             showTranslation: !!showTranslation,
             width: contentWidth,
             headerHeight: headerH,
-            arabic: {
-              fontFamily: 'UthmanicHafs',
-              fontSize: 32,
-              lineHeight: 60,
-              allowFontScaling: false,
-            },
+            arabic: ARABIC_FONT_CONFIG,
             trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
             row: { padV: 10, padH: 7, borderBottom: 1 },
           } as any;
@@ -867,12 +870,7 @@ export default function ReaderScreen() {
           showTranslation: !!showTranslation,
           width: contentWidth,
           headerHeight: headerH,
-          arabic: {
-            fontFamily: 'UthmanicHafs',
-            fontSize: 32,
-            lineHeight: 60,
-            allowFontScaling: false,
-          },
+          arabic: ARABIC_FONT_CONFIG,
           trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
           row: { padV: 10, padH: 7, borderBottom: 1 },
           cacheKey,
@@ -1099,13 +1097,18 @@ export default function ReaderScreen() {
                           </Text>
                         </Text>
                       </View>
-                      {showTransliteration && ayahItem.transliteration && (
-                        <Text
-                          style={[styles.transliteration, isDarkMode && styles.transliterationDark]}
-                        >
-                          {ayahItem.transliteration}
-                        </Text>
-                      )}
+                      {showTransliteration &&
+                        'transliteration' in ayahItem &&
+                        (ayahItem as any).transliteration && (
+                          <Text
+                            style={[
+                              styles.transliteration,
+                              isDarkMode && styles.transliterationDark,
+                            ]}
+                          >
+                            {(ayahItem as any).transliteration}
+                          </Text>
+                        )}
                       {showTranslation && (
                         <Text style={[styles.translation, isDarkMode && styles.translationDark]}>
                           {ayahItem.translation}
@@ -1576,10 +1579,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   arabic: {
-    fontSize: 32,
-    lineHeight: 60,
+    fontSize: ARABIC_FONT_CONFIG.fontSize,
+    lineHeight: ARABIC_FONT_CONFIG.lineHeight,
     textAlign: 'right',
-    fontFamily: 'UthmanicHafs',
+    fontFamily: ARABIC_FONT_CONFIG.fontFamily,
     paddingVertical: 4,
     paddingRight: 0,
     overflow: 'visible',
@@ -1587,7 +1590,7 @@ const styles = StyleSheet.create({
   },
   ayahNumberInline: {
     fontSize: 27,
-    fontFamily: 'UthmanicHafs',
+    fontFamily: ARABIC_FONT_CONFIG.fontFamily,
     color: '#4B5563',
     fontWeight: '600',
   },

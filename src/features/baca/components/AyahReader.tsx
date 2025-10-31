@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useQuranReader } from '@/features/quran/useQuranReader';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { colors } from '@/theme/colors';
+import { loadSurahMetadata, type SurahMetadata } from '@/services/quran/quranData';
 
 interface AyahReaderProps {
   initialSurah?: number;
@@ -17,10 +18,35 @@ export default function AyahReader({
   onClose,
 }: AyahReaderProps) {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const [currentSurah, setCurrentSurah] = useState(initialSurah);
   const [currentAyat, setCurrentAyat] = useState(initialAyat);
+  const [surahMetadata, setSurahMetadata] = useState<SurahMetadata[]>([]);
 
   const { surah, loading } = useQuranReader(currentSurah, 'id');
+
+  // Load surah metadata for ayat count
+  useEffect(() => {
+    (async () => {
+      try {
+        const metadata = await loadSurahMetadata();
+        setSurahMetadata(metadata);
+      } catch (error) {
+        console.error('Failed to load surah metadata:', error);
+      }
+    })();
+  }, []);
+
+  // Sync with route params
+  useEffect(() => {
+    const params = route?.params || {};
+    if (params.surahNumber && params.surahNumber !== currentSurah) {
+      setCurrentSurah(params.surahNumber);
+    }
+    if (params.ayatNumber && params.ayatNumber !== currentAyat) {
+      setCurrentAyat(params.ayatNumber);
+    }
+  }, [route?.params]);
 
   const getArabicNumber = (num: number): string => {
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -48,10 +74,11 @@ export default function AyahReader({
     if (currentAyat > 1) {
       setCurrentAyat(currentAyat - 1);
     } else if (currentSurah > 1) {
-      setCurrentSurah(currentSurah - 1);
-      // Set ayat ke ayat terakhir surah sebelumnya
-      // TODO: Get previous surah's ayat count
-      setCurrentAyat(1);
+      const prevSurah = currentSurah - 1;
+      const prevSurahMeta = surahMetadata.find((m) => m.number === prevSurah);
+      const prevSurahAyatCount = prevSurahMeta?.ayat_count || 1;
+      setCurrentSurah(prevSurah);
+      setCurrentAyat(prevSurahAyatCount);
     }
   };
 
@@ -167,13 +194,13 @@ const styles = StyleSheet.create({
     fontSize: 32,
     lineHeight: 68,
     textAlign: 'center',
-    fontFamily: 'UthmanicHafs',
+    fontFamily: 'LPMQ-Isep-Misbah',
     color: '#2D3436',
     marginBottom: 24,
   },
   ayahNumberInline: {
     fontSize: 30,
-    fontFamily: 'UthmanicHafs',
+    fontFamily: 'LPMQ-Isep-Misbah',
     color: '#4B5563',
     fontWeight: '600',
   },

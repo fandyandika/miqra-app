@@ -29,6 +29,32 @@ export default function SettingsModal({
   showTranslation,
   setShowTranslation,
 }: SettingsModalProps) {
+  // Load initial state from AsyncStorage
+  useEffect(() => {
+    if (!visible) return;
+    (async () => {
+      try {
+        const [darkMode, transliteration, translation] = await Promise.all([
+          AsyncStorage.getItem(STORAGE_KEYS.DARK_MODE),
+          AsyncStorage.getItem(STORAGE_KEYS.TRANSLITERATION),
+          AsyncStorage.getItem('quran_show_translation'),
+        ]);
+
+        if (darkMode !== null) {
+          setIsDarkMode(JSON.parse(darkMode));
+        }
+        if (transliteration !== null) {
+          setShowTransliteration(JSON.parse(transliteration));
+        }
+        if (translation !== null) {
+          setShowTranslation(JSON.parse(translation));
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    })();
+  }, [visible, setIsDarkMode, setShowTransliteration, setShowTranslation]);
+
   const handleToggleDarkMode = async (value: boolean) => {
     setIsDarkMode(value);
     try {
@@ -92,6 +118,7 @@ export default function SettingsModal({
               </View>
               <Switch value={showTranslation} onValueChange={handleToggleTranslation} />
             </View>
+
           </View>
         </Pressable>
       </Pressable>
