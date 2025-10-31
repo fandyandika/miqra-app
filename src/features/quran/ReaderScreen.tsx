@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Dimensions } from 'react-native';
 import QuranPager from './components/QuranPager';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
 import { useQuranReader } from './useQuranReader';
@@ -21,7 +21,9 @@ import { colors } from '@/theme/colors';
 import { useAuth } from '@/hooks/useAuth';
 import { useMutation } from '@tanstack/react-query';
 import { createReadingSession, ReadingSessionInput } from '@/services/reading';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BacaStackParamList } from '@/navigation/BacaStack';
 import { supabase } from '@/lib/supabase';
 import BasmalahHeader from '@/features/quran/components/BasmalahHeader';
 import JumpToSurahModal from '@/features/quran/components/JumpToSurahModal';
@@ -61,14 +63,17 @@ const ARABIC_FONT_CONFIG = {
   allowFontScaling: false,
 } as const;
 
+type ReaderScreenRouteProp = RouteProp<BacaStackParamList, 'Reader'>;
+type ReaderScreenNavigationProp = NativeStackNavigationProp<BacaStackParamList, 'Reader'>;
+
 export default function ReaderScreen() {
-  const route = useRoute<any>();
-  const navigation = useNavigation<any>();
+  const route = useRoute<ReaderScreenRouteProp>();
+  const navigation = useNavigation<ReaderScreenNavigationProp>();
   const { user } = useAuth();
   const { surahNumber: pSurah, ayatNumber: pAyat, juzNumber } = route.params || {};
   const [surahNumber, setSurahNumber] = useState<number>(pSurah || 1);
   const [bookmarkAyat, setBookmarkAyat] = useState<number | null>(pAyat ?? null);
-  const listRef = useRef<FlashList<any>>(null);
+  const listRef = useRef<FlashListRef<AyahWithSurahInfo>>(null);
   const [visibleAyat, setVisibleAyat] = useState<number>(1);
   const [highlightedAyat, setHighlightedAyat] = useState<number | null>(null);
   const [visiblePage, setVisiblePage] = useState<number | null>(null);
@@ -101,8 +106,8 @@ export default function ReaderScreen() {
   const [juzAyat, setJuzAyat] = useState<AyahWithSurahInfo[]>([]);
   const [juzTitle, setJuzTitle] = useState<string>('');
   const [juzLoading, setJuzLoading] = useState(false);
-  const [juzPrevStart, setJuzPrevStart] = useState<{ surah: number; ayah: number } | null>(null);
-  const [juzNextStart, setJuzNextStart] = useState<{ surah: number; ayah: number } | null>(null);
+  const [_juzPrevStart, _setJuzPrevStart] = useState<{ surah: number; ayah: number } | null>(null);
+  const [_juzNextStart, _setJuzNextStart] = useState<{ surah: number; ayah: number } | null>(null);
   const juzPrevCacheRef = useRef<AyahWithSurahInfo[] | null>(null);
   const juzNextCacheRef = useRef<AyahWithSurahInfo[] | null>(null);
   const [headerH, setHeaderH] = useState(0);
@@ -113,14 +118,14 @@ export default function ReaderScreen() {
     offsets: number[];
     indexMap: Record<string, number>;
   } | null>(null);
-  const [layoutReady, setLayoutReady] = useState(false);
+  const [_layoutReady, _setLayoutReady] = useState(false);
   const initialBookmarkAppliedRef = useRef<boolean>(false);
 
   // Helpers for header navigation (prev/current/next)
   const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
   const getSurahNameByNum = (n: number) =>
     surahList.find((m) => m.number === n)?.name || `Surah ${n}`;
-  const getPrevNext = () => {
+  const getPrevNext = useCallback(() => {
     if (!isJuzMode) {
       const prev = clamp(surahNumber - 1, 1, 114);
       const next = clamp(surahNumber + 1, 1, 114);
@@ -131,7 +136,7 @@ export default function ReaderScreen() {
       const next = clamp(currJ + 1, 1, 30);
       return { prev, curr: currJ, next };
     }
-  };
+  }, [isJuzMode, surahNumber, juzNumber]);
   const handlePrev = () => {
     // Quran UX: "sebelum" (previous numerically) on the RIGHT
     const { prev } = getPrevNext();
@@ -166,8 +171,8 @@ export default function ReaderScreen() {
     }
   };
 
-  // Surah-mode header meta
-  const headerJuz = useMemo(() => {
+  // Surah-mode header meta (unused but kept for potential future use)
+  const _headerJuz = useMemo(() => {
     if (isJuzMode) return null;
     try {
       const j = getJuzForAyah(surahNumber, 1);
@@ -315,7 +320,7 @@ export default function ReaderScreen() {
 
   // Sync local state with route params for cross-surah jumps
   useEffect(() => {
-    const params: any = route?.params || {};
+    const params = route?.params || {};
     if (typeof params.surahNumber === 'number' && params.surahNumber !== surahNumber) {
       setSurahNumber(params.surahNumber);
     }
@@ -323,7 +328,7 @@ export default function ReaderScreen() {
       setBookmarkAyat(params.ayatNumber);
       setPendingAyat(params.ayatNumber);
     }
-  }, [route?.params]);
+  }, [route?.params, surahNumber]);
 
   // Load translation and metadata when surah changes
   useEffect(() => {
@@ -362,14 +367,14 @@ export default function ReaderScreen() {
           const screenW = Dimensions.get('window').width;
           const contentWidth = Math.max(50, screenW - 7 * 2 - 18 * 2);
           const common = {
-            isJuzMode: false,
+            isJuz: false,
             showTranslation: !!showTranslation,
             width: contentWidth,
             headerHeight: headerH,
             arabic: ARABIC_FONT_CONFIG,
-            trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
+            trans: { fontFamily: 'System', fontSize: 16 },
             row: { padV: 10, padH: 7, borderBottom: 1 },
-          } as any;
+          };
           if (prevSurah?.ayat?.length) {
             buildLayoutExact(prevSurah.ayat as unknown as LayoutItem[], {
               ...common,
@@ -387,7 +392,7 @@ export default function ReaderScreen() {
         }
       } catch {}
     })();
-  }, [isJuzMode, surahNumber, showTranslation, headerH]);
+  }, [isJuzMode, surahNumber, showTranslation, headerH, getPrevNext]);
 
   // Load folders when component mounts
   useEffect(() => {
@@ -449,8 +454,8 @@ export default function ReaderScreen() {
           // Prefetch Juz start labels for previews
           try {
             const { prev, next } = getPrevNext();
-            setJuzPrevStart(getJuzStartAyah(prev));
-            setJuzNextStart(getJuzStartAyah(next));
+            _setJuzPrevStart(getJuzStartAyah(prev));
+            _setJuzNextStart(getJuzStartAyah(next));
             // Prefetch adjacent Juz content into memory cache for instant swipe
             loadJuzContent(prev)
               .then((data) => (juzPrevCacheRef.current = data))
@@ -466,7 +471,7 @@ export default function ReaderScreen() {
           setJuzLoading(false);
         });
     }
-  }, [juzNumber, isJuzMode]);
+  }, [juzNumber, isJuzMode, getPrevNext]);
 
   // Prefetch adjacent Juz content to smooth swipe transitions in Juz mode
   useEffect(() => {
@@ -474,14 +479,44 @@ export default function ReaderScreen() {
     const { prev, next } = getPrevNext();
     loadJuzContent(prev).catch(() => {});
     loadJuzContent(next).catch(() => {});
-  }, [isJuzMode, juzNumber]);
+  }, [isJuzMode, juzNumber, getPrevNext]);
+
+  // Declare scrollToAyat before useEffect hooks that use it
+  const scrollToAyat = useCallback(
+    (ayatNumber: number, targetSurahNumber?: number) => {
+      if (!listRef.current) return;
+      const list = (isJuzMode ? juzAyat : surah?.ayat) || [];
+      const sNum = isJuzMode
+        ? (targetSurahNumber ?? visibleSurahInfo?.surahNumber ?? surahNumber)
+        : surahNumber;
+      let idx: number | undefined = undefined;
+      if (layout?.indexMap) {
+        const mapped = layout.indexMap[`${sNum}:${ayatNumber}`];
+        if (typeof mapped === 'number') idx = mapped;
+      }
+      if (idx === undefined) {
+        const found = list.findIndex((a) =>
+          isJuzMode
+            ? (a as AyahWithSurahInfo).surahNumber === sNum && a.number === ayatNumber
+            : a.number === ayatNumber
+        );
+        if (found >= 0) idx = found;
+      }
+      if (typeof idx !== 'number' || idx < 0) return;
+      try {
+        listRef.current.scrollToIndex({ index: idx, animated: true, viewPosition: 0.2 });
+      } catch {}
+      setHighlightedAyat(ayatNumber);
+      setTimeout(() => setHighlightedAyat(null), 3000);
+    },
+    [isJuzMode, juzAyat, surah?.ayat, visibleSurahInfo?.surahNumber, surahNumber, layout?.indexMap]
+  );
 
   // Reset scroll when surah/juz changes via swipe (but not on initial load with explicit target)
   useEffect(() => {
     if (!listRef.current) return;
-    const params: any = route?.params || {};
-    const hasExplicitTarget =
-      typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+    const params = route?.params || {};
+    const hasExplicitTarget = typeof params.ayatNumber === 'number';
 
     if (hasExplicitTarget) return; // Don't reset if there's an explicit target
 
@@ -492,14 +527,13 @@ export default function ReaderScreen() {
       } catch {}
     });
     return () => cancelAnimationFrame(raf);
-  }, [surahNumber, juzNumber, isJuzMode]);
+  }, [surahNumber, juzNumber, isJuzMode, route?.params]);
 
   // Ensure Juz starts at its true boundary (e.g., Juz 1 from Al-Fatihah) and subtitle reflects it immediately
   useEffect(() => {
     if (!isJuzMode || juzAyat.length === 0) return;
-    const params: any = route?.params || {};
-    const hasExplicitTarget =
-      typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+    const params = route?.params || {};
+    const hasExplicitTarget = typeof params.ayatNumber === 'number';
     const first = juzAyat[0];
     if (first) {
       if (first.surahNumber && first.surahName) {
@@ -516,18 +550,18 @@ export default function ReaderScreen() {
       });
       return () => cancelAnimationFrame(raf);
     }
-  }, [isJuzMode, juzAyat, route?.params?.juzNumber]);
+  }, [isJuzMode, juzAyat, route?.params]);
 
   // Scroll after navigation when ayatNumber provided
   useEffect(() => {
-    const params: any = route?.params || {};
-    const targetAyat: number | undefined = params?.ayatNumber || params?.ayat;
+    const params = route?.params || {};
+    const targetAyat: number | undefined = params?.ayatNumber;
     if (targetAyat && ((isJuzMode ? juzAyat.length : surah?.ayat?.length) || 0) > 0) {
       setTimeout(() => {
         scrollToAyat(targetAyat, params?.surahNumber);
       }, 500);
     }
-  }, [route?.params, surah?.ayat?.length, juzAyat.length, isJuzMode]);
+  }, [route?.params, surah?.ayat?.length, juzAyat.length, isJuzMode, scrollToAyat]);
 
   // Auto-scroll after load (pending ayat or bookmark)
   useEffect(() => {
@@ -563,7 +597,7 @@ export default function ReaderScreen() {
       // In Juz mode, avoid auto-scrolling to bookmarkAyat to prevent jumping to wrong surah
       // Let initial focus logic keep us at the Juz start unless an explicit target is set
     }
-  }, [pendingAyat, bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode]);
+  }, [pendingAyat, bookmarkAyat, surahNumber, surah?.ayat, juzAyat, isJuzMode, scrollToAyat]);
 
   const viewConfigRef = useRef({ itemVisiblePercentThreshold: 50 });
   const onViewableItemsChanged = useRef(
@@ -611,31 +645,6 @@ export default function ReaderScreen() {
       }
     }
   );
-
-  const scrollToAyat = (ayatNumber: number, targetSurahNumber?: number) => {
-    if (!listRef.current) return;
-    const list = (isJuzMode ? juzAyat : surah?.ayat) || [];
-    const sNum = isJuzMode
-      ? (targetSurahNumber ?? visibleSurahInfo?.surahNumber ?? surahNumber)
-      : surahNumber;
-    let idx: number | undefined = undefined;
-    if (layout?.indexMap) {
-      const mapped = layout.indexMap[`${sNum}:${ayatNumber}`];
-      if (typeof mapped === 'number') idx = mapped;
-    }
-    if (idx === undefined) {
-      const found = list.findIndex((a: any) =>
-        isJuzMode ? a.surahNumber === sNum && a.number === ayatNumber : a.number === ayatNumber
-      );
-      if (found >= 0) idx = found;
-    }
-    if (typeof idx !== 'number' || idx < 0) return;
-    try {
-      listRef.current.scrollToIndex({ index: idx, animated: true, viewPosition: 0.2 });
-    } catch {}
-    setHighlightedAyat(ayatNumber);
-    setTimeout(() => setHighlightedAyat(null), 3000);
-  };
 
   const handleJump = (surah: number, ayat: number) => {
     const meta = surahList.find((s) => s.number === surah);
@@ -772,17 +781,14 @@ export default function ReaderScreen() {
 
   // Determine which data to use
   const displayAyat = isJuzMode ? juzAyat : surah?.ayat || [];
-  const displayTitle = isJuzMode ? juzTitle : surah?.name || '';
 
   // NOTE: Do not early-return before all hooks above are declared
 
   const totalAyat = displayAyat.length;
-  // Current page: use visible item state; Surah/Juz subtitle will recompute directly when needed
-  const currentPage = visiblePage;
   const progress = totalAyat ? Math.max(0, Math.min(100, (visibleAyat / totalAyat) * 100)) : 0;
 
   // Build header subtitle
-  const getSubtitle = () => {
+  const getSubtitle = useCallback(() => {
     if (isJuzMode) {
       const sNum = visibleSurahInfo?.surahNumber || surahNumber;
       const aNum = visibleAyat || 1;
@@ -798,7 +804,13 @@ export default function ReaderScreen() {
     const j = getJuzForAyah(sNum, aNum);
     const p = getPageForAyah(sNum, aNum);
     return `Juz ${j ?? '-'} | Hlm. ${typeof p === 'number' ? p : '-'}`;
-  };
+  }, [
+    isJuzMode,
+    visibleSurahInfo?.surahNumber,
+    visibleSurahInfo?.surahName,
+    surahNumber,
+    visibleAyat,
+  ]);
 
   // Announce subtitle changes for screen readers (Surah & Juz mode)
   useEffect(() => {
@@ -815,6 +827,7 @@ export default function ReaderScreen() {
     visibleSurahInfo?.surahNumber,
     surahNumber,
     visibleAyat,
+    getSubtitle,
   ]);
   const selectedCount = isSelectingRange
     ? checkedAyat.size
@@ -855,7 +868,7 @@ export default function ReaderScreen() {
     (async () => {
       const items = displayAyat as unknown as LayoutItem[];
       if (!items || items.length === 0) return;
-      setLayoutReady(false);
+      _setLayoutReady(false);
       try {
         if (!canMeasureText()) {
           // Native text-measure not available yet (e.g., running in Expo Go). Skip until dev build is used.
@@ -865,19 +878,19 @@ export default function ReaderScreen() {
         const contentWidth = Math.max(50, screenW - 7 * 2 - 18 * 2);
         const cacheKey = `${isJuzMode ? `juz-${juzNumber}` : `surah-${surahNumber}`}-${!!showTranslation}`;
         const res = await buildLayoutExact(items, {
-          isJuzMode,
+          isJuz: isJuzMode,
           surahNumber,
           showTranslation: !!showTranslation,
           width: contentWidth,
           headerHeight: headerH,
           arabic: ARABIC_FONT_CONFIG,
-          trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
+          trans: { fontFamily: 'System', fontSize: 16 },
           row: { padV: 10, padH: 7, borderBottom: 1 },
           cacheKey,
-        } as any);
+        });
         if (cancelled) return;
         setLayout(res);
-        setLayoutReady(true);
+        _setLayoutReady(true);
       } catch (e) {
         console.error('buildLayoutExact failed', e);
       }
@@ -885,7 +898,7 @@ export default function ReaderScreen() {
     return () => {
       cancelled = true;
     };
-  }, [displayAyat, isJuzMode, surahNumber, showTranslation, headerH]);
+  }, [displayAyat, isJuzMode, surahNumber, showTranslation, headerH, juzNumber]);
 
   // Loading guard (after hooks)
   if (
@@ -1010,11 +1023,10 @@ export default function ReaderScreen() {
               ref={listRef}
               data={displayAyat}
               keyExtractor={(item, index) => `${item.number}_${index}`}
-              estimatedItemSize={240}
               getItemType={() => 'ayah'}
               {...(layout
                 ? {
-                    getItemLayout: (_: any, index: number) => ({
+                    getItemLayout: (_item: AyahWithSurahInfo | null, index: number) => ({
                       length: layout.lengths[index] ?? 0,
                       offset: layout.offsets[index] ?? 0,
                       index,
@@ -1099,14 +1111,14 @@ export default function ReaderScreen() {
                       </View>
                       {showTransliteration &&
                         'transliteration' in ayahItem &&
-                        (ayahItem as any).transliteration && (
+                        (ayahItem as { transliteration?: string }).transliteration && (
                           <Text
                             style={[
                               styles.transliteration,
                               isDarkMode && styles.transliterationDark,
                             ]}
                           >
-                            {(ayahItem as any).transliteration}
+                            {(ayahItem as { transliteration: string }).transliteration}
                           </Text>
                         )}
                       {showTranslation && (
@@ -1216,7 +1228,7 @@ export default function ReaderScreen() {
                             'Ayat Disalin! 📋',
                             `${end - start + 1} ayat dari ${surah.name}`
                           );
-                        } catch (err) {
+                        } catch {
                           showErrorToast('Gagal Menyalin');
                         }
                       }}
