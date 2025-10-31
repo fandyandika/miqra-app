@@ -12,7 +12,7 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { Dimensions } from 'react-native';
-import PagerView from 'react-native-pager-view';
+import QuranPager from './components/QuranPager';
 import { FlashList } from '@shopify/flash-list';
 import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
@@ -41,6 +41,7 @@ import {
 import {
   loadSurahTranslation,
   loadSurahMetadata,
+  loadSurahCombined,
   type Ayah,
   type SurahMetadata,
 } from '@/services/quran/quranData';
@@ -90,7 +91,6 @@ export default function ReaderScreen() {
   const juzPrevCacheRef = useRef<AyahWithSurahInfo[] | null>(null);
   const juzNextCacheRef = useRef<AyahWithSurahInfo[] | null>(null);
   const [headerH, setHeaderH] = useState(0);
-  const pagerRef = useRef<PagerView>(null);
   const startKeyRef = useRef<string | null>(null);
   const reattemptScrollRef = useRef<boolean>(true);
   const [layout, setLayout] = useState<{
@@ -133,6 +133,21 @@ export default function ReaderScreen() {
       if (next !== surahNumber) navigation.setParams({ surahNumber: next });
     } else {
       if (next !== juzNumber) navigation.push('Reader', { juzNumber: next, surahNumber });
+    }
+  };
+
+  // Handlers for QuranPager swipe changes - update state immediately for smooth UX
+  const handleSurahChange = (newSurah: number) => {
+    if (newSurah !== surahNumber) {
+      setSurahNumber(newSurah);
+      navigation.setParams({ surahNumber: newSurah });
+    }
+  };
+
+  const handleJuzChange = (newJuz: number) => {
+    if (newJuz !== juzNumber) {
+      // For Juz, we need to reload, so navigation replace is fine
+      navigation.replace('Reader', { juzNumber: newJuz, surahNumber });
     }
   };
 
@@ -320,6 +335,52 @@ export default function ReaderScreen() {
     })();
   }, [surahNumber, isJuzMode]);
 
+  // Prefetch adjacent Surah content and warm layout cache for smoother swipe
+  useEffect(() => {
+    if (isJuzMode) return;
+    const { prev, next } = getPrevNext();
+    (async () => {
+      try {
+        const [prevSurah, nextSurah] = await Promise.all([
+          loadSurahCombined(prev).catch(() => null),
+          loadSurahCombined(next).catch(() => null),
+        ]);
+        if (canMeasureText()) {
+          const screenW = Dimensions.get('window').width;
+          const contentWidth = Math.max(50, screenW - 7 * 2 - 18 * 2);
+          const common = {
+            isJuzMode: false,
+            showTranslation: !!showTranslation,
+            width: contentWidth,
+            headerHeight: headerH,
+            arabic: {
+              fontFamily: 'LPMQ-Isep-Misbah',
+              fontSize: 25,
+              lineHeight: 56,
+              allowFontScaling: false,
+            },
+            trans: { fontFamily: 'System', fontSize: 16, lineHeight: 24, allowFontScaling: false },
+            row: { padV: 10, padH: 7, borderBottom: 1 },
+          } as any;
+          if (prevSurah?.ayat?.length) {
+            buildLayoutExact(prevSurah.ayat as unknown as LayoutItem[], {
+              ...common,
+              surahNumber: prev,
+              cacheKey: `surah-${prev}-${!!showTranslation}`,
+            }).catch(() => {});
+          }
+          if (nextSurah?.ayat?.length) {
+            buildLayoutExact(nextSurah.ayat as unknown as LayoutItem[], {
+              ...common,
+              surahNumber: next,
+              cacheKey: `surah-${next}-${!!showTranslation}`,
+            }).catch(() => {});
+          }
+        }
+      } catch {}
+    })();
+  }, [isJuzMode, surahNumber, showTranslation, headerH]);
+
   // Load folders when component mounts
   useEffect(() => {
     loadFolders();
@@ -372,6 +433,32 @@ export default function ReaderScreen() {
         });
     }
   }, [juzNumber, isJuzMode]);
+
+  // Prefetch adjacent Juz content to smooth swipe transitions in Juz mode
+  useEffect(() => {
+    if (!isJuzMode || !juzNumber) return;
+    const { prev, next } = getPrevNext();
+    loadJuzContent(prev).catch(() => {});
+    loadJuzContent(next).catch(() => {});
+  }, [isJuzMode, juzNumber]);
+
+  // Reset scroll when surah/juz changes via swipe (but not on initial load with explicit target)
+  useEffect(() => {
+    if (!listRef.current) return;
+    const params: any = route?.params || {};
+    const hasExplicitTarget =
+      typeof params.ayatNumber === 'number' || typeof params.ayat === 'number';
+
+    if (hasExplicitTarget) return; // Don't reset if there's an explicit target
+
+    // Reset scroll to top when surah/juz changes
+    const raf = requestAnimationFrame(() => {
+      try {
+        listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      } catch {}
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [surahNumber, juzNumber, isJuzMode]);
 
   // Ensure Juz starts at its true boundary (e.g., Juz 1 from Al-Fatihah) and subtitle reflects it immediately
   useEffect(() => {
@@ -885,138 +972,113 @@ export default function ReaderScreen() {
         </Pressable>
       </View>
       {/* Swipeable pager with peek */}
-      <PagerView
-        ref={pagerRef}
-        style={{ flex: 1 }}
-        initialPage={1}
-        pageMargin={12}
-        overdrag={true}
-        onPageSelected={(e) => {
-          const i = e.nativeEvent.position;
-          // Quran reverse swipe:
-          // swipe to LEFT (page 2) -> PREVIOUS numerically
-          // swipe to RIGHT (page 0) -> NEXT numerically
-          if (i === 0) {
-            const { next } = getPrevNext();
-            if (!isJuzMode) {
-              navigation.setParams({ surahNumber: next });
-            } else {
-              navigation.replace('Reader', { juzNumber: next, surahNumber });
-            }
-            requestAnimationFrame(() => pagerRef.current?.setPageWithoutAnimation(1));
-          } else if (i === 2) {
-            const { prev } = getPrevNext();
-            if (!isJuzMode) {
-              navigation.setParams({ surahNumber: prev });
-            } else {
-              navigation.replace('Reader', { juzNumber: prev, surahNumber });
-            }
-            requestAnimationFrame(() => pagerRef.current?.setPageWithoutAnimation(1));
-          }
-        }}
-      >
-        {/* Prev preview - plain */}
-        <View key="prev" style={{ flex: 1, backgroundColor: '#FFF8F0' }} />
+      <QuranPager
+        initialSurah={surahNumber}
+        initialJuz={juzNumber as number | undefined}
+        isJuzMode={isJuzMode}
+        onSurahChange={handleSurahChange}
+        onJuzChange={handleJuzChange}
+        renderPage={(pagerSurah, pagerJuz) => {
+          // Pager passes the active surah/juz during swipe
+          // We use the current loaded data (displayAyat) which will update
+          // when handleSurahChange/handleJuzChange triggers state update
+          // The key improvement: swipe is batched and smoother, plus immediate state sync
+          return (
+            <FlashList
+              ref={listRef}
+              data={displayAyat}
+              keyExtractor={(item, index) => `${item.number}_${index}`}
+              estimatedItemSize={240}
+              getItemType={() => 'ayah'}
+              {...(layout
+                ? {
+                    getItemLayout: (_: any, index: number) => ({
+                      length: layout.lengths[index] ?? 0,
+                      offset: layout.offsets[index] ?? 0,
+                      index,
+                    }),
+                    ListHeaderComponent: HeaderComp,
+                  }
+                : { ListHeaderComponent: HeaderComp })}
+              contentContainerStyle={{
+                paddingBottom: isSelectingRange || selectedCount > 0 ? 120 : 20,
+              }}
+              renderItem={({ item, index }) => {
+                const ayahItem = item as AyahWithSurahInfo;
+                const shouldShowSurahHeader =
+                  isJuzMode && ayahItem.isSurahStart && ayahItem.surahNumber && ayahItem.surahName;
 
-        {/* Current content (existing FlashList) */}
-        <View key="current" style={{ flex: 1 }}>
-          <FlashList
-            ref={listRef}
-            data={displayAyat}
-            keyExtractor={(item, index) => `${item.number}_${index}`}
-            estimatedItemSize={240}
-            getItemType={() => 'ayah'}
-            {...(layout
-              ? {
-                  getItemLayout: (_: any, index: number) => ({
-                    length: layout.lengths[index] ?? 0,
-                    offset: layout.offsets[index] ?? 0,
-                    index,
-                  }),
-                  ListHeaderComponent: HeaderComp,
-                }
-              : { ListHeaderComponent: HeaderComp })}
-            contentContainerStyle={{
-              paddingBottom: isSelectingRange || selectedCount > 0 ? 120 : 20,
-            }}
-            renderItem={({ item, index }) => {
-              const ayahItem = item as AyahWithSurahInfo;
-              const shouldShowSurahHeader =
-                isJuzMode && ayahItem.isSurahStart && ayahItem.surahNumber && ayahItem.surahName;
-
-              return (
-                <>
-                  {shouldShowSurahHeader && (
-                    <>
-                      <QuranSurahHeader
-                        revelation={
-                          ayahItem.surahNumber && ayahItem.surahNumber <= 7 ? 'Mekah' : 'Madinah'
-                        }
-                        surahNumber={ayahItem.surahNumber || 1}
-                        surahName={ayahItem.surahName || ''}
-                        meaning={ayahItem.surahMeaning}
-                        totalAyahs={ayahItem.surahTotalAyahs}
-                        surahNameAr={ayahItem.surahNameAr}
-                      />
-                      {/* Basmalah only for first ayah of surah, except for Al-Fatihah (1) and At-Taubah (9) */}
-                      {ayahItem.isFirstAyahOfSurah &&
-                        ayahItem.surahNumber !== 1 &&
-                        ayahItem.surahNumber !== 9 && <BasmalahHeader />}
-                    </>
-                  )}
-                  <Pressable
-                    onPress={() => handleAyahPress(ayahItem.number)}
-                    style={[
-                      styles.ayahContainer,
-                      index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
-                      pressedAyah === item.number ? styles.pressed : {},
-                      checkedAyat.has(item.number) ? styles.checked : {},
-                      highlightedAyat === item.number ? styles.highlighted : {},
-                      selection.start &&
-                      item.number >= selection.start &&
-                      selection.end &&
-                      item.number <= selection.end
-                        ? styles.selected
-                        : {},
-                    ]}
-                  >
-                    <View style={styles.badgeRow}>
-                      {isSelectingRange && (
-                        <Feather
-                          name={checkedAyat.has(item.number) ? 'check-circle' : 'circle'}
-                          size={20}
-                          color={checkedAyat.has(item.number) ? '#10b981' : '#E5E5E5'}
-                          style={{ marginTop: 2, marginRight: 4 }}
+                return (
+                  <>
+                    {shouldShowSurahHeader && (
+                      <>
+                        <QuranSurahHeader
+                          revelation={
+                            ayahItem.surahNumber && ayahItem.surahNumber <= 7 ? 'Mekah' : 'Madinah'
+                          }
+                          surahNumber={ayahItem.surahNumber || 1}
+                          surahName={ayahItem.surahName || ''}
+                          meaning={ayahItem.surahMeaning}
+                          totalAyahs={ayahItem.surahTotalAyahs}
+                          surahNameAr={ayahItem.surahNameAr}
                         />
-                      )}
-                      <Pressable
-                        style={styles.badge}
-                        onPress={() =>
-                          scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)
-                        }
-                        hitSlop={8}
-                      >
-                        <LogoAyat1 width={38} height={38} />
-                        <Text style={styles.badgeText}>{item.number}</Text>
-                      </Pressable>
-                      <Text style={styles.arabic}>
-                        {item.text}{' '}
-                        <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
-                      </Text>
-                    </View>
-                    {showTranslation && <Text style={styles.translation}>{ayahItem.translation}</Text>}
-                  </Pressable>
-                </>
-              );
-            }}
-            onViewableItemsChanged={onViewableItemsChanged.current}
-            viewabilityConfig={viewConfigRef.current}
-          />
-        </View>
-
-        {/* Next preview - plain */}
-        <View key="next" style={{ flex: 1, backgroundColor: '#FFF8F0' }} />
-      </PagerView>
+                        {/* Basmalah only for first ayah of surah, except for Al-Fatihah (1) and At-Taubah (9) */}
+                        {ayahItem.isFirstAyahOfSurah &&
+                          ayahItem.surahNumber !== 1 &&
+                          ayahItem.surahNumber !== 9 && <BasmalahHeader />}
+                      </>
+                    )}
+                    <Pressable
+                      onPress={() => handleAyahPress(ayahItem.number)}
+                      style={[
+                        styles.ayahContainer,
+                        index % 2 === 0 ? styles.ayahEven : styles.ayahOdd,
+                        pressedAyah === item.number ? styles.pressed : {},
+                        checkedAyat.has(item.number) ? styles.checked : {},
+                        highlightedAyat === item.number ? styles.highlighted : {},
+                        selection.start &&
+                        item.number >= selection.start &&
+                        selection.end &&
+                        item.number <= selection.end
+                          ? styles.selected
+                          : {},
+                      ]}
+                    >
+                      <View style={styles.badgeRow}>
+                        {isSelectingRange && (
+                          <Feather
+                            name={checkedAyat.has(item.number) ? 'check-circle' : 'circle'}
+                            size={20}
+                            color={checkedAyat.has(item.number) ? '#10b981' : '#E5E5E5'}
+                            style={{ marginTop: 2, marginRight: 4 }}
+                          />
+                        )}
+                        <Pressable
+                          style={styles.badge}
+                          onPress={() =>
+                            scrollToAyat(ayahItem.number, isJuzMode ? ayahItem.surahNumber : undefined)
+                          }
+                          hitSlop={8}
+                        >
+                          <LogoAyat1 width={38} height={38} />
+                          <Text style={styles.badgeText}>{item.number}</Text>
+                        </Pressable>
+                        <Text style={styles.arabic}>
+                          {item.text}{' '}
+                          <Text style={styles.ayahNumberInline}>{getArabicNumber(item.number)}</Text>
+                        </Text>
+                      </View>
+                      {showTranslation && <Text style={styles.translation}>{ayahItem.translation}</Text>}
+                    </Pressable>
+                  </>
+                );
+              }}
+              onViewableItemsChanged={onViewableItemsChanged.current}
+              viewabilityConfig={viewConfigRef.current}
+            />
+          );
+        }}
+      />
       {(isSelectingRange || selectedCount > 0) && (
         <View style={styles.floatingContainer}>
           <View style={styles.floatingCard}>
