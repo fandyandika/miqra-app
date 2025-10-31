@@ -230,10 +230,127 @@ import surah113Indonesian from '../../../assets/quran/id/surah_113.id.json';
 import surah114Arabic from '../../../assets/quran/kemenagitconvert/surah_114.json';
 import surah114Indonesian from '../../../assets/quran/id/surah_114.id.json';
 
+// Static imports for transliteration 1-114
+import surah001Transliteration from '../../../assets/quran/transliterasi/surah_001.trans.json';
+import surah002Transliteration from '../../../assets/quran/transliterasi/surah_002.trans.json';
+import surah003Transliteration from '../../../assets/quran/transliterasi/surah_003.trans.json';
+import surah004Transliteration from '../../../assets/quran/transliterasi/surah_004.trans.json';
+import surah005Transliteration from '../../../assets/quran/transliterasi/surah_005.trans.json';
+import surah006Transliteration from '../../../assets/quran/transliterasi/surah_006.trans.json';
+import surah007Transliteration from '../../../assets/quran/transliterasi/surah_007.trans.json';
+import surah008Transliteration from '../../../assets/quran/transliterasi/surah_008.trans.json';
+import surah009Transliteration from '../../../assets/quran/transliterasi/surah_009.trans.json';
+import surah010Transliteration from '../../../assets/quran/transliterasi/surah_010.trans.json';
+import surah011Transliteration from '../../../assets/quran/transliterasi/surah_011.trans.json';
+import surah012Transliteration from '../../../assets/quran/transliterasi/surah_012.trans.json';
+import surah013Transliteration from '../../../assets/quran/transliterasi/surah_013.trans.json';
+import surah014Transliteration from '../../../assets/quran/transliterasi/surah_014.trans.json';
+import surah015Transliteration from '../../../assets/quran/transliterasi/surah_015.trans.json';
+import surah016Transliteration from '../../../assets/quran/transliterasi/surah_016.trans.json';
+import surah017Transliteration from '../../../assets/quran/transliterasi/surah_017.trans.json';
+import surah018Transliteration from '../../../assets/quran/transliterasi/surah_018.trans.json';
+import surah019Transliteration from '../../../assets/quran/transliterasi/surah_019.trans.json';
+import surah020Transliteration from '../../../assets/quran/transliterasi/surah_020.trans.json';
+import surah021Transliteration from '../../../assets/quran/transliterasi/surah_021.trans.json';
+import surah022Transliteration from '../../../assets/quran/transliterasi/surah_022.trans.json';
+import surah023Transliteration from '../../../assets/quran/transliterasi/surah_023.trans.json';
+import surah024Transliteration from '../../../assets/quran/transliterasi/surah_024.trans.json';
+import surah025Transliteration from '../../../assets/quran/transliterasi/surah_025.trans.json';
+import surah026Transliteration from '../../../assets/quran/transliterasi/surah_026.trans.json';
+import surah027Transliteration from '../../../assets/quran/transliterasi/surah_027.trans.json';
+import surah028Transliteration from '../../../assets/quran/transliterasi/surah_028.trans.json';
+import surah029Transliteration from '../../../assets/quran/transliterasi/surah_029.trans.json';
+import surah030Transliteration from '../../../assets/quran/transliterasi/surah_030.trans.json';
+import surah031Transliteration from '../../../assets/quran/transliterasi/surah_031.trans.json';
+import surah032Transliteration from '../../../assets/quran/transliterasi/surah_032.trans.json';
+import surah033Transliteration from '../../../assets/quran/transliterasi/surah_033.trans.json';
+import surah034Transliteration from '../../../assets/quran/transliterasi/surah_034.trans.json';
+import surah035Transliteration from '../../../assets/quran/transliterasi/surah_035.trans.json';
+import surah036Transliteration from '../../../assets/quran/transliterasi/surah_036.trans.json';
+import surah037Transliteration from '../../../assets/quran/transliterasi/surah_037.trans.json';
+import surah038Transliteration from '../../../assets/quran/transliterasi/surah_038.trans.json';
+import surah039Transliteration from '../../../assets/quran/transliterasi/surah_039.trans.json';
+import surah040Transliteration from '../../../assets/quran/transliterasi/surah_040.trans.json';
+import surah041Transliteration from '../../../assets/quran/transliterasi/surah_041.trans.json';
+import surah042Transliteration from '../../../assets/quran/transliterasi/surah_042.trans.json';
+import surah043Transliteration from '../../../assets/quran/transliterasi/surah_043.trans.json';
+import surah044Transliteration from '../../../assets/quran/transliterasi/surah_044.trans.json';
+import surah045Transliteration from '../../../assets/quran/transliterasi/surah_045.trans.json';
+import surah046Transliteration from '../../../assets/quran/transliterasi/surah_046.trans.json';
+import surah047Transliteration from '../../../assets/quran/transliterasi/surah_047.trans.json';
+import surah048Transliteration from '../../../assets/quran/transliterasi/surah_048.trans.json';
+import surah049Transliteration from '../../../assets/quran/transliterasi/surah_049.trans.json';
+import surah050Transliteration from '../../../assets/quran/transliterasi/surah_050.trans.json';
+import surah051Transliteration from '../../../assets/quran/transliterasi/surah_051.trans.json';
+import surah052Transliteration from '../../../assets/quran/transliterasi/surah_052.trans.json';
+import surah053Transliteration from '../../../assets/quran/transliterasi/surah_053.trans.json';
+import surah054Transliteration from '../../../assets/quran/transliterasi/surah_054.trans.json';
+import surah055Transliteration from '../../../assets/quran/transliterasi/surah_055.trans.json';
+import surah056Transliteration from '../../../assets/quran/transliterasi/surah_056.trans.json';
+import surah057Transliteration from '../../../assets/quran/transliterasi/surah_057.trans.json';
+import surah058Transliteration from '../../../assets/quran/transliterasi/surah_058.trans.json';
+import surah059Transliteration from '../../../assets/quran/transliterasi/surah_059.trans.json';
+import surah060Transliteration from '../../../assets/quran/transliterasi/surah_060.trans.json';
+import surah061Transliteration from '../../../assets/quran/transliterasi/surah_061.trans.json';
+import surah062Transliteration from '../../../assets/quran/transliterasi/surah_062.trans.json';
+import surah063Transliteration from '../../../assets/quran/transliterasi/surah_063.trans.json';
+import surah064Transliteration from '../../../assets/quran/transliterasi/surah_064.trans.json';
+import surah065Transliteration from '../../../assets/quran/transliterasi/surah_065.trans.json';
+import surah066Transliteration from '../../../assets/quran/transliterasi/surah_066.trans.json';
+import surah067Transliteration from '../../../assets/quran/transliterasi/surah_067.trans.json';
+import surah068Transliteration from '../../../assets/quran/transliterasi/surah_068.trans.json';
+import surah069Transliteration from '../../../assets/quran/transliterasi/surah_069.trans.json';
+import surah070Transliteration from '../../../assets/quran/transliterasi/surah_070.trans.json';
+import surah071Transliteration from '../../../assets/quran/transliterasi/surah_071.trans.json';
+import surah072Transliteration from '../../../assets/quran/transliterasi/surah_072.trans.json';
+import surah073Transliteration from '../../../assets/quran/transliterasi/surah_073.trans.json';
+import surah074Transliteration from '../../../assets/quran/transliterasi/surah_074.trans.json';
+import surah075Transliteration from '../../../assets/quran/transliterasi/surah_075.trans.json';
+import surah076Transliteration from '../../../assets/quran/transliterasi/surah_076.trans.json';
+import surah077Transliteration from '../../../assets/quran/transliterasi/surah_077.trans.json';
+import surah078Transliteration from '../../../assets/quran/transliterasi/surah_078.trans.json';
+import surah079Transliteration from '../../../assets/quran/transliterasi/surah_079.trans.json';
+import surah080Transliteration from '../../../assets/quran/transliterasi/surah_080.trans.json';
+import surah081Transliteration from '../../../assets/quran/transliterasi/surah_081.trans.json';
+import surah082Transliteration from '../../../assets/quran/transliterasi/surah_082.trans.json';
+import surah083Transliteration from '../../../assets/quran/transliterasi/surah_083.trans.json';
+import surah084Transliteration from '../../../assets/quran/transliterasi/surah_084.trans.json';
+import surah085Transliteration from '../../../assets/quran/transliterasi/surah_085.trans.json';
+import surah086Transliteration from '../../../assets/quran/transliterasi/surah_086.trans.json';
+import surah087Transliteration from '../../../assets/quran/transliterasi/surah_087.trans.json';
+import surah088Transliteration from '../../../assets/quran/transliterasi/surah_088.trans.json';
+import surah089Transliteration from '../../../assets/quran/transliterasi/surah_089.trans.json';
+import surah090Transliteration from '../../../assets/quran/transliterasi/surah_090.trans.json';
+import surah091Transliteration from '../../../assets/quran/transliterasi/surah_091.trans.json';
+import surah092Transliteration from '../../../assets/quran/transliterasi/surah_092.trans.json';
+import surah093Transliteration from '../../../assets/quran/transliterasi/surah_093.trans.json';
+import surah094Transliteration from '../../../assets/quran/transliterasi/surah_094.trans.json';
+import surah095Transliteration from '../../../assets/quran/transliterasi/surah_095.trans.json';
+import surah096Transliteration from '../../../assets/quran/transliterasi/surah_096.trans.json';
+import surah097Transliteration from '../../../assets/quran/transliterasi/surah_097.trans.json';
+import surah098Transliteration from '../../../assets/quran/transliterasi/surah_098.trans.json';
+import surah099Transliteration from '../../../assets/quran/transliterasi/surah_099.trans.json';
+import surah100Transliteration from '../../../assets/quran/transliterasi/surah_100.trans.json';
+import surah101Transliteration from '../../../assets/quran/transliterasi/surah_101.trans.json';
+import surah102Transliteration from '../../../assets/quran/transliterasi/surah_102.trans.json';
+import surah103Transliteration from '../../../assets/quran/transliterasi/surah_103.trans.json';
+import surah104Transliteration from '../../../assets/quran/transliterasi/surah_104.trans.json';
+import surah105Transliteration from '../../../assets/quran/transliterasi/surah_105.trans.json';
+import surah106Transliteration from '../../../assets/quran/transliterasi/surah_106.trans.json';
+import surah107Transliteration from '../../../assets/quran/transliterasi/surah_107.trans.json';
+import surah108Transliteration from '../../../assets/quran/transliterasi/surah_108.trans.json';
+import surah109Transliteration from '../../../assets/quran/transliterasi/surah_109.trans.json';
+import surah110Transliteration from '../../../assets/quran/transliterasi/surah_110.trans.json';
+import surah111Transliteration from '../../../assets/quran/transliterasi/surah_111.trans.json';
+import surah112Transliteration from '../../../assets/quran/transliterasi/surah_112.trans.json';
+import surah113Transliteration from '../../../assets/quran/transliterasi/surah_113.trans.json';
+import surah114Transliteration from '../../../assets/quran/transliterasi/surah_114.trans.json';
+
 export type Ayah = {
   number: number;
   text: string;
   translation?: string;
+  transliteration?: string;
 };
 
 export type Surah = {
@@ -244,7 +361,7 @@ export type Surah = {
   source?: { dataset: string; version: string };
 };
 
-const CACHE_PREFIX = 'quran_surah_kemenagitconvert_v1_';
+const CACHE_PREFIX = 'quran_surah_kemenagitconvert_v2_'; // Updated to v2 to invalidate old cache (with transliteration)
 
 // Remove basmalah from ayah 1 for surahs where it is not counted as an ayah
 function stripBasmalahIfPresent(
@@ -520,6 +637,125 @@ const TRANSLATION_DATA = {
   114: surah114Indonesian,
 };
 
+// Transliteration data mapping
+
+const TRANSLITERATION_DATA = {
+  1: surah001Transliteration,
+  2: surah002Transliteration,
+  3: surah003Transliteration,
+  4: surah004Transliteration,
+  5: surah005Transliteration,
+  6: surah006Transliteration,
+  7: surah007Transliteration,
+  8: surah008Transliteration,
+  9: surah009Transliteration,
+  10: surah010Transliteration,
+  11: surah011Transliteration,
+  12: surah012Transliteration,
+  13: surah013Transliteration,
+  14: surah014Transliteration,
+  15: surah015Transliteration,
+  16: surah016Transliteration,
+  17: surah017Transliteration,
+  18: surah018Transliteration,
+  19: surah019Transliteration,
+  20: surah020Transliteration,
+  21: surah021Transliteration,
+  22: surah022Transliteration,
+  23: surah023Transliteration,
+  24: surah024Transliteration,
+  25: surah025Transliteration,
+  26: surah026Transliteration,
+  27: surah027Transliteration,
+  28: surah028Transliteration,
+  29: surah029Transliteration,
+  30: surah030Transliteration,
+  31: surah031Transliteration,
+  32: surah032Transliteration,
+  33: surah033Transliteration,
+  34: surah034Transliteration,
+  35: surah035Transliteration,
+  36: surah036Transliteration,
+  37: surah037Transliteration,
+  38: surah038Transliteration,
+  39: surah039Transliteration,
+  40: surah040Transliteration,
+  41: surah041Transliteration,
+  42: surah042Transliteration,
+  43: surah043Transliteration,
+  44: surah044Transliteration,
+  45: surah045Transliteration,
+  46: surah046Transliteration,
+  47: surah047Transliteration,
+  48: surah048Transliteration,
+  49: surah049Transliteration,
+  50: surah050Transliteration,
+  51: surah051Transliteration,
+  52: surah052Transliteration,
+  53: surah053Transliteration,
+  54: surah054Transliteration,
+  55: surah055Transliteration,
+  56: surah056Transliteration,
+  57: surah057Transliteration,
+  58: surah058Transliteration,
+  59: surah059Transliteration,
+  60: surah060Transliteration,
+  61: surah061Transliteration,
+  62: surah062Transliteration,
+  63: surah063Transliteration,
+  64: surah064Transliteration,
+  65: surah065Transliteration,
+  66: surah066Transliteration,
+  67: surah067Transliteration,
+  68: surah068Transliteration,
+  69: surah069Transliteration,
+  70: surah070Transliteration,
+  71: surah071Transliteration,
+  72: surah072Transliteration,
+  73: surah073Transliteration,
+  74: surah074Transliteration,
+  75: surah075Transliteration,
+  76: surah076Transliteration,
+  77: surah077Transliteration,
+  78: surah078Transliteration,
+  79: surah079Transliteration,
+  80: surah080Transliteration,
+  81: surah081Transliteration,
+  82: surah082Transliteration,
+  83: surah083Transliteration,
+  84: surah084Transliteration,
+  85: surah085Transliteration,
+  86: surah086Transliteration,
+  87: surah087Transliteration,
+  88: surah088Transliteration,
+  89: surah089Transliteration,
+  90: surah090Transliteration,
+  91: surah091Transliteration,
+  92: surah092Transliteration,
+  93: surah093Transliteration,
+  94: surah094Transliteration,
+  95: surah095Transliteration,
+  96: surah096Transliteration,
+  97: surah097Transliteration,
+  98: surah098Transliteration,
+  99: surah099Transliteration,
+  100: surah100Transliteration,
+  101: surah101Transliteration,
+  102: surah102Transliteration,
+  103: surah103Transliteration,
+  104: surah104Transliteration,
+  105: surah105Transliteration,
+  106: surah106Transliteration,
+  107: surah107Transliteration,
+  108: surah108Transliteration,
+  109: surah109Transliteration,
+  110: surah110Transliteration,
+  111: surah111Transliteration,
+  112: surah112Transliteration,
+  113: surah113Transliteration,
+  114: surah114Transliteration,
+};
+
 // Note: Metro bundler doesn't support dynamic require() with template literals
 // We need to use static imports for all surah data
 // This limitation is by design in Metro bundler
@@ -602,6 +838,35 @@ export async function loadSurahTranslation(number: number, lang = 'id'): Promise
   };
 }
 
+export async function loadSurahTransliteration(number: number): Promise<any> {
+  // Load from static imports (all surah 1-114 are now imported)
+  if (TRANSLITERATION_DATA[number as keyof typeof TRANSLITERATION_DATA]) {
+    const data = TRANSLITERATION_DATA[number as keyof typeof TRANSLITERATION_DATA];
+    return data;
+  }
+
+  // Fallback if transliteration not found
+  const meta = await loadSurahMetadata();
+  const surahMeta = meta.find((m) => m.number === number);
+
+  if (!surahMeta) {
+    return { ayat: [] };
+  }
+
+  const ayat = Array.from({ length: surahMeta.ayat_count }, (_, i) => ({
+    number: i + 1,
+    transliteration: '',
+  }));
+
+  return {
+    number,
+    name: surahMeta.name,
+    ayat_count: surahMeta.ayat_count,
+    ayat,
+    source: { dataset: 'loading', version: '1.0' },
+  };
+}
+
 export async function loadSurahCombined(number: number, lang = 'id'): Promise<Surah> {
   const cacheKey = `${CACHE_PREFIX}${number}_${lang}`;
   const cached = await AsyncStorage.getItem(cacheKey);
@@ -611,6 +876,7 @@ export async function loadSurahCombined(number: number, lang = 'id'): Promise<Su
 
   const arabic = await loadSurahArabic(number);
   const translation = await loadSurahTranslation(number, lang);
+  const transliteration = await loadSurahTransliteration(number);
 
   if (!arabic) throw new Error('Missing Arabic surah data');
 
@@ -622,11 +888,17 @@ export async function loadSurahCombined(number: number, lang = 'id'): Promise<Su
     // If basmalah was stripped from Arabic ayah 1, align translation array length
     return translation.ayat;
   })();
+  const normalizedTransliterationAyat = (() => {
+    if (arabic.number === 1) return transliteration.ayat; // keep Surah 1 as-is
+    if (arabic.number === 9) return transliteration.ayat; // Surah 9 has no basmalah
+    return transliteration.ayat;
+  })();
 
   const mergedAyat = normalizedArabicAyat.map((a: any, i: number) => ({
     number: a.number,
     text: a.text,
     translation: normalizedTranslationAyat[i]?.translation || '',
+    transliteration: normalizedTransliterationAyat[i]?.transliteration || '',
   }));
 
   const merged = {

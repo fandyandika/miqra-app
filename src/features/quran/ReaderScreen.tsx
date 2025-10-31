@@ -1109,18 +1109,13 @@ export default function ReaderScreen() {
                           </Text>
                         </Text>
                       </View>
-                      {showTransliteration &&
-                        'transliteration' in ayahItem &&
-                        (ayahItem as { transliteration?: string }).transliteration && (
-                          <Text
-                            style={[
-                              styles.transliteration,
-                              isDarkMode && styles.transliterationDark,
-                            ]}
-                          >
-                            {(ayahItem as { transliteration: string }).transliteration}
-                          </Text>
-                        )}
+                      {showTransliteration && ayahItem.transliteration && (
+                        <Text
+                          style={[styles.transliteration, isDarkMode && styles.transliterationDark]}
+                        >
+                          {ayahItem.transliteration}
+                        </Text>
+                      )}
                       {showTranslation && (
                         <Text style={[styles.translation, isDarkMode && styles.translationDark]}>
                           {ayahItem.translation}
@@ -1611,6 +1606,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2D3436',
     marginTop: -5,
+    marginBottom: 6,
     marginLeft: 8,
     textAlign: 'left',
     paddingHorizontal: 18,
@@ -1620,17 +1616,19 @@ const styles = StyleSheet.create({
     color: '#E5E5E5',
   },
   transliteration: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 16,
+    color: '#924a21',
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: 0,
+    marginBottom: 16,
     marginLeft: 8,
     textAlign: 'left',
     paddingHorizontal: 18,
     paddingRight: 0,
+    lineHeight: 22,
   },
   transliterationDark: {
-    color: '#9CA3AF',
+    color: '#D1D5DB',
   },
   containerDark: {
     backgroundColor: '#1F2937',
