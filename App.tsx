@@ -156,7 +156,16 @@ export default function App() {
     'AmiriQuran-Regular': require('./assets/fonts/AmiriQuran-Regular.ttf'),
     'LPMQ-Isep-Misbah': require('./assets/fonts/LPMQ-Isep-Misbah.ttf'),
     PlusJakartaSans: require('./assets/fonts/PlusJakartaSans-VariableFont_wght.ttf'),
+    UthmanicHafs: require('./assets/fonts/UthmanicHafs_V22.ttf'),
   });
+
+  // Debug: Log font loading status
+  useEffect(() => {
+    if (fontsLoaded) {
+      console.log('[App] Fonts loaded:', { fontsLoaded });
+      console.log('[App] UthmanicHafs font should be available');
+    }
+  }, [fontsLoaded]);
 
   useEffect(() => {
     const initializeApp = async () => {
